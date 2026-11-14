@@ -4295,3 +4295,40 @@ body.estela-docked.estela-min .estela-fab { display: flex !important; position: 
 .sf-why-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .sf-why-cols ul { margin: 0; padding-left: 16px; font-size: 13px; color: #3d5249; }
 @media (max-width: 640px) { .sf-why-cols { grid-template-columns: 1fr; } .sf-why-tbl th { width: 42%; } }
+
+/* ========================================================
+   Passagem do tempo no mapa
+   ======================================================== */
+/* Anel de progresso do ciclo em volta do ponto da cultura (rótulos T01, T02…) */
+.tl-ring { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; flex: none;
+  background: conic-gradient(var(--c) calc(var(--pct) * 1%), rgba(24, 43, 37, 0.14) 0); transition: background .6s; }
+.tl-ring .talhao-crop-dot { width: 9px !important; height: 9px !important; margin: 0 !important; border: 2px solid #fff; box-sizing: content-box; box-shadow: none !important; }
+
+/* Cartão com a data correndo */
+.tl-lapse { position: absolute; top: 14px; left: 50%; transform: translate(-50%, -8px); z-index: 1300; min-width: 220px; padding: 10px 16px; border-radius: 10px;
+  background: rgba(14, 33, 26, 0.92); color: #fff; text-align: center; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); opacity: 0; animation: tlIn .25s ease-out forwards; pointer-events: none; }
+.tl-lapse-delta { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #b9f27c; }
+.tl-lapse-date { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.tl-lapse-sum { font-size: 13px; color: #d7e6dc; max-height: 0; overflow: hidden; transition: max-height .3s, margin .3s; }
+.tl-lapse.done .tl-lapse-sum { max-height: 40px; margin-top: 4px; }
+.tl-lapse.out { animation: tlOut .35s ease-in forwards; }
+@keyframes tlIn { to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes tlOut { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, -8px); } }
+
+/* Faixa de luz atravessando o mapa */
+.tl-sweep { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.tl-sweep::before { content: ''; position: absolute; top: -20%; bottom: -20%; width: 35%; left: -40%;
+  background: linear-gradient(100deg, rgba(255, 244, 200, 0) 0%, rgba(255, 244, 200, 0.28) 50%, rgba(255, 244, 200, 0) 100%);
+  transform: skewX(-12deg); animation: tlSweep 1.3s ease-in-out forwards; }
+@keyframes tlSweep { to { left: 110%; } }
+
+/* Etiqueta da nova fase em cima do talhão */
+.phase-chip { z-index: 1150; padding: 5px 10px; border-radius: 999px; background: #fff; color: #182b25; font-size: 12.5px; font-weight: 700; white-space: nowrap;
+  border: 2px solid var(--c, #2f9a3a); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22); opacity: 0; transform: translateY(6px) scale(.9); animation: chipIn .35s cubic-bezier(.2, .9, .3, 1.3) forwards; pointer-events: none; }
+.phase-chip.out { animation: chipOut .3s ease-in forwards; }
+@keyframes chipIn { to { opacity: 1; transform: none; } }
+@keyframes chipOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .tl-lapse, .phase-chip, .tl-sweep::before { animation-duration: .01s !important; } }
+@media (max-width: 640px) { .tl-lapse { min-width: 180px; padding: 8px 12px; } .tl-lapse-date { font-size: 17px; } }
+/* Botões e controles do mapa sempre por cima dos marcadores (rótulos, etiquetas de fase, saúde) */
+.maplibregl-ctrl-top-left, .maplibregl-ctrl-top-right, .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right { z-index: 1400; }

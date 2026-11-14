@@ -30,6 +30,9 @@ export interface MapEvents {
 type LatLng = [number, number];
 type FC = FeatureCollection;
 
+/** Progresso do ciclo (0–100) para o anel do rótulo. */
+const clampPct = (v: number) => Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
+
 /** Zoom do Leaflet → zoom equivalente no MapLibre (mesma escala na tela). */
 const Z = (leafletZoom: number) => leafletZoom - 1;
 const ll = (c: LatLng): [number, number] => [c[1], c[0]];
@@ -166,7 +169,7 @@ export class MapManager {
     m.addLayer({ id: 'snapbg', type: 'raster', source: 'snapbg', layout: { visibility: 'none' } });
     m.addLayer({ id: 'labels', type: 'raster', source: 'labels' });
 
-    ['car', 'talhoes', 'leaders', 'draw', 'preview', 'adjust', 'wand'].forEach(src);
+    ['car', 'talhoes', 'talhoes-prev', 'phase-flash', 'leaders', 'draw', 'preview', 'adjust', 'wand'].forEach(src);
     // CAR: vegetação nativa, reserva legal, APP e limite do imóvel
     m.addLayer({ id: 'car-fill', type: 'fill', source: 'car', paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': ['get', 'fo'] }, filter: ['==', ['geometry-type'], 'Polygon'] });
     m.addLayer({ id: 'car-line', type: 'line', source: 'car', paint: { 'line-color': ['get', 'stroke'], 'line-width': ['get', 'w'] }, filter: ['all', ['==', ['geometry-type'], 'Polygon'], ['!=', ['get', 'kind'], 'limite']] });
@@ -177,6 +180,10 @@ export class MapManager {
       'fill-pattern': ['get', 'pattern'],
       'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.85, 0.6],
     } });
+    // aparência anterior das lavouras (some devagar quando o tempo avança)
+    m.addLayer({ id: 'talhoes-prev-fill', type: 'fill', source: 'talhoes-prev', paint: { 'fill-pattern': ['get', 'pattern'], 'fill-opacity': 0 } });
+    // contorno que pulsa nos talhões que mudaram de fase
+    m.addLayer({ id: 'phase-flash', type: 'line', source: 'phase-flash', paint: { 'line-color': '#d9ff9e', 'line-width': 2, 'line-opacity': 0, 'line-blur': 1 } });
     m.addLayer({ id: 'talhoes-line', type: 'line', source: 'talhoes', paint: {
       'line-color': '#ffffff', 'line-opacity': 0.9,
       'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 3.5, 1.5],
@@ -320,6 +327,11 @@ export class MapManager {
   }
 
   public renderTalhoes(talhoes: Talhao[], referenceDate?: string): void {
+    // Passagem de tempo (+1 semana, voltar…): guarda como estava para animar a mudança
+    const prevRef = this.currentReferenceDate;
+    const timeJump = !!referenceDate && referenceDate !== prevRef && this.layersReady && this.lastPolys.length > 0;
+    const before = timeJump ? new Map(talhoes.map((tl) => [tl.id, calculateTalhaoCropStatus(tl, prevRef)])) : null;
+    const prevPolys = timeJump ? this.lastPolys : null;
     if (referenceDate) this.currentReferenceDate = referenceDate;
     this.lastTalhoes = talhoes;
     this.talhaoMarkers.forEach((mk) => mk.remove());
@@ -372,7 +384,7 @@ export class MapManager {
       el.innerHTML = `
         <div class="talhao-label-badge ${isExpanded ? 'user-expanded' : ''}" data-talhaoid="${talhao.id}" style="border-left: 4px solid ${cropColor}">
           <div class="talhao-label-header">
-            <span class="talhao-crop-dot" style="background-color: ${cropColor}; color: ${cropColor}"></span>
+            <span class="tl-ring" style="--pct:${clampPct(cropStatus.progressPercent)}; --c:${cropColor}" title="${translateCropPhase(cropStatus.phase.key)} · ${cropStatus.progressPercent}%"><span class="talhao-crop-dot" style="background-color: ${cropColor}; color: ${cropColor}"></span></span>
             <span class="talhao-label-name">${displayName}</span>
           </div>
           <div class="talhao-badge-details">
@@ -393,6 +405,85 @@ export class MapManager {
 
     this.setData('talhoes', fc(polys));
     this.setData('leaders', fc(leaders));
+    this.lastPolys = polys;
+    if (timeJump && before && prevPolys) this.playTimeLapse(prevRef, this.currentReferenceDate, before, talhoes, prevPolys);
+  }
+
+  // ==========================================
+  // PASSAGEM DO TEMPO: data correndo, lavouras mudando de cor e destaque nas que mudaram de fase
+  // ==========================================
+  private lastPolys: Feature[] = [];
+  private lapseTimer = 0;
+  private lapseRaf = 0;
+  private phaseChips: Marker[] = [];
+  private static LAPSE: Record<string, [string, string, string, string]> = {
+    pt: ['dias', '{n} talhão mudou de fase', '{n} talhões mudaram de fase', 'Nenhum talhão mudou de fase'],
+    en: ['days', '{n} field changed phase', '{n} fields changed phase', 'No field changed phase'],
+    es: ['días', '{n} lote cambió de fase', '{n} lotes cambiaron de fase', 'Ningún lote cambió de fase'],
+    de: ['Tage', '{n} Feld hat die Phase gewechselt', '{n} Felder haben die Phase gewechselt', 'Kein Feld hat die Phase gewechselt'],
+    zh: ['天', '{n} 块地进入新阶段', '{n} 块地进入新阶段', '没有地块进入新阶段'],
+    fr: ['jours', '{n} parcelle a changé de phase', '{n} parcelles ont changé de phase', 'Aucune parcelle n’a changé de phase'],
+  };
+  private lt(i: number, n = 0): string { const l = (document.documentElement.lang || 'pt').slice(0, 2); return (MapManager.LAPSE[l] || MapManager.LAPSE.pt)[i].replace('{n}', String(n)); }
+
+  private playTimeLapse(fromIso: string, toIso: string, before: Map<string, { phase: { key: string } }>, talhoes: Talhao[], prevPolys: Feature[]): void {
+    const m = this.map, box = m.getContainer();
+    const reduce = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    window.clearTimeout(this.lapseTimer); cancelAnimationFrame(this.lapseRaf);
+    box.querySelectorAll('.tl-lapse, .tl-sweep').forEach((e) => e.remove());
+    this.phaseChips.forEach((c) => c.remove()); this.phaseChips = [];
+
+    const days = Math.round((Date.parse(toIso) - Date.parse(fromIso)) / 864e5);
+    const changed = talhoes.filter((tl) => {
+      const b = before.get(tl.id);
+      return b && tl.coordinates?.length && b.phase.key !== calculateTalhaoCropStatus(tl, toIso).phase.key;
+    });
+
+    // 1) cartão com a data correndo dia a dia
+    const card = document.createElement('div');
+    card.className = 'tl-lapse'; card.setAttribute('role', 'status');
+    card.innerHTML = `<div class="tl-lapse-delta">${days > 0 ? '+' : ''}${days} ${this.lt(0)}</div><div class="tl-lapse-date"></div><div class="tl-lapse-sum"></div>`;
+    box.appendChild(card);
+    const dateEl = card.querySelector('.tl-lapse-date') as HTMLElement, sumEl = card.querySelector('.tl-lapse-sum') as HTMLElement;
+    // 2) faixa de luz atravessando o mapa (o tempo passando)
+    if (!reduce) { const sw = document.createElement('div'); sw.className = 'tl-sweep'; box.appendChild(sw); window.setTimeout(() => sw.remove(), 1500); }
+
+    // 3) lavouras: a aparência antiga some e a nova aparece
+    (m.getSource('talhoes-prev') as GeoJSONSource | undefined)?.setData(fc(prevPolys));
+    const dur = reduce ? 1 : 1400, t0 = performance.now();
+    const flashFc = fc(changed.map((tl) => polyFeature(tl.coordinates as LatLng[])));
+    (m.getSource('phase-flash') as GeoJSONSource | undefined)?.setData(flashFc);
+    const step = (now: number) => {
+      const k = Math.min(1, (now - t0) / dur), e = k * k * (3 - 2 * k);
+      m.setPaintProperty('talhoes-prev-fill', 'fill-opacity', 0.6 * (1 - e));
+      // data: do início ao fim, um dia de cada vez
+      const d = new Date(Date.parse(fromIso) + Math.round(days * e) * 864e5).toISOString().slice(0, 10);
+      dateEl.textContent = formatDateI18n(d);
+      // contorno pulsando nos talhões que mudaram de fase (3 pulsos)
+      const pulse = Math.sin(k * Math.PI * 3) ** 2;
+      if (m.getLayer('phase-flash')) { m.setPaintProperty('phase-flash', 'line-width', 2 + 5 * pulse); m.setPaintProperty('phase-flash', 'line-opacity', 0.35 + 0.65 * pulse); }
+      if (k < 1) { this.lapseRaf = requestAnimationFrame(step); return; }
+      // fim: resumo e etiquetas com a nova fase
+      sumEl.textContent = changed.length ? this.lt(changed.length === 1 ? 1 : 2, changed.length) : this.lt(3);
+      card.classList.add('done');
+      (m.getSource('talhoes-prev') as GeoJSONSource | undefined)?.setData(EMPTY);
+      changed.slice(0, 12).forEach((tl, i) => {
+        const st = calculateTalhaoCropStatus(tl, toIso);
+        const el = document.createElement('div');
+        el.className = 'phase-chip';
+        el.style.animationDelay = `${i * 70}ms`;
+        el.style.setProperty('--c', st.phase.badgeColor);
+        el.textContent = `${st.phase.icon || ''} ${translateCropPhase(st.phase.key)}`.trim();
+        this.phaseChips.push(new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -22] }).setLngLat(ll(calculatePolygonCenter(tl.coordinates) as LatLng)).addTo(m));
+      });
+      this.lapseTimer = window.setTimeout(() => {
+        card.classList.add('out');
+        this.phaseChips.forEach((c) => c.getElement().classList.add('out'));
+        (m.getSource('phase-flash') as GeoJSONSource | undefined)?.setData(EMPTY);
+        window.setTimeout(() => { card.remove(); this.phaseChips.forEach((c) => c.remove()); this.phaseChips = []; }, 400);
+      }, 3600);
+    };
+    this.lapseRaf = requestAnimationFrame(step);
   }
 
   private openTalhaoPopup(talhao: Talhao, at: maplibregl.LngLat): void {
