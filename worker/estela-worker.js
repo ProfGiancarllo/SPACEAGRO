@@ -104,20 +104,43 @@ async function ask(req, env, cors, key) {
 
   const cfg = await readConfig(env);
   if (!cfg.anthropicKey) return json({ answer: '', error: 'claude_nao_configurado' }, cors, 503);
-  const out = await callClaude(cfg, `Dados da fazenda: ${ctx}\n\nPergunta: ${question}`);
+  const out = await callClaude(cfg, `Dados da fazenda: ${ctx}\n\nPergunta: ${question}`, await precosMercado(env));
   if (!out.ok) return json({ answer: '' }, cors, 502);
   return json({ answer: out.text }, cors);
 }
 
+
+// ---------------- Preços de mercado (o site publica data/mercado.json a cada publicação: FRED + Yahoo Finance CBOT/ICE)
+let mercadoCache = { t: 0, texto: '' };
+async function precosMercado(env) {
+  if (Date.now() - mercadoCache.t < 3600_000) return mercadoCache.texto;
+  let texto = 'Preços de mercado: sem dados reais disponíveis agora. Não cite preços; diga que o painel Mercado do app mostra os valores.';
+  try {
+    const base = env.SITE_URL || 'https://profgiancarllo.github.io/myroca';
+    const r = await fetch(`${base}/data/mercado.json`, { cf: { cacheTtl: 3600 } });
+    if (r.ok) {
+      const m = await r.json();
+      const reais = Object.entries(m.crops || {}).filter(([, c]) => c && c.example !== true && m.example !== true && Number(c.price) > 0);
+      if (reais.length) {
+        const nome = { soja: 'soja', milho: 'milho', trigo: 'trigo', algodao: 'algodão', sorgo: 'sorgo' };
+        const linhas = reais.map(([k, c]) => `- ${nome[k] || k}: R$ ${Number(c.price).toFixed(2)}/${c.unit}${typeof c.trend12m === 'number' ? ` (${c.trend12m > 0 ? '+' : ''}${c.trend12m.toFixed(1)}% em 12 meses)` : ''}${c.source ? `, fonte ${c.source}` : ''}${c.asOf ? `, em ${c.asOf}` : ''}`);
+        texto = 'Preços de referência (bolsa internacional convertida para R$, SEM prêmio nem base local de Rio Verde; diga isso e que o preço pago ao produtor pode diferir). Fonte: FRED/Yahoo Finance (CBOT/ICE)' + (m.fx ? `; dólar R$ ${Number(m.fx.last).toFixed(2)}` : '') + '.\n' + linhas.join('\n') + '\nNão faça previsão de preço nem recomende vender ou comprar; apresente só os números e a tendência.';
+      }
+    }
+  } catch { /* mantém o texto padrão */ }
+  mercadoCache = { t: Date.now(), texto };
+  return texto;
+}
+
 /** Uma chamada à API de Mensagens do Claude. Respostas curtas de chat: esforço baixo. */
-async function callClaude(cfg, userText) {
+async function callClaude(cfg, userText, extraSystem = '') {
   const fallbackOk = cfg.model !== 'claude-haiku-5-5'; // o Haiku 5.5 não tem fallback no servidor
   const headers = { 'content-type': 'application/json', 'x-api-key': cfg.anthropicKey, 'anthropic-version': '2023-06-01' };
   if (fallbackOk) headers['anthropic-beta'] = 'server-side-fallback-2026-07-01';
   const payload = {
     model: cfg.model,
     max_tokens: 16000,
-    system: SYSTEM,
+    system: extraSystem ? SYSTEM + '\n\n' + extraSystem : SYSTEM,
     output_config: { effort: 'low' },
     messages: [{ role: 'user', content: userText }],
   };
