@@ -508,6 +508,9 @@ export interface TranslationDictionary {
   tipCloseTalhao: string;
   layerSatellite: string;
   layerRoads: string;
+  layerNasa: string;
+  layerNasaDate: string;
+  layerNasaNote: string;
   layerLabels: string;
   attribSatellite: string;
   demoSeason2526: string;

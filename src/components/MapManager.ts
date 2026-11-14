@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import { twinLook, ensurePattern } from '../utils/twinLook';
-import { NASA_LAYERS, NasaLayerId, nasaTileUrl, matrixZoom } from '../utils/nasaLayers';
+import { NASA_LAYERS, NasaLayerId, nasaTileUrl, matrixZoom, NASA_TRUECOLOR, nasaTrueColorUrl, nasaDefaultDate } from '../utils/nasaLayers';
 import { ensureSnapshot, farmBounds, Snap } from '../utils/farmSnapshot';
 import { CAR_PROPERTY, CAR_RESERVA, CAR_NATIVA, CAR_APP, CAR_VIEW, CAR_FIT } from '../data/farmCar';
 import { segmentField } from '../utils/segment';
@@ -85,8 +85,17 @@ export class MapManager {
     esriLabels.addTo(this.map);
     this.liveTiles = [esriSatellite, esriLabels];
 
+    // Satélite da NASA (VIIRS, imagem diária ~300 m/pixel): opção de mapa base com escolha de data
+    let nasaDate = nasaDefaultDate();
+    const nasaSatellite = L.tileLayer(nasaTrueColorUrl(nasaDate), {
+      maxNativeZoom: NASA_TRUECOLOR.maxNativeZoom,
+      maxZoom: 19,
+      attribution: 'NASA GIBS &mdash; VIIRS NOAA-20',
+    });
+
     const baseMaps = {
       [t('layerSatellite')]: esriSatellite,
+      [t('layerNasa')]: nasaSatellite,
       [t('layerRoads')]: osmLayer,
     };
 
@@ -95,6 +104,28 @@ export class MapManager {
     };
 
     L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(this.map);
+
+    // Data da imagem da NASA: aparece só quando essa camada está ativa
+    const NasaDateControl = L.Control.extend({
+      onAdd: () => {
+        const box = L.DomUtil.create('div', 'nasa-date-ctl leaflet-control');
+        box.innerHTML = `<label><span>${t('layerNasaDate')}</span><input type="date" value="${nasaDate}" max="${nasaDefaultDate()}" min="2018-01-01" /></label><p>${t('layerNasaNote')}</p>`;
+        L.DomEvent.disableClickPropagation(box);
+        L.DomEvent.disableScrollPropagation(box);
+        box.querySelector('input')!.addEventListener('change', (e) => {
+          const v = (e.target as HTMLInputElement).value;
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+          nasaDate = v;
+          nasaSatellite.setUrl(nasaTrueColorUrl(v));
+        });
+        return box;
+      },
+    });
+    const nasaDateCtl = new NasaDateControl({ position: 'topright' });
+    this.map.on('baselayerchange', (e: L.LayersControlEvent) => {
+      if (e.layer === nasaSatellite) nasaDateCtl.addTo(this.map);
+      else nasaDateCtl.remove();
+    });
 
     // Escala métrica gráfica no canto inferior esquerdo
     L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(this.map);

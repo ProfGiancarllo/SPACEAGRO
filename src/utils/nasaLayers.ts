@@ -22,5 +22,15 @@ export const NASA_LAYERS: NasaLayerDef[] = [
 ];
 
 export const matrixZoom = (m: string): number => Number(m.replace(/\D/g, '')) || 6;
+
+/**
+ * Imagem de satélite "cor verdadeira" diária da NASA, usada como opção de mapa base.
+ * No padrão do mapa (EPSG:3857) a melhor resolução disponível é o nível 9 (~300 m/pixel).
+ */
+export const NASA_TRUECOLOR = { layer: 'VIIRS_NOAA20_CorrectedReflectance_TrueColor', matrix: 'GoogleMapsCompatible_Level9', maxNativeZoom: 9 };
+export const nasaTrueColorUrl = (date: string): string =>
+  `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${NASA_TRUECOLOR.layer}/default/${date}/${NASA_TRUECOLOR.matrix}/{z}/{y}/{x}.jpg`;
+/** Ontem (a imagem do dia corrente costuma estar incompleta). */
+export const nasaDefaultDate = (): string => new Date(Date.now() - 864e5).toISOString().slice(0, 10);
 export const nasaTileUrl = (d: NasaLayerDef, matrix: string): string =>
   `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${d.layer}/default/${matrix}/{z}/{y}/{x}.${d.ext}`;

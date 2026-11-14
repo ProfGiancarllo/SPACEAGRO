@@ -4299,3 +4299,11 @@ body.estela-docked .estela-head { padding-top: 16px; }
 @media (max-width: 640px) {
   .estela-panel { left: 0; bottom: 0; top: 0; width: 100vw; height: 100dvh; border-radius: 0; }
 }
+
+/* Data da imagem de satélite da NASA (camada base opcional) */
+.nasa-date-ctl { background: #fff; border: 1px solid #dfe6e1; border-radius: 8px; padding: 8px 10px; width: 220px; box-shadow: 0 1px 3px rgba(24, 43, 37, 0.15); color: #182b25; font-size: 12.5px; }
+.nasa-date-ctl label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.nasa-date-ctl input { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #cbd7cf; border-radius: 6px; color: #182b25; background: #fff; }
+.nasa-date-ctl input:focus { outline: 2px solid #245b43; outline-offset: -1px; }
+.nasa-date-ctl p { margin: 6px 0 0; color: #65756e; line-height: 1.4; font-size: 11.5px; }
+@media (max-width: 640px) { .nasa-date-ctl { width: 180px; } }
