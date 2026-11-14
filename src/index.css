@@ -4064,6 +4064,10 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
 .sat-dot { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; color: #fff; font-weight: 800; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
 .sat-dot.atencao { background: #b45309; } .sat-dot.ok { background: #2f6b4f; } .sat-dot.sem_dado { background: #65756e; }
 .sat-head.atencao { background: #fdf0e1; }
+.water-pill { bottom: 88px; }
+.water-day { margin: 0 0 8px; padding: 8px 10px; background: #eef4f1; border-left: 3px solid #2f6b4f; border-radius: 4px; font-size: 15px; color: #1f3a2e; }
+.water-warn { margin: 0 0 8px; padding: 8px 10px; background: #fdf0e1; border-left: 3px solid #b45309; border-radius: 4px; font-size: 13.5px; color: #6b3305; }
+.water-warn.soft { background: #f3f5f4; border-left-color: #65756e; color: #3d5249; }
 .sat-modal ul { margin: 0 0 10px; padding-left: 18px; font-size: 14px; color: #3d5249; }
 /* Administração: lista de contas */
 .adm-acc-wrap { overflow-x: auto; margin-top: 10px; }
@@ -4128,6 +4132,7 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
   .estela-fab-mic { left: auto; right: 12px; bottom: calc(68px + env(safe-area-inset-bottom)); width: 46px; height: 46px; }
   /* Aviso de queimadas: só aparece quando tem algo a dizer; fica no canto inferior esquerdo */
   .fire-pill.off { display: none !important; }
+  .water-pill { bottom: calc(180px + env(safe-area-inset-bottom)); }
   .sat-pill { left: 10px; right: auto; bottom: calc(62px + env(safe-area-inset-bottom)); max-width: calc(100vw - 200px); border-radius: 12px; font-size: 12.5px; }
   .fire-pill { left: 10px; right: auto; bottom: calc(14px + env(safe-area-inset-bottom)); max-width: calc(100vw - 200px); white-space: normal; font-size: 12.5px; }
   /* Controles do mapa compactos, numa linha */

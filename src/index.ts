@@ -3,6 +3,7 @@ import { calculatePolygonAreaHectares, calculatePerimeterKm, formatHectares, par
 import { loadFarmData, saveFarmData, resetToDemoFarm, clearAllFarmData } from './utils/storage';
 import { FireAlert } from './components/FireAlert';
 import { SatelliteHealth } from './components/SatelliteHealth';
+import { WaterStress } from './components/WaterStress';
 import { enableDraggableWindows } from './utils/dragWindows';
 import { MapManager } from './components/MapManager';
 import { CoordinateRow, parseCoordinatePair, parsePastedCoordinateText, validateCoordinate } from './utils/coordinateParser';
@@ -53,6 +54,7 @@ class AgroApp {
   private estela!: EstelaChat;
   private fireAlert!: FireAlert;
   private satHealth!: SatelliteHealth;
+  private waterStress!: WaterStress;
 
   // View mode & Agricultural calendar
   private referenceDate = DEFAULT_REFERENCE_DATE;
@@ -158,6 +160,8 @@ class AgroApp {
     this.fireAlert.start();
     this.satHealth = new SatelliteHealth({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap(), getTools: () => this.mapManager.topLeft() });
     this.satHealth.start();
+    this.waterStress = new WaterStress({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap(), getTools: () => this.mapManager.topLeft() });
+    this.waterStress.start();
     enableDraggableWindows();
   }
 

@@ -1,0 +1,37 @@
+# Lê as imagens do ECOSTRESS (NASA) dos talhões da fazenda de demonstração e publica public/data/estresse-hidrico.json na main.
+# Usa os segredos EARTHDATA_USER e EARTHDATA_PASS. O app lê o arquivo direto da main (raw.githubusercontent.com).
+name: Estresse hidrico por satelite
+on:
+  schedule:
+    - cron: '43 9 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: estresse-hidrico
+  cancel-in-progress: false
+jobs:
+  analisa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -q earthaccess rasterio shapely pyproj numpy
+      - run: python scripts/estresse_hidrico.py
+        env:
+          EARTHDATA_USER: ${{ secrets.EARTHDATA_USER }}
+          EARTHDATA_PASS: ${{ secrets.EARTHDATA_PASS }}
+      - name: Publicar resultado
+        run: |
+          git config user.name "myroca-bot"
+          git config user.email "myroca-bot@users.noreply.github.com"
+          git add public/data/estresse-hidrico.json
+          git diff --cached --quiet && echo "sem mudanca" && exit 0
+          git commit -m "Estresse hidrico: atualizacao automatica"
+          git pull --rebase origin main
+          git push origin HEAD:main
