@@ -1,0 +1,22 @@
+ZARC Rio Verde-GO, safra 2026/2027 (MAPA). Risco climático de perda: 20%=menor, 30%, 40%=maior. Decêndio = 10 dias.
+- Algodão Herbáceo (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan; 1º dec dez a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec jan a 3º dec fev
+- Amendoim (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan a 2º dec jan; 3º dec out a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 3º dec jan a 1º dec fev; 1º dec out a 2º dec out
+- Arroz (sequeiro): risco 20% em todos os solos e ciclos: 3º dec out a 1º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec jan a 3º dec jan; 1º dec out a 2º dec out; 2º dec dez a 3º dec dez
+- Cevada Cervejeira (irrigado): risco 20% em todos os solos e ciclos: 1º dec mai a 1º dec jun
+- Cevada Grãos (irrigado): risco 20% em todos os solos e ciclos: 2º dec abr a 1º dec jun
+- Cevada Grãos (sequeiro): risco 20% em todos os solos e ciclos: nenhum. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec mar a 3º dec abr
+- Feijão (irrigado): risco 20% em todos os solos e ciclos: 1º dec jan a 1º dec jul; 3º dec set a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec jul a 2º dec set
+- Feijão (sequeiro): risco 20% em todos os solos e ciclos: nenhum. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec out a 3º dec dez
+- Feijão 2ª Safra (sequeiro): risco 20% em todos os solos e ciclos: nenhum. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec jan a 2º dec mar
+- Feijão Caupi (sequeiro): risco 20% em todos os solos e ciclos: nenhum. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec jan a 2º dec mar
+- Girassol (sequeiro): risco 20% em todos os solos e ciclos: 2º dec jan. Só em alguns solos/ciclos ou com risco maior (30-40%): 3º dec jan a 2º dec mar; 2º dec out a 3º dec out
+- Mamona (sequeiro): risco 20% em todos os solos e ciclos: nenhum. Só em alguns solos/ciclos ou com risco maior (30-40%): 3º dec jan a 2º dec mar
+- Milho 1ª Safra (sequeiro): risco 20% em todos os solos e ciclos: 1º dec nov a 2º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec out a 3º dec out; 3º dec dez
+- Milho 1ª Safra consorciado com Braquiária (sequeiro): risco 20% em todos os solos e ciclos: 1º dec nov a 2º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec out a 3º dec out; 3º dec dez
+- Milho 2ª Safra (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec jan a 3º dec fev
+- Milho 2ª Safra consorciado com Braquiária (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec jan a 3º dec fev
+- Soja (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan; 3º dec out a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 3º dec set a 2º dec out
+- Sorgo Forrageiro (sequeiro): risco 20% em todos os solos e ciclos: 3º dec out a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec out a 2º dec out
+- Sorgo Forrageiro 2ª Safra (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan a 2º dec jan. Só em alguns solos/ciclos ou com risco maior (30-40%): 3º dec jan a 1º dec abr
+- Sorgo Granífero (sequeiro): risco 20% em todos os solos e ciclos: 2º dec out a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec out
+- Sorgo Granífero 2ª Safra (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan a 3º dec jan. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec fev a 3º dec mar
