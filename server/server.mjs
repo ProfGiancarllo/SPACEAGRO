@@ -10,6 +10,7 @@
 //   ADMIN_PASSWORD      senha do painel de super admin (opcional; sem ela o painel fica desligado)
 //   ALLOWED_ORIGIN      ex.: https://spaceagro.pro
 //   MODEL / TTS_VOICE   padrões (opcionais)
+//   SITE_URL            endereço público do app, de onde a Estrela lê data/mercado.json
 //   PORT                porta interna (padrão 3000)
 //   DATA_DIR            onde o painel grava modelo/voz/chaves (padrão /data, use um volume)
 import http from 'node:http';
@@ -51,6 +52,7 @@ const env = {
   ALLOWED_ORIGIN: process.env.ALLOWED_ORIGIN || '*',
   MODEL: process.env.MODEL || '',
   TTS_VOICE: process.env.TTS_VOICE || '',
+  SITE_URL: process.env.SITE_URL || '',
   CONFIG: kvOk ? kv : undefined,
 };
 
