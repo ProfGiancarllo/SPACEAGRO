@@ -15,7 +15,7 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const RAW = 'https://raw.githubusercontent.com/ProfGiancarllo/myroca/main/public/data/saude-talhoes.json';
 const COLOR = { atencao: '#b45309', ok: '#2f6b4f', sem_dado: '#65756e' };
 
-/** Botão no mapa que mostra os alertas de saúde da lavoura (Sentinel-2) calculados pela rotina scripts/saude_satelite.py. */
+/** Botão no mapa que mostra os alertas de saúde da lavoura (Landsat 8/9, NASA/USGS) calculados pela rotina scripts/saude_satelite.py. */
 export class SatelliteHealth {
   private btn: HTMLButtonElement | null = null;
   private markers: Marker[] = [];

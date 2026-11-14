@@ -1,4 +1,4 @@
-# Analisa imagens Sentinel-2 dos talhões da fazenda de demonstração e publica public/data/saude-talhoes.json na main.
+# Analisa imagens Landsat 8/9 (NASA/USGS) dos talhões da fazenda de demonstração e publica public/data/saude-talhoes.json na main.
 # O app lê esse arquivo direto da main (raw.githubusercontent.com), sem precisar publicar o site de novo.
 name: Saude da lavoura por satelite
 on:
