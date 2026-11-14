@@ -4028,3 +4028,99 @@ body.estela-docked .estela-panel { position: relative; }
 .nx-risk.high { font-weight: 700; color: #9b2c1f; } .nx-risk.medium { font-weight: 700; color: #8a5a0b; } .nx-risk.low { color: #245b43; }
 .nx-note { margin: 10px 0 0; font-size: 12px; color: #65756e; }
 .nx-card ul { margin: 0 0 6px; padding-left: 18px; font-size: 14px; color: #3d5249; } .nx-card li { margin: 3px 0; }
+
+
+
+/* ========================================================
+   TELA DE ACESSO — layout dividido (imagem de satélite + formulário)
+   ======================================================== */
+#auth-screen { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(420px, 1fr); align-items: stretch; padding: 0; background: #fff; color: #182b25; }
+.auth-hero { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding: 48px 56px 32px; color: #fff; background: #10261d url('/intro/farm.jpg') center / cover no-repeat; overflow: hidden; }
+.auth-hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12, 31, 23, 0.55) 0%, rgba(12, 31, 23, 0.85) 100%); }
+.auth-hero::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px); background-size: 64px 64px; }
+.auth-hero > * { position: relative; z-index: 1; }
+.auth-hero-body { margin-top: auto; max-width: 480px; }
+.auth-hero h2 { margin: 0 0 12px; font-size: 32px; line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
+.auth-hero-body > p { margin: 0 0 28px; font-size: 16px; line-height: 1.5; color: rgba(255, 255, 255, 0.82); }
+.auth-feats { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(255, 255, 255, 0.22); }
+.auth-feats li { padding: 12px 0; font-size: 14.5px; color: rgba(255, 255, 255, 0.92); border-bottom: 1px solid rgba(255, 255, 255, 0.22); }
+.auth-sources { margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.62); letter-spacing: 0.01em; }
+.auth-panel { display: flex; align-items: center; justify-content: center; padding: 40px 24px; background: #fff; overflow-y: auto; }
+#auth-screen .auth-card { width: min(400px, 100%); margin: 0; padding: 0; border: 0; box-shadow: none; background: transparent; }
+#auth-screen .auth-top { margin-bottom: 36px; }
+#auth-lang { font: inherit; font-size: 13px; color: #3d5249; border: 1px solid #dfe6e1; border-radius: 7px; padding: 6px 8px; background: #fff; }
+#auth-screen .auth-card h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 6px; }
+#auth-screen .auth-sub { font-size: 14px; margin: 0 0 24px; }
+#auth-screen .auth-tabs { display: flex; gap: 0; padding: 0; margin: 0 0 22px; background: none; border: 0; border-bottom: 1px solid #dfe6e1; border-radius: 0; }
+#auth-screen .auth-tabs button { flex: 0 0 auto; padding: 10px 0; margin-right: 24px; margin-bottom: -1px; border-radius: 0; border-bottom: 2px solid transparent; background: none; color: #65756e; font-size: 14px; font-weight: 600; box-shadow: none; }
+#auth-screen .auth-tabs button:hover { color: #182b25; }
+#auth-screen .auth-tabs button.on { color: #182b25; border-bottom-color: #245b43; background: none; box-shadow: none; }
+#auth-screen .auth-field { margin-bottom: 16px; }
+#auth-screen .auth-field span { font-size: 13px; font-weight: 600; color: #3d5249; margin-bottom: 6px; }
+#auth-screen .auth-field input { height: 44px; padding: 0 12px; border: 1px solid #cbd7cf; border-radius: 7px; font-size: 15px; background: #fff; transition: border-color .15s; }
+#auth-screen .auth-field input:hover { border-color: #9fb3a7; }
+#auth-screen .auth-field input:focus { outline: none; border-color: #245b43; box-shadow: 0 0 0 3px rgba(36, 91, 67, 0.15); }
+#auth-screen .auth-check { margin: 4px 0 20px; font-size: 13.5px; }
+#auth-screen .auth-check input { accent-color: #245b43; width: 16px; height: 16px; margin-top: 1px; }
+#auth-screen .auth-primary { height: 46px; padding: 0 16px; border-radius: 7px; font-size: 15px; font-weight: 600; transition: background .15s; }
+#auth-screen .auth-primary:focus-visible, #auth-screen .auth-link:focus-visible, #auth-screen .auth-guest:focus-visible, #auth-screen .auth-tabs button:focus-visible { outline: 2px solid #245b43; outline-offset: 2px; }
+#auth-screen .auth-link { width: auto; margin: 14px 0 0; padding: 0; text-align: left; font-size: 13.5px; font-weight: 600; text-decoration: none; }
+#auth-screen .auth-link:hover { text-decoration: underline; }
+#auth-screen .auth-guest { width: 100%; height: 44px; margin-top: 28px; border: 1px solid #cbd7cf; border-radius: 7px; background: #fff; color: #182b25; font-size: 14px; font-weight: 600; text-decoration: none; transition: background .15s; }
+#auth-screen .auth-guest:hover { background: #f2f5f2; }
+#auth-screen .auth-note { margin-top: 12px; text-align: left; font-size: 12px; line-height: 1.45; }
+@media (max-width: 960px) {
+  #auth-screen { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .auth-hero { padding: 28px 24px 20px; gap: 16px; }
+  .auth-hero h2 { font-size: 22px; }
+  .auth-hero-body > p { margin-bottom: 0; font-size: 14px; }
+  .auth-feats, .auth-sources { display: none; }
+  .auth-panel { align-items: flex-start; padding: 28px 16px 32px; overflow: visible; }
+  #auth-screen .auth-top { margin-bottom: 24px; }
+}
+
+/* ========================================================
+   ESTRELA — leitura fácil (baixa literacia digital)
+   Letras maiores, botões grandes com texto, voz em destaque.
+   ======================================================== */
+.estela-panel { width: min(420px, calc(100vw - 28px)); height: min(680px, calc(100vh - 40px)); }
+.estela-head { padding: 12px 14px; }
+.estela-title { font-size: 17px; }
+.estela-title .estela-ico { width: 30px; height: 30px; }
+.estela-head-btns button { min-height: 44px; font-size: 14px; font-weight: 600; }
+#estela-clear { border: 1px solid #cbd7cf; padding: 0 12px; }
+#estela-close { min-width: 44px; justify-content: center; font-size: 28px; }
+#estela-speak { min-width: 44px; justify-content: center; }
+.estela-list { padding: 14px; gap: 12px; }
+.estela-msg { max-width: 92%; padding: 12px 14px; font-size: 16px; line-height: 1.5; border-radius: 10px; }
+.estela-msg.me { font-weight: 500; }
+.estela-src { display: inline-block; margin-top: 4px; font-size: 13px; opacity: 1; color: #65756e; }
+.estela-actions { gap: 8px; margin-top: 12px; }
+.estela-actions button { flex: 1 1 auto; min-height: 48px; padding: 0 18px; font-size: 16px; font-weight: 600; color: #182b25; border: 1px solid #9fb3a7; border-radius: 8px; }
+.estela-actions button:first-child { font-weight: 700; }
+.estela-actions button:focus-visible, .estela-chips button:focus-visible, .estela-mic:focus-visible, .estela-send:focus-visible, .estela-head-btns button:focus-visible { outline: 3px solid #245b43; outline-offset: 2px; }
+.estela-chips { flex-direction: column; flex-wrap: nowrap; gap: 6px; padding: 4px 14px 10px; }
+.estela-chips button { width: 100%; min-height: 46px; padding: 8px 14px; text-align: left; font-size: 15px; font-weight: 500; color: #182b25; border: 1px solid #cbd7cf; border-radius: 8px; background: #fff; }
+.estela-chips button:hover { background: #f2f5f2; border-color: #9fb3a7; }
+.estela-form { flex-direction: column; gap: 8px; padding: 10px 14px 14px; }
+.estela-mic { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 2px solid #245b43; border-radius: 9px; background: #fff; color: #245b43; font-size: 17px; font-weight: 700; }
+.estela-mic svg { margin: 0; flex: none; }
+.estela-mic:hover { background: #e8f0eb; }
+.estela-mic.on { border-color: #b34848; background: #b34848; color: #fff; animation: none; }
+.estela-type { display: flex; gap: 8px; }
+.estela-form input { height: 48px; padding: 0 12px; font-size: 16px; }
+.estela-form input::placeholder { color: #65756e; }
+.estela-send { width: auto; min-width: 88px; height: 48px; padding: 0 16px; font-size: 16px; font-weight: 700; }
+.estela-send:hover { background: #1d4a36; }
+@media (max-width: 640px) {
+  .estela-panel { height: calc(100dvh - 14px); }
+}
+.estela-title-txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.estela-title-txt b { font-size: 17px; }
+.estela-title-txt small { font-size: 13px; font-weight: 500; color: #65756e; }
+/* Estrela encaixada na lateral: ocupa exatamente a coluna, sem deslocamento herdado do modo flutuante */
+body.estela-docked #estela-root { min-width: 0; max-width: 100%; }
+body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width: 100%; min-width: 0; }
+/* Sugestões lado a lado (continuam grandes), para não espremer a conversa */
+.estela-chips { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+.estela-chips button { width: auto; min-height: 44px; flex: 0 1 auto; }

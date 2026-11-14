@@ -114,7 +114,7 @@ export class EstelaChat {
       <button class="estela-fab-mic" id="estela-fab-mic" title="${et('mic')}" aria-label="${et('mic')}"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
       <div class="estela-panel" id="estela-panel" style="display:none" role="dialog" aria-label="${et('title')}">
         <div class="estela-head">
-          <div class="estela-title"><img class="estela-ico" src="./assets/brand/spaceagro-icon.svg" alt="" /><span>${et('title')}</span></div>
+          <div class="estela-title"><img class="estela-ico" src="./assets/brand/spaceagro-icon.svg" alt="" /><span class="estela-title-txt">${et('title').split('•').map((s, i) => (i ? `<small>${s.trim()}</small>` : `<b>${s.trim()}</b>`)).join('')}</span></div>
           <div class="estela-head-btns">
             ${voiceUrl() ? `<button id="estela-speak" title="${this.speak ? et('speakOn') : et('speakOff')}" aria-label="${this.speak ? et('speakOn') : et('speakOff')}">${this.speak ? SPK_ON : SPK_OFF}</button>` : ''}
             <button id="estela-clear" title="${et('clear')}">${et('clear')}</button>
@@ -127,9 +127,11 @@ export class EstelaChat {
           ${['chip1', 'chip2', 'chip3', 'chip4'].map((k) => `<button type="button" data-chip="${k}">${et(k)}</button>`).join('')}
         </div>
         <form class="estela-form" id="estela-form">
-          <button type="button" class="estela-mic" id="estela-mic" title="${et('mic')}" aria-label="${et('mic')}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
-          <input id="estela-input" type="text" autocomplete="off" placeholder="${et('placeholder')}" />
-          <button type="submit" class="estela-send" title="${et('send')}">➤</button>
+          <button type="button" class="estela-mic" id="estela-mic" title="${et('mic')}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span class="estela-mic-txt">${et('mic')}</span></button>
+          <div class="estela-type">
+            <input id="estela-input" type="text" autocomplete="off" placeholder="${et('placeholder')}" aria-label="${et('placeholder')}" />
+            <button type="submit" class="estela-send">${et('send')}</button>
+          </div>
         </form>
       </div>`;
     this.panel = this.root.querySelector('#estela-panel')!;
@@ -458,6 +460,8 @@ export class EstelaChat {
   }
   private micUi(): void {
     this.root.querySelector('#estela-mic')?.classList.toggle('on', this.listening);
+    const micTxt = this.root.querySelector('.estela-mic-txt');
+    if (micTxt) micTxt.textContent = this.listening ? et('micOn') : et('mic');
     if (!this.listening) this.input.placeholder = et('placeholder');
   }
 
