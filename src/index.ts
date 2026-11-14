@@ -17,7 +17,6 @@ import { MarketPanel } from './components/MarketPanel';
 import { RotationPlanner } from './components/RotationPlanner';
 import { EstelaChat } from './estela/EstelaChat';
 import { SimpleHome } from './simple/SimpleHome';
-import { playIntro } from './intro/IntroVideo';
 import { rt } from './i18n/rotationText';
 import { sf } from './i18n/safraText';
 import { HomeSide } from './components/HomeSide';
@@ -3138,10 +3137,9 @@ ${isSuperAdmin() ? `<div class="menu-head">Sistema</div>
 document.addEventListener('DOMContentLoaded', () => {
   // ?admin abre a administração; se ainda não houver super admin neste aparelho, primeiro vem a tela de criação
   const wantAdmin = new URLSearchParams(location.search).has('admin');
-  // Enquanto a abertura toca, descobre se as contas estão no servidor (PostgreSQL) e sincroniza a sessão
-  const cloudReady = initCloud().then(() => syncOnStart());
-  playIntro()
-    .then(() => cloudReady)
+  // Descobre se as contas estão no servidor (PostgreSQL) e sincroniza a sessão; depois login e app
+  initCloud()
+    .then(() => syncOnStart())
     .then(async () => { if (wantAdmin && !hasSuperAdmin()) await openAdminSetup(); })
     .then(() => requireAuth())
     .then(() => { const app = new AgroApp(); if (wantAdmin) app.openAdmin(); });

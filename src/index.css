@@ -3159,17 +3159,6 @@ body.mode-simple .estela-fab,body.mode-simple .estela-fab-mic{display:none!impor
 @media(max-width:700px){.sh-grid{grid-template-columns:1fr}.sh-rec{grid-template-columns:repeat(2,1fr)}.sh-bottom{flex-direction:column}.sh-xl{min-height:60px}.sh-wrap{padding-bottom:190px}}
 
 /* ===== Abertura em vídeo ===== */
-#intro-video { position: fixed; inset: 0; z-index: 20000; background: #02040c; transition: opacity .45s; font-family: system-ui, sans-serif; }
-#intro-video.iv-out { opacity: 0; pointer-events: none; }
-#intro-video canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-#intro-video .iv-cap { position: absolute; left: 50%; bottom: 9%; transform: translateX(-50%); width: min(90vw, 760px); text-align: center; color: #fff; font-size: clamp(18px, 3.2vw, 30px); font-weight: 600; text-shadow: 0 2px 14px rgba(0,0,0,.85); transition: opacity .3s; }
-#intro-video .iv-skip { position: absolute; top: 14px; right: 14px; background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; padding: 8px 16px; font-size: 14px; cursor: pointer; min-height: 40px; }
-#intro-video .iv-end { position: absolute; left: 6%; top: 50%; transform: translateY(-50%); max-width: min(52vw, 560px); color: #fff; opacity: 0; transition: opacity .8s; pointer-events: none; }
-#intro-video .iv-end.show { opacity: 1; pointer-events: auto; }
-#intro-video .iv-title { font-size: clamp(28px, 5.2vw, 54px); font-weight: 800; line-height: 1.12; text-shadow: 0 3px 20px rgba(0,0,0,.7); }
-#intro-video .iv-sub { margin: 14px 0 22px; font-size: clamp(14px, 2vw, 20px); color: #bfe3ff; letter-spacing: .02em; }
-#intro-video #iv-enter { background: #3fa34d; color: #fff; border: 0; border-radius: 12px; padding: 14px 28px; font-size: 20px; font-weight: 700; cursor: pointer; min-height: 52px; box-shadow: 0 6px 24px rgba(63,163,77,.5); }
-@media (max-width: 700px) { #intro-video .iv-end { left: 5%; top: 30%; max-width: 90vw; } }
 
 /* ===== Gêmeo digital (mapa de satélite) ===== */
 .maplibregl-map { background: #e8eee9; }
@@ -4351,13 +4340,3 @@ body.estela-docked .estela-panel { border: 0; border-radius: 0; box-shadow: none
   .map-tools .adjust-btn { white-space: nowrap; }
 }
 
-/* ===== Abertura com a Estrela: tela final centralizada sob o logo ===== */
-#intro-video .iv-end.iv-end-star { left: 50%; top: auto; bottom: 9vh; transform: translateX(-50%); max-width: min(92vw, 640px); text-align: center; display: flex; flex-direction: column; align-items: center; }
-#intro-video .iv-end-star .iv-title { font-size: clamp(40px, 7vw, 72px); font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: #fff; }
-#intro-video .iv-end-star .iv-tagline { margin-top: 10px; font-size: clamp(17px, 2.4vw, 24px); color: #e6f6d8; font-weight: 500; }
-#intro-video .iv-end-star .iv-sub { margin: 10px 0 22px; font-size: clamp(12px, 1.6vw, 15px); color: #9fb7c9; }
-#intro-video .iv-end-star #iv-enter { background: #3f9e2f; border-radius: 10px; padding: 14px 40px; font-size: 18px; font-weight: 700; color: #fff; border: 0; cursor: pointer; min-height: 48px; }
-#intro-video .iv-end-star #iv-enter:hover { background: #358a27; }
-#intro-video .iv-end-star #iv-enter:focus-visible, #intro-video .iv-skip:focus-visible { outline: 3px solid #b8f28a; outline-offset: 3px; }
-#intro-video .iv-logo-slot { display: none; }
-@media (max-width: 700px) { #intro-video .iv-end.iv-end-star { top: auto; bottom: 7vh; left: 50%; } }
