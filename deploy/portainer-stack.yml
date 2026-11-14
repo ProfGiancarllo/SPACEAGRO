@@ -1,19 +1,34 @@
-# Stack do SpaceAgro para o Portainer (stack do tipo Compose, atrás do Traefik v2).
+# Stack do SpaceAgro para o Portainer (ambiente Swarm, atrás do Traefik v2 que já roda no servidor).
 #
-# No Portainer: Stacks → Add stack → Web editor → cole este arquivo e, em "Environment variables", defina:
+# No Portainer: Stacks → Add stack → Repository (este repositório, arquivo deploy/portainer-stack.yml)
+# e, em "Environment variables", defina:
 #   ANTHROPIC_API_KEY   chave da API do Claude (obrigatória para a Estrela responder perguntas livres)
 #   OPENAI_API_KEY      chave da OpenAI para a voz da Estrela (opcional)
 #   ADMIN_PASSWORD      senha do painel de super admin do app (opcional)
 #
-# Feita para o servidor atual: Traefik v2.11 em container (provedor Docker, não Swarm),
-# rede "web", entrypoints "web"/"websecure" e certresolver "letsencrypt".
+# Servidor atual: Traefik v2.11 em container, ligado à rede overlay "traefik_public",
+# entrypoint "websecure" e certresolver "letsencrypt".
+# As labels do Traefik vão em dois lugares: no container (lidas pelo provedor Docker comum)
+# e em deploy (lidas se o Traefik estiver em modo Swarm). Assim funciona nos dois casos.
 # DNS: spaceagro.pro e www.spaceagro.pro apontando para o IP do servidor (www redireciona para spaceagro.pro).
+
+version: "3.8"
+
+x-traefik-labels: &traefik-labels
+  - traefik.enable=true
+  - traefik.docker.network=traefik_public
+  - traefik.http.routers.spaceagro.rule=Host(`spaceagro.pro`) || Host(`www.spaceagro.pro`)
+  - traefik.http.routers.spaceagro.entrypoints=websecure
+  - traefik.http.routers.spaceagro.tls.certresolver=letsencrypt
+  - traefik.http.routers.spaceagro.middlewares=spaceagro-www
+  - traefik.http.middlewares.spaceagro-www.redirectregex.regex=^https?://www\.spaceagro\.pro/(.*)
+  - traefik.http.middlewares.spaceagro-www.redirectregex.replacement=https://spaceagro.pro/$${1}
+  - traefik.http.middlewares.spaceagro-www.redirectregex.permanent=true
+  - traefik.http.services.spaceagro.loadbalancer.server.port=3000
 
 services:
   spaceagro:
     image: ghcr.io/profgiancarllo/myroca:latest
-    container_name: spaceagro
-    restart: unless-stopped
     environment:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
@@ -25,24 +40,25 @@ services:
     volumes:
       - spaceagro_data:/data
     networks:
-      - web
-    mem_limit: 256m
-    cpus: 1
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=web
-      - traefik.http.routers.spaceagro.rule=Host(`spaceagro.pro`) || Host(`www.spaceagro.pro`)
-      - traefik.http.routers.spaceagro.entrypoints=websecure
-      - traefik.http.routers.spaceagro.tls.certresolver=letsencrypt
-      - traefik.http.routers.spaceagro.middlewares=spaceagro-www
-      - traefik.http.middlewares.spaceagro-www.redirectregex.regex=^https?://www\.spaceagro\.pro/(.*)
-      - traefik.http.middlewares.spaceagro-www.redirectregex.replacement=https://spaceagro.pro/$${1}
-      - traefik.http.middlewares.spaceagro-www.redirectregex.permanent=true
-      - traefik.http.services.spaceagro.loadbalancer.server.port=3000
+      - traefik_public
+    labels: *traefik-labels
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: "1"
+          memory: 256M
+      labels: *traefik-labels
 
 volumes:
   spaceagro_data:
 
 networks:
-  web:
+  traefik_public:
     external: true
