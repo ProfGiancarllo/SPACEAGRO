@@ -33,6 +33,7 @@ const ZARC_RIO_VERDE = "ZARC Rio Verde-GO, safra 2026/2027 (MAPA). Risco climát
 
 // >>> CONAB (gerado por scripts/conab_goias.py; não editar à mão)
 const CONAB_GOIAS = "CONAB, Goiás (dado do ESTADO, não do município). Produtividade média em kg/ha (sc/ha = kg/ha ÷ 60 para soja, milho, feijão, sorgo, trigo).\n- Soja, GO: 2017/18: 3609; 2018/19: 3480; 2019/20: 3712; 2020/21: 3672; 2021/22: 4025; 2022/23: 3942; 2023/24: 3487; 2024/25: 4183; 2025/26: 3910; 2026/27 (previsão): 3908\n- Milho 1ª safra, GO: 2017/18: 8000; 2018/19: 7560; 2019/20: 7980; 2020/21: 9000; 2021/22: 10205; 2022/23: 9323; 2023/24: 9506; 2024/25: 10397; 2025/26: 10409; 2026/27 (previsão): 10498\n- Feijão 1ª safra, GO: 2017/18: 2496; 2018/19: 2100; 2019/20: 2400; 2020/21: 2340; 2021/22: 2400; 2022/23: 2343; 2023/24: 2230; 2024/25: 2340; 2025/26: 2359; 2026/27 (previsão): 2458\n- Sorgo, GO: 2017/18: 3100; 2018/19: 3780; 2019/20: 2930; 2020/21: 2400; 2021/22: 2860; 2022/23: 3853; 2023/24: 3466; 2024/25: 4006; 2025/26: 3226; 2026/27 (previsão): 3791\n- Trigo, GO: 2017: 5330; 2018: 5400; 2019: 4900; 2020: 4000; 2021: 2350; 2022: 2250; 2023: 3338; 2024: 2133; 2025: 4178; 2026 (previsão): 3690\n- Algodão em caroço, GO (kg/ha): 2021/22: 4500; 2022/23: 4496; 2023/24: 4984; 2024/25: 4452; 2025/26: 5038; 2026/27 (previsão): 4475\nPrevisão CONAB para GO, safra 2026/27 (levantamento de nov/2026), área em mil ha, produtividade kg/ha, variação sobre 2025/26:\n- Soja: área 5199.3 mil ha (+0.9%), produtividade 3908 kg/ha (-0.1%)\n- Milho 1ª safra: área 188.0 mil ha (+26.2%), produtividade 10498 kg/ha (+0.9%)\n- Milho 2ª safra: área 1805.2 mil ha (+3.1%), produtividade 5774 kg/ha (+14.9%)\n- Feijão total: área 123.6 mil ha (-2.7%), produtividade 2394 kg/ha (-1.6%)\n- Sorgo: área 643.7 mil ha (+2.0%), produtividade 3791 kg/ha (+17.5%)\n- Trigo (safra 2026): área 40.0 mil ha (-11.1%), produtividade 3690 kg/ha (-11.7%)\nProgresso de semeadura em GO, safra 2026/27, semana até 06/11/2026 (fração da área; [mesma semana de 2025, semana anterior, esta semana, média de 5 anos]):\n- Arroz: 6% semeado (semana anterior 0%; 2025: 30%; média 5 anos: 41%)\n- Feijão 1ª: 57% semeado (semana anterior 35%; 2025: 5%; média 5 anos: 63%)\n- Milho 1ª: 61% semeado (semana anterior 15%; 2025: 8%; média 5 anos: 25%)\n- Soja: 74% semeado (semana anterior 58%; 2025: 43%; média 5 anos: 60%)";
+const GO_YIELD_KG = {"Soja":{"2017/18":3609,"2018/19":3480,"2019/20":3712,"2020/21":3672,"2021/22":4025,"2022/23":3942,"2023/24":3487,"2024/25":4183,"2025/26":3910,"2026/27 (previsão)":3908},"Milho 1ª safra":{"2017/18":8000,"2018/19":7560,"2019/20":7980,"2020/21":9000,"2021/22":10205,"2022/23":9323,"2023/24":9506,"2024/25":10397,"2025/26":10409,"2026/27 (previsão)":10498},"Feijão 1ª safra":{"2017/18":2496,"2018/19":2100,"2019/20":2400,"2020/21":2340,"2021/22":2400,"2022/23":2343,"2023/24":2230,"2024/25":2340,"2025/26":2359,"2026/27 (previsão)":2458},"Sorgo":{"2017/18":3100,"2018/19":3780,"2019/20":2930,"2020/21":2400,"2021/22":2860,"2022/23":3853,"2023/24":3466,"2024/25":4006,"2025/26":3226,"2026/27 (previsão)":3791},"Trigo":{"2017":5330,"2018":5400,"2019":4900,"2020":4000,"2021":2350,"2022":2250,"2023":3338,"2024":2133,"2025":4178,"2026 (previsão)":3690},"Algodão em caroço":{"2021/22":4500,"2022/23":4496,"2023/24":4984,"2024/25":4452,"2025/26":5038,"2026/27 (previsão)":4475}};
 // <<< CONAB
 
 const SYSTEM =
@@ -76,6 +77,7 @@ export default {
     if (path.endsWith('/admin/status') || path.endsWith('/admin/config') || path.endsWith('/admin/test')) {
       return admin(path, req, env, cors, ip + day);
     }
+    if (path.endsWith('/forecast')) return forecast(req, env, cors, ip + day + ':fc');
     if (path.endsWith('/tts')) return tts(req, env, cors, ip + day + ':tts');
     return ask(req, env, cors, ip + day);
   },
@@ -97,6 +99,84 @@ async function readConfig(env) {
     updatedAt: saved.updatedAt || null,
     raw: saved,
   };
+}
+
+
+// ---------------- Modelo estatístico de produtividade (previsão regional + aprendizado com as colheitas do produtor)
+// Método (bayesiano normal-normal, sem custo de IA):
+//  1. Priori do nível do talhão = produtividade média de Goiás (CONAB) prevista para a safra, com incerteza entre fazendas (TAU).
+//  2. Cada colheita registrada no diário é corrigida pela diferença entre a safra dela e a atual (usa a série do estado) e atualiza o nível.
+//  3. Colheitas fora do plausível (ex.: 380 sc/ha de soja) são recusadas e devolvidas como alerta; não entram no cálculo.
+//  4. A faixa (p10-p90) soma a variabilidade de ano para ano. Com mais colheitas, o peso da fazenda sobe e o da média do estado cai.
+const FC = {
+  soja: { name: 'Soja', kg: 60 }, milho: { name: 'Milho 1ª safra', kg: 60 }, feijao: { name: 'Feijão 1ª safra', kg: 60 },
+  sorgo: { name: 'Sorgo', kg: 60 }, trigo: { name: 'Trigo', kg: 60 }, algodao: { name: 'Algodão em caroço', kg: 15 },
+};
+const TAU = 0.12;        // desvio do nível de uma fazenda em relação à média do estado (fração da média)
+const OBS_SD = 0.08;     // ruído de uma safra do talhão em torno do nível dele (fração), piso do desvio entre anos
+const Z90 = 1.2816;      // p10-p90
+const safraDe = (iso) => { const y = Number(iso.slice(0, 4)), m = Number(iso.slice(5, 7)); return m >= 7 ? `${y}/${String((y + 1) % 100).padStart(2, '0')}` : `${y - 1}/${String(y % 100).padStart(2, '0')}`; };
+const chaveSafra = (k, cur) => (k === 'trigo' ? cur.slice(0, 4) : cur);
+
+function serieEstado(cropKey) {
+  const def = FC[cropKey]; const raw = def && GO_YIELD_KG[def.name]; if (!raw) return null;
+  const done = {}; let prev = null;
+  for (const [k, v] of Object.entries(raw)) { if (/previs/i.test(k)) prev = v; else done[k.replace(/\s.*/, '')] = v; }
+  return { done, prev };
+}
+
+/** history: [{date:'YYYY-MM-DD', yield: número na unidade do app (sc/ha ou @/ha), forecast?: número}] */
+function forecastYield(cropKey, history, curSafra) {
+  const def = FC[cropKey]; const st = serieEstado(cropKey);
+  if (!def || !st) return { ok: false, error: 'cultura_sem_dado' };
+  const toUnit = (kg) => kg / def.kg;
+  const anos = Object.keys(st.done).sort(); const last8 = anos.slice(-8);
+  const vals = last8.map((k) => toUnit(st.done[k]));
+  const n = vals.length; const xs = vals.map((_, i) => i);
+  const mx = xs.reduce((a, b) => a + b, 0) / n, my = vals.reduce((a, b) => a + b, 0) / n;
+  const sxx = xs.reduce((a, x) => a + (x - mx) ** 2, 0) || 1; const b = xs.reduce((a, x, i) => a + (x - mx) * (vals[i] - my), 0) / sxx;
+  const resid = vals.map((v, i) => v - (my + b * (i - mx)));
+  const sdRes = Math.sqrt(resid.reduce((a, r) => a + r * r, 0) / Math.max(1, n - 2));
+  const trendNow = my + b * (n - mx);
+  const mu0 = st.prev != null ? toUnit(st.prev) : trendNow;                      // média esperada do estado na safra atual
+  const sdYear = Math.max(sdRes * 1.3, OBS_SD * mu0);                              // variabilidade de ano para ano numa fazenda
+  const tau = TAU * mu0;
+  const prior = { mean: mu0, sd: Math.hypot(tau, 0), fonte: st.prev != null ? 'CONAB, previsão de Goiás' : 'CONAB, tendência de Goiás' };
+
+  let precision = 1 / (tau * tau), num = mu0 / (tau * tau); const used = [], flagged = [];
+  for (const h of history || []) {
+    const y = Number(h.yield); if (!(y > 0) || typeof h.date !== 'string' || h.date.length < 10) { flagged.push({ date: h.date, yield: h.yield, motivo: 'valor_ou_data_invalida' }); continue; }
+    const sa = safraDe(h.date); const ref = st.done[chaveSafra(cropKey, sa)];
+    const refU = ref != null ? toUnit(ref) : mu0;
+    if (y < 0.4 * refU || y > 1.8 * refU) { flagged.push({ date: h.date, yield: y, motivo: 'fora_do_plausivel', esperado_estado: Math.round(refU * 10) / 10 }); continue; }
+    const adj = y * (mu0 / refU);                                                  // leva a colheita antiga para o nível da safra atual
+    const s2 = sdYear * sdYear; precision += 1 / s2; num += adj / s2; used.push({ date: h.date, yield: y, ajustada: Math.round(adj * 10) / 10 });
+  }
+  const v = 1 / precision, m = num * v;
+  const sdPred = Math.sqrt(v + sdYear * sdYear);
+  const wFarm = used.length ? 1 - (1 / (tau * tau)) / precision : 0;
+  const fc = (history || []).filter((h) => Number(h.forecast) > 0 && Number(h.yield) > 0);
+  const ratio = fc.length ? fc.reduce((a, h) => a + Number(h.yield) / Number(h.forecast), 0) / fc.length : null;
+  const r1 = (x) => Math.round(x * 10) / 10;
+  return {
+    ok: true, crop: cropKey, safra: curSafra, unit: def.kg === 15 ? '@' : 'sc',
+    prior: { mean: r1(prior.mean), sd: r1(prior.sd), fonte: prior.fonte },
+    forecast: { expected: r1(m), p10: r1(m - Z90 * sdPred), p90: r1(m + Z90 * sdPred) },
+    farmData: { used: used.length, flagged, weightFarm: Math.round(wFarm * 100) / 100 },
+    calibration: ratio === null ? null : { n: fc.length, actualOverForecast: Math.round(ratio * 100) / 100 },
+    method: 'Bayesiano normal: média de Goiás (CONAB) como ponto de partida; cada colheita do talhão desloca a previsão. Referência estadual, não é garantia.',
+  };
+}
+
+async function forecast(req, env, cors, key) {
+  const n = (hits.get(key) || 0) + 1; hits.set(key, n);
+  if (n > 300) return json({ ok: false, error: 'limite_diario' }, cors, 429);
+  let body; try { body = await req.json(); } catch { return json({ ok: false, error: 'json_invalido' }, cors, 400); }
+  const crop = String(body.crop || '').toLowerCase();
+  const hist = Array.isArray(body.history) ? body.history.slice(0, 60) : [];
+  const cur = typeof body.safra === 'string' ? body.safra.slice(0, 9) : safraDe(new Date().toISOString().slice(0, 10));
+  const out = forecastYield(crop, hist, cur);
+  return json(out, cors, out.ok ? 200 : 404);
 }
 
 // ---------------- Pergunta para a Estrela (API do Claude)
