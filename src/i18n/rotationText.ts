@@ -3,6 +3,10 @@ import { getCurrentLanguage } from './index';
 type D = Record<string, string>;
 
 const pt: D = {
+  whyTitle: 'Por que essa recomendação', whyIntro: 'Os números da lavoura em que ela se apoia ({name}):',
+  whyRain: 'Chuva nos últimos 15 dias (NASA POWER)', whyRainVal: '{mm} mm. Risco de semear agora: {risk}.',
+  whyWindow: 'Época de semeadura (ZARC/MAPA)', whyYield: 'Produtividade de referência', whyCycle: 'Plantio e colheita', whyBasis: 'De onde vem a previsão',
+  whyPros: 'O que ajuda', whyCons: 'O que preocupa', whyNone: 'Ainda não há uma opção viável para explicar.',
   open: 'Planejar safra', title: 'Planejar a próxima safra', subtitle: 'Compare estratégias de rotação para o talhão. Cada cartão mostra evidência, benefícios, riscos e lacunas.',
   talhao: 'Talhão', sowDate: 'Semeadura da safra de verão', noTalhao: 'Cadastre um talhão para planejar a rotação.',
   nasaTitle: 'Clima recente do talhão', nasaBadge: 'Dados da NASA POWER', nasaLoading: 'Buscando dados da NASA POWER…', nasaFail: 'Sem dados da NASA no momento: o planejamento usa só as regras.',
@@ -35,6 +39,10 @@ const pt: D = {
 };
 
 const en: D = {
+  whyTitle: 'Why this recommendation', whyIntro: 'The field numbers it is based on ({name}):',
+  whyRain: 'Rain in the last 15 days (NASA POWER)', whyRainVal: '{mm} mm. Risk of sowing now: {risk}.',
+  whyWindow: 'Sowing window (ZARC/MAPA)', whyYield: 'Reference yield', whyCycle: 'Sowing and harvest', whyBasis: 'Where the forecast comes from',
+  whyPros: 'What helps', whyCons: 'What worries', whyNone: 'No viable option to explain yet.',
   open: 'Plan season', title: 'Plan the next season', subtitle: 'Compare rotation strategies for the field. Each card shows evidence, benefits, risks and gaps.',
   talhao: 'Field', sowDate: 'Summer crop sowing date', noTalhao: 'Add a field to plan the rotation.',
   nasaTitle: 'Recent field weather', nasaBadge: 'NASA POWER data', nasaLoading: 'Fetching NASA POWER data…', nasaFail: 'No NASA data right now: planning uses rules only.',

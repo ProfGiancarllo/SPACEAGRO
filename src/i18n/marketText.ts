@@ -12,7 +12,7 @@ const pt: D = {
   stress: 'Teste de preço', stressHelp: 'Simule uma queda ou alta de preço em todas as culturas e veja a decisão mudar.', stressNow: 'Preços {v}',
   margin: 'Margem estimada', perHa: 'por hectare', total: 'no talhão ({ha} ha)', pess: 'Pessimista', base: 'Base', opt: 'Otimista',
   best: 'Melhor margem com o risco considerado', loss: 'No cenário pessimista esta estratégia dá prejuízo.', yieldAdj: 'Produtividade usada: {v} {u}/ha (ajustada pelo risco)',
-  decision: 'Decisão combinada: clima, lavoura e mercado', decisionText: 'Melhor opção neste talhão: {name}, com margem base de {m} por hectare e risco {risk}. Margem no talhão: {t}.',
+  decision: 'Melhor opção, olhando clima, lavoura e mercado', decisionText: '{name}. Deve sobrar cerca de {m} por hectare ({t} no talhão inteiro). Risco {risk}.',
   decisionNone: 'Nenhuma estratégia tem risco aceitável com os dados atuais; revise as datas ou as culturas.',
   foot: 'Estimativa para planejamento, não é recomendação de compra ou venda. Margem = produtividade × preço − custo. O preço base aplica metade da variação dos últimos 12 meses (no máximo ±10%); os cenários usam a volatilidade de cada cultura e produtividade de −15% a +10%. A produtividade cai com o risco da estratégia.',
   noMarket: 'Sem dado de mercado para esta cultura.', cover: 'Cobertura sem venda: só o custo entra na conta; o ganho vem do solo.',
