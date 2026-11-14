@@ -22,6 +22,7 @@ export interface EstelaOptions {
   onDiaryAdded: (talhao: Talhao) => void;
   openRotation: (talhaoId?: string) => void;
   openDiary?: () => void;
+  getFireSummary?: () => object | null;
 }
 
 interface Msg { who: 'me' | 'estela'; html: string; actions?: { label: string; run: () => void }[] }
@@ -760,6 +761,7 @@ export class EstelaChat {
         return { name: this.tName(tl), crop: tl.crop, cultivar: tl.cultivar, areaHa: tl.areaHectares, plantingDate: tl.plantingDate, cycleDays: tl.cycleDays, stage: st.stageBadgeText, nextCrop: tl.nextCropPlan?.crop, diario: { registros: d.length, porTipo: tipos, ultimoRegistro: ult } };
       }),
       pendencias: computePending(farm, this.ref(), new Set()).map((p) => ({ talhao: this.tName(farm.talhoes.find((x) => x.id === p.talhaoId)!), tipo: p.kind, diasAtraso: p.days })),
+      alertaQueimadas: this.opts.getFireSummary?.() ?? undefined,
       problemasDoDiario: auditDiary(farm, hoje).slice(0, 25).map((i) => ({ talhao: this.tName(farm.talhoes.find((x) => x.id === i.talhaoId)!), codigo: i.code, detalhe: i.detail })),
     };
     const ctrl = new AbortController();

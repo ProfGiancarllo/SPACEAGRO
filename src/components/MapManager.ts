@@ -1053,6 +1053,8 @@ export class MapManager {
     this.nasaLayers.set(id, tl);
   }
 
+  public getMap(): L.Map { return this.map; }
+
   public invalidateSize(): void {
     this.map.invalidateSize();
   }

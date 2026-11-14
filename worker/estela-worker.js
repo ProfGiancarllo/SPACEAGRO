@@ -77,6 +77,7 @@ export default {
     if (path.endsWith('/admin/status') || path.endsWith('/admin/config') || path.endsWith('/admin/test')) {
       return admin(path, req, env, cors, ip + day);
     }
+    if (path.endsWith('/fires')) return fires(req, env, cors, ip + day + ':fi');
     if (path.endsWith('/forecast')) return forecast(req, env, cors, ip + day + ':fc');
     if (path.endsWith('/tts')) return tts(req, env, cors, ip + day + ':tts');
     return ask(req, env, cors, ip + day);
@@ -177,6 +178,60 @@ async function forecast(req, env, cors, key) {
   const cur = typeof body.safra === 'string' ? body.safra.slice(0, 9) : safraDe(new Date().toISOString().slice(0, 10));
   const out = forecastYield(crop, hist, cur);
   return json(out, cors, out.ok ? 200 : 404);
+}
+
+// ---------------- Focos de calor (NASA FIRMS). Chave: segredo FIRMS_MAP_KEY na Cloudflare
+const FIRMS_SOURCES = ['VIIRS_NOAA20_NRT', 'VIIRS_NOAA21_NRT'];
+async function firmsCsv(key, src, box, days) {
+  const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${src}/${box.join(',')}/${days}`;
+  const ck = typeof caches !== 'undefined' ? caches.default : null;
+  const ckReq = new Request('https://fires.cache.invalid/' + src + '/' + box.map((v) => v.toFixed(1)).join('_') + '/' + days);
+  if (ck) { const hit = await ck.match(ckReq); if (hit) return hit.text(); }
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('firms_' + r.status);
+  const txt = await r.text();
+  if (/^(invalid|error|you)/i.test(txt.trim()) || !txt.includes('latitude')) throw new Error('firms_resp');
+  if (ck) await ck.put(ckReq, new Response(txt, { headers: { 'Cache-Control': 'max-age=600' } }));
+  return txt;
+}
+function parseFirms(txt, src) {
+  const lines = txt.trim().split(/\r?\n/);
+  const h = lines.shift().split(',');
+  const ix = (n) => h.indexOf(n);
+  const out = [];
+  for (const ln of lines) {
+    const c = ln.split(',');
+    const lat = parseFloat(c[ix('latitude')]), lng = parseFloat(c[ix('longitude')]);
+    if (!isFinite(lat) || !isFinite(lng)) continue;
+    out.push({
+      lat, lng, date: c[ix('acq_date')], time: String(c[ix('acq_time')] || '').padStart(4, '0'),
+      sat: src.includes('NOAA21') ? 'NOAA-21' : 'NOAA-20', conf: String(c[ix('confidence')] || '').toLowerCase(),
+      frp: parseFloat(c[ix('frp')]) || 0, temp: parseFloat(c[ix('bright_ti4')]) || 0, dn: c[ix('daynight')] || '',
+    });
+  }
+  return out;
+}
+async function fires(req, env, cors, key) {
+  const n = (hits.get(key) || 0) + 1; hits.set(key, n);
+  if (n > 400) return json({ ok: false, error: 'limite_diario' }, cors, 429);
+  if (!env.FIRMS_MAP_KEY) return json({ ok: false, error: 'sem_chave' }, cors);
+  let body; try { body = await req.json(); } catch { return json({ ok: false, error: 'json_invalido' }, cors, 400); }
+  const b = Array.isArray(body.bbox) ? body.bbox.map(Number) : [];
+  if (b.length !== 4 || b.some((v) => !isFinite(v))) return json({ ok: false, error: 'bbox_invalido' }, cors, 400);
+  const [w, s, e, nn] = [Math.max(-180, b[0]), Math.max(-90, b[1]), Math.min(180, b[2]), Math.min(90, b[3])];
+  if (e - w > 4 || nn - s > 4 || e <= w || nn <= s) return json({ ok: false, error: 'area_grande' }, cors, 400);
+  const days = Math.min(5, Math.max(1, parseInt(body.days, 10) || 2));
+  const all = []; const falhas = [];
+  for (const src of FIRMS_SOURCES) {
+    try { all.push(...parseFirms(await firmsCsv(env.FIRMS_MAP_KEY, src, [w, s, e, nn], days), src)); } catch (err) { falhas.push(src + ':' + (err.message || 'erro')); }
+  }
+  if (!all.length && falhas.length === FIRMS_SOURCES.length) return json({ ok: false, error: 'firms_indisponivel', detalhe: falhas }, cors, 502);
+  const seen = new Set(); const fires = [];
+  for (const f of all) {
+    const k = f.lat.toFixed(3) + f.lng.toFixed(3) + f.date + f.time;
+    if (seen.has(k)) continue; seen.add(k); fires.push(f);
+  }
+  return json({ ok: true, geradoEm: new Date().toISOString(), fonte: 'NASA FIRMS (VIIRS 375 m)', falhas, fires: fires.slice(0, 500) }, cors);
 }
 
 // ---------------- Pergunta para a Estrela (API do Claude)

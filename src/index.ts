@@ -1,6 +1,7 @@
 import { FarmData, Talhao, WaterPoint, WaterPointType, TALHAO_COLORS, WATER_POINT_META, FARM_ELEMENT_META, CropPhaseKey, CROP_PHASE_META } from './types';
 import { calculatePolygonAreaHectares, calculatePerimeterKm, formatHectares, parseGeoJSON, parseKML, exportToGeoJSON, exportToKML, getPaletteColor } from './utils/geo';
 import { loadFarmData, saveFarmData, resetToDemoFarm, clearAllFarmData } from './utils/storage';
+import { FireAlert } from './components/FireAlert';
 import { MapManager } from './components/MapManager';
 import { CoordinateRow, parseCoordinatePair, parsePastedCoordinateText, validateCoordinate } from './utils/coordinateParser';
 import { DEFAULT_REFERENCE_DATE, formatBrDateWithWeekday, formatBrDateShort, addDaysToDate, calculateTalhaoCropStatus, calculateExpectedHarvestDate, checkCropDatesOverlap, getCropColor, DEFAULT_CROP_CYCLES } from './utils/cropCalendar';
@@ -50,6 +51,7 @@ class AgroApp {
   private diaryPanel!: DiaryPanel;
   private nasaPanel!: NasaPanel;
   private estela!: EstelaChat;
+  private fireAlert!: FireAlert;
   private simpleHome!: SimpleHome;
 
   // View mode & Agricultural calendar
@@ -133,6 +135,7 @@ class AgroApp {
       getRefDate: () => this.referenceDate,
       openRotation: (id) => this.rotationPlanner.open(id),
       openDiary: () => this.diaryPanel.open(),
+      getFireSummary: () => this.fireAlert?.summary() ?? null,
       onDiaryAdded: () => {
         saveFarmData(this.farmData);
         this.updateUI();
@@ -161,6 +164,8 @@ class AgroApp {
     // Gêmeo digital é a visão única: a antiga "Minha fazenda" 2.5D fica oculta (código preservado)
     this.activeViewMode = 'mapa';
     void this.mapManager.useFarmSnapshot(this.farmData.talhoes, this.farmData.waterPoints);
+    this.fireAlert = new FireAlert({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap() });
+    this.fireAlert.start();
   }
 
   private renderDOM(): void {
