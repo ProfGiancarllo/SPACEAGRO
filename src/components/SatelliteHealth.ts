@@ -95,13 +95,14 @@ export class SatelliteHealth {
       const lng = t.coordinates.reduce((s, p) => s + p[1], 0) / t.coordinates.length;
       const label = r.nivel === 'atencao' ? '!' : r.nivel === 'ok' ? '✓' : '–';
       const el = document.createElement('div');
-      el.className = 'sat-ico'; el.style.width = el.style.height = '28px'; el.style.zIndex = r.nivel === 'atencao' ? '3' : '2';
+      el.className = 'sat-ico'; el.style.width = el.style.height = '28px'; el.style.zIndex = r.nivel === 'atencao' ? '1102' : '1101';
       el.innerHTML = `<span class="sat-dot ${r.nivel}">${label}</span>`;
       el.tabIndex = 0; el.title = `${t.name}: ${this.levelName(r.nivel)}`;
       el.setAttribute('role', 'button'); el.setAttribute('aria-label', el.title);
       el.addEventListener('click', (e) => { e.stopPropagation(); this.detail(t.name, r); });
       el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.detail(t.name, r); } });
-      this.markers.push(new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map));
+      // fica logo acima do rótulo do talhão (T01, T12…), sem ser coberto por ele
+      this.markers.push(new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -14] }).setLngLat([lng, lat]).addTo(map));
     }
     (map.getSource('sat-attention') as GeoJSONSource).setData({ type: 'FeatureCollection', features: attentionPolys });
     const d = lastImg ? new Date(lastImg + 'T12:00:00').toLocaleDateString() : '—';

@@ -4298,3 +4298,7 @@ body.estela-docked .estela-panel { border: 0; border-radius: 0; box-shadow: none
   .home-toolbar-actions .home-map-actions { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding-left: 0; border-left: 0; }
   .home-toolbar-actions .home-map-actions .btn { width: 100%; justify-content: center; }
 }
+/* Marcadores de saúde por satélite e de queimadas ficam acima dos rótulos dos talhões */
+.maplibregl-marker.sat-ico { z-index: 1101; }
+.maplibregl-marker.sat-ico:has(.atencao) { z-index: 1102; }
+.maplibregl-marker.fire-ico { z-index: 1201; }

@@ -69,7 +69,7 @@ export class FireAlert {
       const el = document.createElement('div');
       el.className = 'fire-ico';
       el.style.width = el.style.height = near ? '26px' : '14px';
-      el.style.zIndex = near ? '3' : '2';
+      el.style.zIndex = near ? '1202' : '1201';
       el.innerHTML = `<span class="fire-dot ${near ? 'near' : 'far'}"></span>`;
       el.tabIndex = 0;
       el.title = ft('title');
