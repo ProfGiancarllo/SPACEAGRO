@@ -1,10 +1,15 @@
 # Stack do SpaceAgro para o Portainer (ambiente Swarm, atrás do Traefik v2 que já roda no servidor).
 #
-# No Portainer: Stacks → Add stack → Repository (este repositório, arquivo deploy/portainer-stack.yml)
-# e, em "Environment variables", defina:
-#   ANTHROPIC_API_KEY   chave da API do Claude (obrigatória para a Estrela responder perguntas livres)
+# Dois serviços: o app (site + Estrela + contas) e o banco PostgreSQL das contas e fazendas.
+# O banco fica numa rede interna da stack, sem acesso de fora.
+#
+# No Portainer: Stacks → spaceagro → Environment variables:
+#   DB_PASSWORD         senha do banco PostgreSQL (OBRIGATÓRIA; invente uma forte, só letras e números)
+#   ANTHROPIC_API_KEY   chave da API do Claude (Estrela)
 #   OPENAI_API_KEY      chave da OpenAI para a voz da Estrela (opcional)
-#   ADMIN_PASSWORD      senha do painel de super admin do app (opcional)
+#   ADMIN_PASSWORD      senha do painel de super admin do app (opcional, recomendado)
+#   FIRMS_MAP_KEY       chave da NASA FIRMS para os alertas de queimadas (opcional,
+#                       grátis em https://firms.modaps.eosdis.nasa.gov/api/map_key/)
 #
 # Servidor atual: Traefik v2.11 em container, ligado à rede overlay "traefik_public",
 # entrypoint "websecure" e certresolver "letsencrypt".
@@ -33,14 +38,22 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      FIRMS_MAP_KEY: ${FIRMS_MAP_KEY:-}
       ALLOWED_ORIGIN: https://spaceagro.pro
       SITE_URL: https://spaceagro.pro
       MODEL: ${MODEL:-claude-opus-5-5}
       TZ: America/Sao_Paulo
+      # Banco das contas e fazendas (serviço "db" abaixo)
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: spaceagro
+      PGUSER: spaceagro
+      PGPASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD nas variaveis da stack}
     volumes:
       - spaceagro_data:/data
     networks:
       - traefik_public
+      - interna
     labels: *traefik-labels
     deploy:
       mode: replicated
@@ -56,9 +69,38 @@ services:
           memory: 256M
       labels: *traefik-labels
 
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: spaceagro
+      POSTGRES_USER: spaceagro
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD nas variaveis da stack}
+      TZ: America/Sao_Paulo
+    volumes:
+      - spaceagro_pg:/var/lib/postgresql/data
+    networks:
+      - interna
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spaceagro -d spaceagro"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+
 volumes:
   spaceagro_data:
+  spaceagro_pg:
 
 networks:
   traefik_public:
     external: true
+  interna:
+    driver: overlay

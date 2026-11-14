@@ -90,7 +90,7 @@ export const DEFAULT_AVATAR: AvatarConfig = {
   accessory: 'none',
 };
 
-import { scopedKey } from '../auth/auth';
+import { cloudSave, scopedKey } from '../auth/auth';
 const STORAGE_KEY = 'myroca_avatar_v1';
 const PROMPTED_KEY = 'myroca_avatar_prompted_v1';
 
@@ -121,6 +121,7 @@ export function loadAvatar(): AvatarConfig | null {
 export function saveAvatar(cfg: AvatarConfig): void {
   try {
     localStorage.setItem(scopedKey(STORAGE_KEY), JSON.stringify(cfg));
+    cloudSave(STORAGE_KEY);
   } catch {
     // ignora
   }
@@ -137,6 +138,7 @@ export function wasAvatarPrompted(): boolean {
 export function markAvatarPrompted(): void {
   try {
     localStorage.setItem(scopedKey(PROMPTED_KEY), '1');
+    cloudSave(PROMPTED_KEY);
   } catch {
     // ignora
   }

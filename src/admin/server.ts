@@ -52,7 +52,7 @@ export interface ServerStatus {
 }
 
 /** Chamada autenticada ao painel do Worker. Erros de rede viram { ok:false, error:'sem_conexao' }. */
-export async function adminCall<T = ServerStatus>(path: '/admin/status' | '/admin/config' | '/admin/test', body: object = {}, base = estelaBaseUrl(), password = adminPassword()): Promise<T & { ok: boolean; error?: string; httpStatus?: number }> {
+export async function adminCall<T = ServerStatus>(path: '/admin/status' | '/admin/config' | '/admin/test' | '/accounts/list' | '/accounts/reset', body: object = {}, base = estelaBaseUrl(), password = adminPassword()): Promise<T & { ok: boolean; error?: string; httpStatus?: number }> {
   if (!base) return { ok: false, error: 'sem_servidor' } as T & { ok: boolean; error: string };
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 30000);

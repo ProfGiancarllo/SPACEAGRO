@@ -11,6 +11,8 @@
 //   ALLOWED_ORIGIN      ex.: https://spaceagro.pro
 //   MODEL / TTS_VOICE   padrões (opcionais)
 //   SITE_URL            endereço público do app, de onde a Estrela lê data/mercado.json
+//   FIRMS_MAP_KEY       chave da NASA FIRMS para os alertas de queimadas (opcional)
+//   PGHOST/PGUSER/PGPASSWORD/PGDATABASE (ou DATABASE_URL)  banco das contas e fazendas (server/accounts.mjs)
 //   PORT                porta interna (padrão 3000)
 //   DATA_DIR            onde o painel grava modelo/voz/chaves (padrão /data, use um volume)
 import http from 'node:http';
@@ -19,6 +21,7 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import worker from '../worker/estela-worker.js';
+import { createAccounts } from './accounts.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.resolve(process.env.DIST_DIR || path.join(HERE, '..', 'dist'));
@@ -55,8 +58,14 @@ const env = {
   MODEL: process.env.MODEL || '',
   TTS_VOICE: process.env.TTS_VOICE || '',
   SITE_URL: process.env.SITE_URL || '',
+  FIRMS_MAP_KEY: clean(process.env.FIRMS_MAP_KEY),
   CONFIG: kvOk ? kv : undefined,
 };
+
+// ---------- Contas e dados da fazenda no PostgreSQL (opcional: só com PGHOST ou DATABASE_URL)
+const accounts = createAccounts({ adminPassword: env.ADMIN_PASSWORD, allowedOrigin: env.ALLOWED_ORIGIN });
+void accounts.migrate();
+const clientIp = (req) => String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'x';
 
 // ---------- API da Estrela: converte a requisição do Node para o formato do Worker
 async function handleApi(req, res) {
@@ -70,8 +79,7 @@ async function handleApi(req, res) {
   const headers = new Headers();
   for (const [k, v] of Object.entries(req.headers)) if (typeof v === 'string') headers.set(k, v);
   // IP real do visitante (o Traefik envia em X-Forwarded-For) para os limites diários
-  const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'x';
-  headers.set('CF-Connecting-IP', ip);
+  headers.set('CF-Connecting-IP', clientIp(req));
   const body = ['GET', 'HEAD'].includes(req.method) ? undefined : Buffer.concat(chunks);
   const request = new Request(`http://localhost${req.url}`, { method: req.method, headers, body });
 
@@ -135,7 +143,10 @@ http
     const url = req.url || '/';
     if (url === '/healthz') return send(res, 200, 'text/plain', 'ok');
     if (url === '/api' || url.startsWith('/api/') || url.startsWith('/api?')) {
-      return void handleApi(req, res).catch((e) => { console.error(e); send(res, 500, 'text/plain', 'erro'); });
+      return void accounts
+        .handle(req, res, clientIp(req))
+        .then((handled) => (handled ? undefined : handleApi(req, res)))
+        .catch((e) => { console.error(e); send(res, 500, 'text/plain', 'erro'); });
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'text/plain', 'method not allowed');
     handleStatic(req, res).catch((e) => { console.error(e); send(res, 500, 'text/plain', 'erro'); });
@@ -143,4 +154,5 @@ http
   .listen(PORT, () => {
     console.log(`SpaceAgro na porta ${PORT}`);
     console.log(`Estrela: Claude ${env.ANTHROPIC_API_KEY ? 'configurado pela env' : 'sem chave na env'}, voz ${env.OPENAI_API_KEY ? 'ligada' : 'desligada'}, painel admin ${env.ADMIN_PASSWORD ? 'ligado' : 'desligado'}, dados em ${kvOk ? DATA_DIR : '(sem volume gravável)'}`);
+    console.log(`Contas: ${accounts.enabled ? 'PostgreSQL' : 'modo local (sem banco configurado)'}`);
   });

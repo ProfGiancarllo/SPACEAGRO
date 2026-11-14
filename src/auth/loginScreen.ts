@@ -1,5 +1,5 @@
 import { setLanguage, getCurrentLanguage, LanguageCode } from '../i18n';
-import { AuthError, currentUser, deleteAccount, enterAsGuest, login, signup } from './auth';
+import { AuthError, currentUser, deleteAccount, enterAsGuest, isCloudMode, login, signup } from './auth';
 import { at } from './authText';
 
 const LANGS: [LanguageCode, string][] = [
@@ -68,9 +68,11 @@ export function requireAuth(): Promise<void> {
             <button type="submit" class="auth-primary" id="auth-submit">${mode === 'login' ? at('btnLogin') : at('btnSignup')}</button>
           </form>
           ${mode === 'login' ? `<button type="button" class="auth-link" id="auth-forgot">${at('forgot')}</button>` : ''}
-          ${showForgot ? `<div class="auth-forgot"><p>${at('forgotMsg')}</p><button type="button" class="auth-danger" id="auth-delete">${at('forgotDelete')}</button></div>` : ''}
+          ${showForgot ? (isCloudMode()
+            ? `<div class="auth-forgot"><p>${at('forgotCloud')}</p></div>`
+            : `<div class="auth-forgot"><p>${at('forgotMsg')}</p><button type="button" class="auth-danger" id="auth-delete">${at('forgotDelete')}</button></div>`) : ''}
           <button type="button" class="auth-guest" id="auth-guest">${at('guest')}</button>
-          <p class="auth-note">${at('localNote')}</p>
+          <p class="auth-note">${at(isCloudMode() ? 'cloudNote' : 'localNote')}</p>
         </div>
         </main>`;
 

@@ -8,7 +8,7 @@ import { DEFAULT_REFERENCE_DATE, formatBrDateWithWeekday, formatBrDateShort, add
 import { FarmGameView } from './components/FarmGameView';
 import { requireAuth } from './auth/loginScreen';
 import { AdminPanel, openAdminSetup } from './admin/AdminPanel';
-import { hasSuperAdmin, isSuperAdmin } from './auth/auth';
+import { hasSuperAdmin, initCloud, isSuperAdmin, syncOnStart } from './auth/auth';
 import { NasaPanel } from './components/NasaPanel';
 import { DiaryPanel } from './components/DiaryPanel';
 import { MarketPanel } from './components/MarketPanel';
@@ -3132,7 +3132,10 @@ ${isSuperAdmin() ? `<div class="menu-head">Sistema</div>
 document.addEventListener('DOMContentLoaded', () => {
   // ?admin abre a administração; se ainda não houver super admin neste aparelho, primeiro vem a tela de criação
   const wantAdmin = new URLSearchParams(location.search).has('admin');
+  // Enquanto a abertura toca, descobre se as contas estão no servidor (PostgreSQL) e sincroniza a sessão
+  const cloudReady = initCloud().then(() => syncOnStart());
   playIntro()
+    .then(() => cloudReady)
     .then(async () => { if (wantAdmin && !hasSuperAdmin()) await openAdminSetup(); })
     .then(() => requireAuth())
     .then(() => { const app = new AgroApp(); if (wantAdmin) app.openAdmin(); });

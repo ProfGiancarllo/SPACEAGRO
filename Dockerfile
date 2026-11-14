@@ -22,6 +22,8 @@ WORKDIR /app
 ENV NODE_ENV=production PORT=3000 DATA_DIR=/data
 COPY package.json ./
 COPY --from=build /app/dist ./dist
+COPY server/package.json server/package-lock.json ./server/
+RUN cd server && npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 COPY server ./server
 COPY worker/estela-worker.js ./worker/estela-worker.js
 RUN mkdir -p /data && chown node:node /data

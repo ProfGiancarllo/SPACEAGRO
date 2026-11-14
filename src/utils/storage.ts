@@ -1,6 +1,6 @@
 import { FarmData } from '../types';
 import { getRioVerdeDemoFarm, localizeExampleNames } from './geo';
-import { scopedKey } from '../auth/auth';
+import { cloudSave, scopedKey } from '../auth/auth';
 
 const BASE_KEY = 'myroca_farm_data_rio_verde_rural_v3';
 
@@ -33,6 +33,7 @@ export function loadFarmData(): FarmData {
 export function saveFarmData(data: FarmData): void {
   try {
     localStorage.setItem(scopedKey(BASE_KEY), JSON.stringify(data));
+    cloudSave(BASE_KEY); // com conta no servidor, envia a fazenda para o banco logo depois
   } catch (err) {
     console.error('Falha ao salvar dados no localStorage:', err);
   }

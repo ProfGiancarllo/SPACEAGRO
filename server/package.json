@@ -1,0 +1,9 @@
+{
+  "name": "spaceagro-server",
+  "private": true,
+  "type": "module",
+  "description": "Servidor de produção do SpaceAgro: app, Estrela e contas no PostgreSQL",
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}

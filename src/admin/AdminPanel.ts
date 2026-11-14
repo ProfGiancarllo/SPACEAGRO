@@ -27,7 +27,11 @@ const AUTH_ERR: Record<string, string> = {
   errPwMismatch: 'As senhas não conferem.',
   errExists: 'Já existe uma conta com esse e-mail neste aparelho.',
   errCrypto: 'Este navegador não permite criar a conta com segurança.',
+  errOffline: 'Sem conexão com o servidor.',
+  errServer: 'O servidor recusou a criação da conta. Confira a senha de administração.',
 };
+
+interface AccountRow { email: string; name: string; farmName: string; city: string; role: string; createdAt: string; lastSave: string | null }
 
 // ============================================================ Criação do super admin
 /** Tela para criar o primeiro super admin. Só cria depois que o servidor confirma a senha de administração. */
@@ -71,7 +75,7 @@ export function openAdminSetup(): Promise<boolean> {
         const st = await adminCall('/admin/status', {}, url.replace(/\/+$/, ''), srvpw);
         if (!st.ok) return render(errorText(st.error));
         try {
-          await createSuperAdmin({ name: v('as-name'), email: v('as-email'), password: v('as-pw'), password2: v('as-pw2') });
+          await createSuperAdmin({ name: v('as-name'), email: v('as-email'), password: v('as-pw'), password2: v('as-pw2') }, srvpw);
         } catch (er) {
           return render(er instanceof AuthError ? AUTH_ERR[er.key] || 'Não foi possível criar a conta.' : 'Não foi possível criar a conta.');
         }
@@ -93,6 +97,8 @@ export class AdminPanel {
   private notes: Record<string, { kind: 'ok' | 'err'; text: string }> = {};
   private busy = '';
   private testAnswer: { text: string; meta: string } | null = null;
+  private accounts: AccountRow[] | null = null;
+  private accountsOff = false;
 
   open(): void {
     if (!isSuperAdmin()) return;
@@ -214,6 +220,24 @@ export class AdminPanel {
         </form>
       </section>` : '';
 
+    const date = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : '—');
+    const accounts = st ? `
+      <section class="adm-sec">
+        <h3>Contas</h3>
+        <p class="adm-help">${this.accountsOff
+          ? 'O servidor está sem banco de dados: as contas ficam só no navegador de cada pessoa. Configure o PostgreSQL na stack para gerenciar contas aqui.'
+          : 'Contas guardadas no banco do servidor. Para quem esqueceu a senha, gere uma senha provisória e passe para a pessoa; ela entra e troca.'}</p>
+        ${n('accounts')}
+        ${this.accountsOff ? '' : `<div class="adm-actions"><button type="button" class="btn btn-secondary" data-act="accounts" ${this.busy ? 'disabled' : ''}>${this.busy === 'accounts' ? 'Carregando…' : this.accounts ? 'Atualizar lista' : 'Ver contas'}</button></div>`}
+        ${this.accounts ? (this.accounts.length ? `<div class="adm-acc-wrap"><table class="adm-acc">
+          <thead><tr><th>Nome</th><th>E-mail</th><th>Fazenda</th><th>Criada</th><th>Último salvamento</th><th></th></tr></thead>
+          <tbody>${this.accounts.map((a) => `<tr>
+            <td>${esc(a.name)}${a.role === 'superadmin' ? ' <span class="adm-pill on">admin</span>' : ''}</td>
+            <td>${esc(a.email)}</td><td>${esc(a.farmName)}</td><td>${date(a.createdAt)}</td><td>${date(a.lastSave)}</td>
+            <td><button type="button" class="btn btn-secondary" data-act="reset" data-email="${esc(a.email)}" ${this.busy ? 'disabled' : ''}>Redefinir senha</button></td>
+          </tr>`).join('')}</tbody></table></div>` : '<p class="adm-help">Nenhuma conta criada ainda.</p>') : ''}
+      </section>` : '';
+
     this.overlay.innerHTML = `
       <div class="adm-card">
         <header class="adm-head">
@@ -223,7 +247,7 @@ export class AdminPanel {
             <button type="button" class="adm-x" data-act="close" aria-label="Fechar">&times;</button>
           </div>
         </header>
-        <div class="adm-body">${unlocked ? server + claude + voice : unlock}</div>
+        <div class="adm-body">${unlocked ? server + accounts + claude + voice : unlock}</div>
       </div>`;
     this.bind();
   }
@@ -231,7 +255,7 @@ export class AdminPanel {
   private bind(): void {
     const o = this.overlay!;
     const val = (id: string) => o.querySelector<HTMLInputElement | HTMLSelectElement>('#' + id)?.value ?? '';
-    o.querySelectorAll<HTMLElement>('[data-act]').forEach((b) => (b.onclick = () => void this.act(b.dataset.act!)));
+    o.querySelectorAll<HTMLElement>('[data-act]').forEach((b) => (b.onclick = () => void this.act(b.dataset.act!, b.dataset.email)));
     o.querySelectorAll<HTMLFormElement>('form[data-form]').forEach((f) => f.addEventListener('submit', (e) => {
       e.preventDefault();
       void this.submit(f.dataset.form!, val);
@@ -290,9 +314,27 @@ export class AdminPanel {
     this.render();
   }
 
-  private async act(a: string): Promise<void> {
+  private async act(a: string, email?: string): Promise<void> {
     if (a === 'close') return this.close();
-    if (a === 'lock') { setAdminPassword(''); this.status = null; this.notes = {}; this.testAnswer = null; return this.render(); }
+    if (a === 'lock') { setAdminPassword(''); this.status = null; this.notes = {}; this.testAnswer = null; this.accounts = null; return this.render(); }
+    if (a === 'accounts') {
+      this.busy = 'accounts'; this.render();
+      const r = await adminCall<{ users: AccountRow[] }>('/accounts/list');
+      this.busy = '';
+      if (r.ok) { this.accounts = r.users; this.accountsOff = false; delete this.notes.accounts; }
+      else if (r.error === 'sem_banco') this.accountsOff = true;
+      else this.note('accounts', 'err', r.error === 'banco_iniciando' ? 'O banco de dados ainda está iniciando. Tente de novo em alguns segundos.' : errorText(r.error));
+      return this.render();
+    }
+    if (a === 'reset' && email) {
+      if (!confirm(`Gerar uma senha provisória para ${email}? A senha atual deixa de funcionar e a pessoa sai de todos os aparelhos.`)) return;
+      this.busy = 'reset'; this.render();
+      const r = await adminCall<{ tempPassword: string }>('/accounts/reset', { email });
+      this.busy = '';
+      if (r.ok) this.note('accounts', 'ok', `Senha provisória de ${email}: ${r.tempPassword} — passe para a pessoa e peça para trocar depois de entrar.`);
+      else this.note('accounts', 'err', errorText(r.error));
+      return this.render();
+    }
     if (a === 'clear-claude') {
       if (!confirm('Remover a chave do Claude do servidor? A Estrela volta a responder só com as regras locais.')) return;
       return this.save('claude', { clearAnthropic: true }, 'Chave do Claude removida do servidor.');
