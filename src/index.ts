@@ -2,6 +2,7 @@ import { FarmData, Talhao, WaterPoint, WaterPointType, TALHAO_COLORS, WATER_POIN
 import { calculatePolygonAreaHectares, calculatePerimeterKm, formatHectares, parseGeoJSON, parseKML, exportToGeoJSON, exportToKML, getPaletteColor } from './utils/geo';
 import { loadFarmData, saveFarmData, resetToDemoFarm, clearAllFarmData } from './utils/storage';
 import { FireAlert } from './components/FireAlert';
+import { SatelliteHealth } from './components/SatelliteHealth';
 import { MapManager } from './components/MapManager';
 import { CoordinateRow, parseCoordinatePair, parsePastedCoordinateText, validateCoordinate } from './utils/coordinateParser';
 import { DEFAULT_REFERENCE_DATE, formatBrDateWithWeekday, formatBrDateShort, addDaysToDate, calculateTalhaoCropStatus, calculateExpectedHarvestDate, checkCropDatesOverlap, getCropColor, DEFAULT_CROP_CYCLES } from './utils/cropCalendar';
@@ -52,6 +53,7 @@ class AgroApp {
   private nasaPanel!: NasaPanel;
   private estela!: EstelaChat;
   private fireAlert!: FireAlert;
+  private satHealth!: SatelliteHealth;
   private simpleHome!: SimpleHome;
 
   // View mode & Agricultural calendar
@@ -166,6 +168,8 @@ class AgroApp {
     void this.mapManager.useFarmSnapshot(this.farmData.talhoes, this.farmData.waterPoints);
     this.fireAlert = new FireAlert({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap() });
     this.fireAlert.start();
+    this.satHealth = new SatelliteHealth({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap() });
+    this.satHealth.start();
   }
 
   private renderDOM(): void {
