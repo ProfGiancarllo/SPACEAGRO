@@ -3130,33 +3130,6 @@ body {
 }
 
 /* ===== Modo Simples: tela Hoje ===== */
-#simple-home{position:fixed;inset:0;z-index:8000;overflow-y:auto;background:#fff;color:#182b25;font-size:18px;line-height:1.4}
-.sh-wrap{max-width:980px;margin:0 auto;padding:16px 16px 120px}
-.sh-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.sh-brand{font-size:26px;font-weight:700;color:#245b43}.sh-brand small{display:block;font-size:14px;font-weight:500;color:#65756e}
-.sh-link{background:transparent;border:1px solid #dfe6e1;color:#182b25;border-radius:9px;padding:10px 14px;font-size:16px;cursor:pointer}
-.sh-date{font-size:22px;font-weight:700;margin:14px 0 12px}
-.sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.sh-card{background:#fff;border:1px solid #245b43;border-radius:9px;padding:16px}
-.sh-wide{grid-column:1/-1}
-.sh-card h2{font-size:20px;margin:0 0 8px;color:#245b43}
-.sh-big{font-size:20px;font-weight:600;margin:6px 0 10px}
-.sh-muted{font-size:16px;color:#65756e}
-.sh-temp{font-size:40px;font-weight:700;margin:0}.sh-temp span{font-size:20px;font-weight:600;color:#3d5249}
-.sh-row{display:flex;gap:10px;flex-wrap:wrap}
-.sh-btn{min-height:56px;padding:12px 18px;border-radius:9px;border:2px solid #dfe6e1;background:#fff;color:#182b25;font-size:18px;font-weight:700;cursor:pointer}
-.sh-btn:hover{background:#fff}
-.sh-primary{background:#245b43;border-color:#245b43; color: #fff;}.sh-primary:hover{background:#245b43; color: #fff;}
-.sh-xl{flex:1;min-height:68px;font-size:20px}
-.sh-bottom{position:fixed;left:0;right:0;bottom:0;display:flex;gap:12px;padding:12px 16px;background:#fff;max-width:980px;margin:0 auto}
-.sh-rec{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.sh-rbtn{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:84px;font-size:17px}.sh-rbtn span{font-size:30px}
-.sh-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
-.sh-list li{display:flex;gap:12px;align-items:flex-start}.sh-dot{font-size:28px}
-.sh-fixrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.sh-fixrow .sh-btn{display:flex;flex-direction:column;align-items:center;min-height:64px;padding:8px 12px;font-size:24px}.sh-fixrow small{font-size:12px;font-weight:500}
-#simple-pill{position:fixed;left:14px;bottom:168px;z-index:8500;background:#fff;color:#182b25;border:2px solid #245b43;border-radius:999px;padding:12px 18px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(24, 43, 37, 0.12)}
-body.mode-simple .estela-fab,body.mode-simple .estela-fab-mic{display:none!important}
-@media(max-width:700px){.sh-grid{grid-template-columns:1fr}.sh-rec{grid-template-columns:repeat(2,1fr)}.sh-bottom{flex-direction:column}.sh-xl{min-height:60px}.sh-wrap{padding-bottom:190px}}
 
 /* ===== Abertura em vídeo ===== */
 
@@ -3263,17 +3236,9 @@ body.mode-simple .estela-fab,body.mode-simple .estela-fab-mic{display:none!impor
 }
 
 /* Cartões grandes na tela Hoje e botões flutuantes no mapa */
-.sh-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-.sh-hcard { display: flex; align-items: center; gap: 14px; text-align: left; border: 2px solid #245b43; background: #245b43; color: #fff; border-radius: 9px; padding: 16px; cursor: pointer; min-height: 112px; }
-.sh-hcard.sw { border-color: #cbd7cf; background: #eef2ef; color: #3d5249; }
-.sh-hic { font-size: 40px; } .sh-htx h2 { margin: 0 0 4px; font-size: 20px; } .sh-htx p { margin: 0; font-size: 14px; color: #245b43; line-height: 1.35; }
-.sh-hcard.sw .sh-htx p { color: #182b25; }
-.sh-hgo { margin-left: auto; font-weight: 700; white-space: nowrap; font-size: 14px; }
-@media (max-width: 700px) { .sh-hero { grid-template-columns: 1fr; } .sh-hgo { display: none; } }
 #safra-fab { position: fixed; left: 50%; transform: translateX(-50%); bottom: 26px; z-index: 1200; display: flex; flex-direction: row; gap: 10px; }
 #safra-fab button { min-height: 52px; padding: 0 18px; border-radius: 999px; border: 2px solid #245b43; background: #fff; color: #182b25; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(24, 43, 37, 0.12);  text-align: left; }
 #safra-fab button.primary { background: #245b43; color: #fff; }
-body.mode-simple #safra-fab { display: none; }
 @media (max-width: 700px) { #safra-fab { left: auto; right: 14px; transform: none; bottom: 150px; flex-direction: column; } #safra-fab button { padding: 0 14px; font-size: 14px; min-height: 42px; } }
 
 /* Botão principal "Safra e decisões" no começo da barra superior */
@@ -3292,7 +3257,7 @@ body.mode-simple #safra-fab { display: none; }
 #mkt-card { position: fixed; bottom: 26px; right: 14px; z-index: 1100; width: 268px; text-align: left; cursor: pointer; font: inherit; color: #182b25;
   background: #fff; border: 1px solid #dfe6e1; border-radius: 9px; padding: 9px 12px 8px;  box-shadow: 0 8px 24px rgba(24, 43, 37, 0.12); }
 #mkt-card:hover, #mkt-card:focus-visible { border-color: #245b43; box-shadow: none; outline: none; }
-body.mode-simple #mkt-card, body.mkp-open #mkt-card { display: none; }
+body.mkp-open #mkt-card { display: none; }
 .mkc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; font-size: 14px; }
 .mkc-badge { font-size: 10.5px; font-weight: 700; font-style: normal; padding: 2px 7px; border-radius: 999px; background: #fff; color: #3d5249; white-space: nowrap; }
 .mkc-badge.real { background: #e8f0eb; color: #245b43; } .mkc-badge.part { background: #fbf3e4; color: #8a5a0b; } .mkc-badge.ex { background: #f2f5f2; color: #3d5249; }
@@ -3333,7 +3298,7 @@ body.mode-simple #mkt-card, body.mkp-open #mkt-card { display: none; }
 .mkp-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 14px; }
 .mkp-fx-h { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 2px; } .mkp-notes p { margin: 0 0 8px; font-size: 12px; color: #65756e; line-height: 1.45; } .mkp-src { color: #65756e !important; } .mkp-foot { color: #3d5249 !important; }
 @media (max-width: 700px) { .mkp-overlay { padding: 0; align-items: stretch; } .mkp-card { max-height: none; height: 100%; border-radius: 0; } .mkp-head { padding: 12px 52px 10px 14px; } .mkp-meta { margin-left: 0; } .mkp-body { padding: 12px 12px 24px; } .mkp-charts, .mkp-two { grid-template-columns: 1fr; } }
-body.mkp-open #estela-root, body.mkp-open #safra-fab, body.mkp-open .snap-ctl, body.mkp-open .estela-fab, body.mkp-open .estela-fab-mic, body.mkp-open #simple-pill { display: none !important; }
+body.mkp-open #estela-root, body.mkp-open #safra-fab, body.mkp-open .snap-ctl, body.mkp-open .estela-fab, body.mkp-open .estela-fab-mic { display: none !important; }
 
 /* Diário de safra */
 .btn-diary-main { background: #eef2ef; color: #3d5249; border: 2px solid #dfe6e1; font-weight: 700; font-size: 15px; padding: 8px 16px; border-radius: 9px; white-space: nowrap; cursor: pointer; flex: none; }
@@ -3341,8 +3306,6 @@ body.mkp-open #estela-root, body.mkp-open #safra-fab, body.mkp-open .snap-ctl, b
 .btn-diary-main .btn-text { display: inline !important; }
 @media (max-width: 700px) { .btn-diary-main { padding: 8px 12px; } }
 #safra-fab #fab-dia { border-color: #dfe6e1; }
-.sh-diary { display: flex; }
-.sh-diary .sh-btn { width: 100%; }
 .dj-card { width: min(980px, 100%); }
 .dj-estela { width: 100%; min-height: 48px; margin-bottom: 14px; border: 2px solid #245b43; background: #e8f0eb; color: #245b43; border-radius: 9px; font-size: 15px; font-weight: 700; cursor: pointer; }
 .dj-estela:hover { background: #e8f0eb; }
@@ -3460,29 +3423,6 @@ body, #app { background: #f5f7f5; color: #182b25; font-size: 14px; }
 .estela-badge { border-color: #fff; }
 .estela-head-btns button { white-space: nowrap; }
 /* Modo Simples no padrão do painel */
-#simple-home { background: #f5f7f5; font-size: 16px; }
-.sh-brand { font-size: 22px; }
-.sh-date { font-size: 18px; }
-.sh-card { border-color: #dfe6e1; }
-.sh-card h2 { font-size: 16px; color: #182b25; }
-.sh-big { font-size: 17px; }
-.sh-muted { font-size: 13px; }
-.sh-btn { border-width: 1px; font-size: 15px; font-weight: 600; min-height: 46px; border-radius: 7px; }
-.sh-btn:hover { background: #f2f5f2; }
-.sh-primary:hover { background: #1d4a36; border-color: #1d4a36; }
-.sh-xl { min-height: 52px; font-size: 16px; }
-.sh-bottom { background: #fff; border-top: 1px solid #dfe6e1; }
-.sh-hcard, .sh-hcard.sw { background: #fff; color: #182b25; border: 1px solid #dfe6e1; min-height: 92px; }
-.sh-hcard:hover { border-color: #245b43; }
-.sh-htx h2 { font-size: 16px; }
-.sh-htx p, .sh-hcard.sw .sh-htx p { color: #65756e; font-size: 13px; }
-.sh-hgo { color: #245b43; font-size: 13px; }
-.sh-hic:empty { display: none; }
-.sh-dot { font-size: 0; padding-top: 6px; }
-.sh-rbtn { min-height: 56px; font-size: 14px; justify-content: center; }
-.sh-rbtn span:empty { display: none; }
-#simple-pill { border-radius: 9px; border-width: 1px; font-size: 14px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(24, 43, 37, 0.15); }
-.sh-diary .sh-btn.sh-primary { background: #fff; color: #182b25; border-color: #dfe6e1; } .sh-diary .sh-btn.sh-primary:hover { background: #f2f5f2; }
 /* Véu escuro discreto atrás de janelas */
 .modal-overlay, .game-talhao-sheet-overlay, .av-overlay { background: rgba(24, 43, 37, 0.38); }
 /* Tela de acesso */
@@ -3570,7 +3510,6 @@ body.estela-docked.mkp-open #estela-root { display: flex !important; }
 body.estela-docked .estela-panel { position: static; width: 100%; height: auto; flex: 1; min-height: 0; border: 0; border-radius: 0; box-shadow: none; }
 body.estela-docked .estela-fab, body.estela-docked .estela-fab-mic, body.estela-docked #estela-close { display: none !important; }
 body:not(.estela-docked) .home-chat { display: contents; }
-body.mode-simple .home-chat { display: none; }
 
 /* Tablet e celular: uma coluna, chat volta a ser o botão flutuante */
 @media (max-width: 1099px) {
@@ -3582,8 +3521,6 @@ body.mode-simple .home-chat { display: none; }
   .home-head { flex-direction: column; align-items: flex-start; }
   .home-map-panel .main-viewport-container { height: 62vh; min-height: 340px; }
 }
-.home-head-actions #simple-pill { position: static; z-index: auto; border: 1px solid #dfe6e1; border-radius: 7px; padding: 8px 13px; font-size: 13px; font-weight: 600; box-shadow: none; background: #fff; color: #182b25; }
-.home-head-actions #simple-pill:hover { background: #f2f5f2; }
 .home-map-panel .main-viewport-container { height: clamp(360px, calc(100vh - 400px), 820px); }
 .home-wx-src { margin: 10px 0 0; font-size: 11.5px; color: #65756e; }
 .home-side #mkt-card .mkc-row { grid-template-columns: 1fr auto auto; }
@@ -3859,7 +3796,6 @@ body.map-max .estela-fab, body.map-max .estela-fab-mic { display: none !importan
 .brand-mark-sm { height: 22px; margin-right: 8px; }
 .brand-mark-auth { height: 40px; }
 .brand-mark-sh { height: 36px; display: block; margin-bottom: 4px; }
-.sh-brand small { display: block; }
 @media (max-width: 480px) { .brand-mark-nav { height: 26px; } }
 
 /* Ícone SpaceAgro (estrela com órbita): também é o ícone da Estrela */
@@ -4181,18 +4117,18 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
   /* Topo da visão geral: título compacto e botões em grade (data em cima, 3 ações embaixo) */
   .home-head h1 { font-size: 20px; }
   .home-head .home-sub { font-size: 12.5px; }
-  .home-head-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
+  .home-head-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
   .home-head .calendar-time-bar, .home-head .calendar-actions-group { display: contents; }
   .home-head-actions .dropdown-container { position: relative; width: 100%; min-width: 0; }
   .home-head-actions .dropdown-container .dropdown-menu { right: 0; left: auto; max-width: calc(100vw - 24px); }
   .home-head .calendar-today-box { grid-column: 1 / -1; justify-content: center; }
-  .home-head .btn-advance-time, .home-head #btn-calendar-more-options, .home-head-actions #simple-pill {
+  .home-head .btn-advance-time, .home-head #btn-calendar-more-options {
     width: 100%; min-height: 40px; justify-content: center; text-align: center; padding: 8px 6px; font-size: 13px; white-space: nowrap;
   }
 }
 @media (max-width: 380px) {
   .top-nav .nav-trigger { padding: 8px 6px; font-size: 13px; }
-  .home-head .btn-advance-time, .home-head #btn-calendar-more-options, .home-head-actions #simple-pill { font-size: 12.5px; padding: 8px 4px; }
+  .home-head .btn-advance-time, .home-head #btn-calendar-more-options { font-size: 12.5px; padding: 8px 4px; }
 }
 
 /* ========================================================

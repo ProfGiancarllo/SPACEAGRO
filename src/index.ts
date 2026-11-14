@@ -16,7 +16,6 @@ import { DiaryPanel } from './components/DiaryPanel';
 import { MarketPanel } from './components/MarketPanel';
 import { RotationPlanner } from './components/RotationPlanner';
 import { EstelaChat } from './estela/EstelaChat';
-import { SimpleHome } from './simple/SimpleHome';
 import { rt } from './i18n/rotationText';
 import { sf } from './i18n/safraText';
 import { HomeSide } from './components/HomeSide';
@@ -54,7 +53,6 @@ class AgroApp {
   private estela!: EstelaChat;
   private fireAlert!: FireAlert;
   private satHealth!: SatelliteHealth;
-  private simpleHome!: SimpleHome;
 
   // View mode & Agricultural calendar
   private referenceDate = DEFAULT_REFERENCE_DATE;
@@ -114,7 +112,6 @@ class AgroApp {
         this.farmGameView?.updateFarmData(this.farmData, this.referenceDate);
         this.mapManager.renderTalhoes(this.farmData.talhoes, this.referenceDate);
         this.estela?.refreshBadge();
-        this.simpleHome?.refresh();
       },
       openEstela: () => this.estela.openChat(),
     });
@@ -144,17 +141,8 @@ class AgroApp {
         this.farmGameView?.updateFarmData(this.farmData, this.referenceDate);
         this.mapManager.renderTalhoes(this.farmData.talhoes, this.referenceDate);
         this.estela?.refreshBadge();
-        this.simpleHome?.refresh();
         this.showToast(`${t('diarySaved')}`);
       },
-    });
-    this.simpleHome = new SimpleHome({
-      getFarm: () => this.farmData,
-      getRefDate: () => this.referenceDate,
-      getEstela: () => this.estela,
-      openRotation: (tab) => this.rotationPlanner.open(undefined, tab || 'switch'),
-      openDiary: () => this.diaryPanel.open(),
-      onShowFull: () => this.simpleHome.setMode('full'),
     });
 
     window.addEventListener('resize', () => {
@@ -1077,7 +1065,6 @@ ${isSuperAdmin() ? `<div class="menu-head">Sistema</div>
       onTalhaoGeometry: () => {
         saveFarmData(this.farmData);
         this.updateUI();
-        this.simpleHome?.refresh();
       },
       onWaterPointDelete: (waterPointId) => {
         this.deleteWaterPoint(waterPointId);
@@ -1195,7 +1182,6 @@ ${isSuperAdmin() ? `<div class="menu-head">Sistema</div>
     this.farmGameView?.updateFarmData(this.farmData, this.referenceDate);
     this.renderDrawerLists();
     this.estela?.refreshBadge();
-    this.simpleHome?.refresh();
   }
 
   public advanceTime(days: number): void {
