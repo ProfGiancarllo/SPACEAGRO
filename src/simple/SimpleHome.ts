@@ -49,7 +49,8 @@ export class SimpleHome {
   }
 
   static savedMode(): 'simple' | 'full' {
-    try { return localStorage.getItem(MODE_KEY) === 'full' ? 'full' : 'simple'; } catch { return 'simple'; }
+    // A visão geral da fazenda é a tela principal; o Modo Simples só abre para quem escolheu
+    try { return localStorage.getItem(MODE_KEY) === 'simple' ? 'simple' : 'full'; } catch { return 'full'; }
   }
 
   public isSimple(): boolean { return this.root.style.display !== 'none'; }
