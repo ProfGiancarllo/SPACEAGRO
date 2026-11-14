@@ -56,7 +56,8 @@ def estatistica(esi, cloud, poly):
         if not box(*ds.bounds).intersects(g): return None
         dentro = rasterio.features.geometry_mask([g], out_shape=(ds.height, ds.width), transform=ds.transform, invert=True)
         a = ds.read(1).astype("float32"); nd = ds.nodata
-    ok = dentro & np.isfinite(a) & (a > -100) & (a < 20)
+    # ESI exatamente 0 em todo o talhão é valor de preenchimento (ex.: passagem de madrugada, sem evapotranspiração calculada), não estresse real
+    ok = dentro & np.isfinite(a) & (a > 0.001) & (a < 20)
     if nd is not None: ok &= a != nd
     if cloud:
         try:
