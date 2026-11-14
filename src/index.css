@@ -4285,3 +4285,13 @@ body.estela-docked.estela-min .home-chat { width: 0; min-width: 0; border-left: 
 body.estela-docked.estela-min .estela-panel { display: none !important; }
 /* botão para reabrir no canto inferior direito */
 body.estela-docked.estela-min .estela-fab { display: flex !important; position: fixed; left: auto; right: 20px; bottom: 20px; z-index: 1500; }
+/* Safra e decisões: dados agronômicos que sustentam a recomendação */
+.sf-why { margin: 14px 0; padding: 14px; border: 1px solid #dfe6e1; border-radius: 8px; background: #fff; }
+.sf-why h3 { margin: 0 0 2px; font-size: 15px; color: #182b25; }
+.sf-why h4 { margin: 0 0 4px; font-size: 13px; color: #182b25; }
+.sf-why-tbl { width: 100%; border-collapse: collapse; margin: 8px 0 10px; font-size: 13px; }
+.sf-why-tbl th { text-align: left; font-weight: 600; color: #3d5249; padding: 6px 10px 6px 0; width: 38%; vertical-align: top; border-top: 1px solid #edf1ee; }
+.sf-why-tbl td { padding: 6px 0; color: #182b25; vertical-align: top; border-top: 1px solid #edf1ee; }
+.sf-why-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.sf-why-cols ul { margin: 0; padding-left: 16px; font-size: 13px; color: #3d5249; }
+@media (max-width: 640px) { .sf-why-cols { grid-template-columns: 1fr; } .sf-why-tbl th { width: 42%; } }

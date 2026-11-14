@@ -362,6 +362,42 @@ export class RotationPlanner {
       </div>`;
   }
 
+  /** Dados agronômicos em que a melhor opção se apoia, em linguagem simples. */
+  private whyBlock(d: Decision, t: Talhao): string {
+    if (d.bestIdx < 0) return `<div class="sf-why"><h3>${rt('whyTitle')}</h3><p>${rt('whyNone')}</p></div>`;
+    const ev = d.evals[d.bestIdx];
+    const winKeys = ['windowOk', 'windowEarly', 'windowLate', 'windowOut', 'notForSeason'];
+    const win = ev.findings.find((f) => winKeys.includes(f.key));
+    const rain = this.nasaState === 'ok' && this.nasa
+      ? rt('whyRainVal', { mm: this.nasa.rain15, risk: this.riskLabel(this.nasa.level) })
+      : this.nasaState === 'loading' ? rt('nasaLoading') : rt('nasaFail');
+    const y = ev.yields.summer;
+    const yTxt = ev.summer.crop === 'pousio' || ev.summer.crop === 'cobertura' ? '' : y ? rt('yieldVal', { v: y.value.toFixed(1).replace('.', ','), n: y.n }) : rt('yieldNone');
+    const cyc = [ev.summer, ev.second].filter(Boolean).filter((x) => x!.crop !== 'pousio').map((x) => `${esc(this.cropName(x!.crop))}: ${fmtDate(x!.sow)} → ${fmtDate(x!.harvest)}`).join('<br>');
+    const basis = [this.evidenceChipText(ev.summer.crop, ev.evidence.summer), ev.second ? this.evidenceChipText(ev.second.crop, ev.evidence.second) : ''].filter(Boolean).join('<br>');
+    const row = (k: string, v: string) => (v ? `<tr><th>${k}</th><td>${v}</td></tr>` : '');
+    const pros = ev.findings.filter((f) => f.kind === 'benefit').slice(0, 3);
+    const cons = ev.findings.filter((f) => f.kind === 'risk').slice(0, 3);
+    const ul = (arr: Finding[]) => `<ul>${arr.map((f) => this.findingHtml(f)).join('')}</ul>`;
+    return `<div class="sf-why"><h3>${rt('whyTitle')}</h3><p class="sf-sub">${rt('whyIntro', { name: esc(this.strategyName(ev)) })}</p>
+      <table class="sf-why-tbl">
+        ${row(`${rt('whyRain')} <span class="rot-nasa">${rt('nasaBadge')}</span>`, esc(rain))}
+        ${row(rt('whyWindow'), win ? esc(rt(win.key, { ...win.params })) : '')}
+        ${row(rt('whyYield'), esc(yTxt))}
+        ${row(rt('whyCycle'), cyc)}
+        ${row(rt('whyBasis'), basis)}
+      </table>
+      <div class="sf-why-cols">
+        ${pros.length ? `<div><h4>${rt('whyPros')}</h4>${ul(pros)}</div>` : ''}
+        ${cons.length ? `<div><h4>${rt('whyCons')}</h4>${ul(cons)}</div>` : ''}
+      </div></div>`;
+  }
+
+  private evidenceChipText(c: CropKey, ev: Evaluation['evidence']['summer']): string {
+    if (!ev || c === 'pousio' || c === 'cobertura') return '';
+    return `${esc(this.cropName(c))}: ${esc(rt(ev === 'model' ? 'evModel' : ev === 'trend' ? 'evTrend' : 'evRules'))}`;
+  }
+
   private card(s: RotationStrategyData, ev: Evaluation, idx: number, marketHtml = ''): string {
     const kindLabel = s.kind === 'current' ? rt('current') : s.kind === 'suggested' ? `${rt('suggested')} ${esc(s.name)}` : `${rt('custom')} ${esc(s.name)}`;
     const lvl = ev.level;
@@ -426,10 +462,6 @@ export class RotationPlanner {
       const d = decide(t, ref, this.cropName, this.nasa, this.stress);
       const area = Math.max(0, Number(t.areaHectares) || 0);
       const usedCrops = Array.from(new Set(d.evals.flatMap((ev) => [ev.summer.crop, ev.second?.crop].filter(Boolean) as CropKey[]))).filter((c) => c !== 'pousio');
-      const nasaBox =
-        this.nasaState === 'ok' && this.nasa
-          ? `<div class="rot-nasa-box"><strong>${rt('nasaTitle')}</strong> <span class="rot-nasa">${rt('nasaBadge')}</span><div>${rt('nasaLine', { mm: this.nasa.rain15, risk: this.riskLabel(this.nasa.level) })}</div></div>`
-          : `<div class="rot-nasa-box"><strong>${rt('nasaTitle')}</strong> <span class="rot-nasa">${rt('nasaBadge')}</span><div>${this.nasaState === 'loading' ? rt('nasaLoading') : rt('nasaFail')}</div></div>`;
       body = `
         <div class="rot-controls">
           <label>${rt('talhao')}
@@ -441,7 +473,7 @@ export class RotationPlanner {
         </div>
         ${this.decisionBanner(d, area)}
         ${this.chart(plan, d)}
-        ${nasaBox}
+        ${this.whyBlock(d, t)}
         <details class="sf-details" ${this.detailsOpen ? 'open' : ''}>
           <summary>${sf('details')}</summary>
           ${this.marketPanel(usedCrops)}

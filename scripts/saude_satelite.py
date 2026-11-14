@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MyRoça — saúde da lavoura por satélite (Sentinel-2 L2A via Microsoft Planetary Computer, leitura aberta).
+"""MyRoça — saúde da lavoura por satélite (Landsat 8/9 Collection 2 Nível-2, NASA/USGS, via Microsoft Planetary Computer, leitura aberta).
 Gera public/data/saude-talhoes.json com alertas de triagem (não é diagnóstico) para os talhões da fazenda de demonstração.
 Uso: python scripts/saude_satelite.py   (a cada 2 dias roda sozinho em .github/workflows/saude-satelite.yml)"""
 import json, os, sys, datetime as dt
@@ -7,8 +7,9 @@ import numpy as np, pandas as pd
 
 HOJE = dt.date.today()
 MAX_NUVEM = 70
+DIAS_JANELA = 90   # o Landsat 8/9 passa a cada ~8 dias
 MIN_PIXELS_VALIDOS = 0.5
-RESOLUCAO = 10
+RESOLUCAO = 30
 AQUI = os.path.dirname(os.path.abspath(__file__))
 TALHOES = json.load(open(os.path.join(AQUI, "talhoes_demo.json"), encoding="utf-8"))
 SAIDA = os.path.join(AQUI, "..", "public", "data", "saude-talhoes.json")
@@ -34,17 +35,16 @@ def fase(cultura, dap):
         if a <= dap < b: return nome
     return "—"
 
-# ---------- Índices (reflectância já em 0..1)
-def indices(b04, b05, b08, b8a, b11):
+# ---------- Índices (reflectância já em 0..1). Landsat: vermelho (B4), infravermelho próximo (B5), SWIR1 (B6)
+def indices(red, nir, swir):
     with np.errstate(invalid="ignore", divide="ignore"):
-        ndvi = (b08 - b04) / (b08 + b04)
-        ndre = (b8a - b05) / (b8a + b05)
-        ndmi = (b08 - b11) / (b08 + b11)
-    return ndvi, ndre, ndmi
+        ndvi = (nir - red) / (nir + red)
+        ndmi = (nir - swir) / (nir + swir)
+    return ndvi, ndmi
 
 # ---------- Busca das imagens de um talhão (Microsoft Planetary Computer)
 def baixa_talhao(t, ini, fim):
-    """Devolve lista de dicts: {data, b04, b05, b08, b8a, b11, valido} só com os pixels dentro do polígono."""
+    """Devolve lista de dicts: {data, red, nir, swir, valido, dentro} só com os pixels dentro do polígono."""
     from pystac_client import Client
     import planetary_computer as pc, odc.stac
     from shapely.geometry import Polygon
@@ -53,28 +53,28 @@ def baixa_talhao(t, ini, fim):
     poly = Polygon([(lng, lat) for lat, lng in t["poligono_lat_lng"]])
     bbox = poly.bounds
     cat = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1", modifier=pc.sign_inplace)
-    itens = cat.search(collections=["sentinel-2-l2a"], bbox=bbox, datetime=f"{ini}/{fim}", query={"eo:cloud_cover": {"lt": MAX_NUVEM}}).item_collection()
+    itens = cat.search(collections=["landsat-c2-l2"], bbox=bbox, datetime=f"{ini}/{fim}", query={"eo:cloud_cover": {"lt": MAX_NUVEM}, "platform": {"in": ["landsat-8", "landsat-9"]}}).item_collection()
     if len(itens) == 0: return []
-    ds = odc.stac.load(itens, bands=["B04", "B05", "B08", "B8A", "B11", "SCL"], bbox=bbox, crs="EPSG:32722", resolution=RESOLUCAO,
+    ds = odc.stac.load(itens, bands=["red", "nir08", "swir16", "qa_pixel"], bbox=bbox, crs="EPSG:32722", resolution=RESOLUCAO,
                        groupby="solar_day", resampling="nearest", chunks={}).compute()
     proj = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:32722", always_xy=True).transform
-    mascara = rasterio.features.rasterize([(shp_transform(proj, poly), 1)], out_shape=ds["B04"].shape[1:], transform=ds.odc.geobox.transform, fill=0).astype(bool)
+    mascara = rasterio.features.rasterize([(shp_transform(proj, poly), 1)], out_shape=ds["red"].shape[1:], transform=ds.odc.geobox.transform, fill=0).astype(bool)
     saida = []
     for i in range(ds.sizes["time"]):
-        refl = lambda b: np.clip(ds[b].values[i].astype("float32") * 0.0001 - 0.1, 0, 1.5)   # reflectância (nível L2A, base 04.00+)
-        scl = ds["SCL"].values[i]
-        bom = np.isin(scl, (4, 5)) & mascara & (ds["B04"].values[i] > 0)
+        refl = lambda b: np.clip(ds[b].values[i].astype("float32") * 0.0000275 - 0.2, 0, 1.5)   # reflectância de superfície (Collection 2 Nível-2)
+        qa = ds["qa_pixel"].values[i].astype("uint16")
+        bom = ((qa & 0b111111) == 0) & mascara & (ds["red"].values[i] > 0)   # sem preenchimento, nuvem, sombra, cirro nem neve
         if mascara.sum() == 0 or bom.sum() / mascara.sum() < MIN_PIXELS_VALIDOS: continue
-        saida.append({"data": pd.Timestamp(ds.time.values[i]).date(), "b04": refl("B04"), "b05": refl("B05"), "b08": refl("B08"), "b8a": refl("B8A"), "b11": refl("B11"), "valido": bom, "dentro": mascara})
+        saida.append({"data": pd.Timestamp(ds.time.values[i]).date(), "red": refl("red"), "nir": refl("nir08"), "swir": refl("swir16"), "valido": bom, "dentro": mascara})
     return saida
 
 def serie_e_mapas(t, imagens):
     linhas = []; ultimo = None
     for im in imagens:
-        ndvi, ndre, ndmi = indices(im["b04"], im["b05"], im["b08"], im["b8a"], im["b11"])
+        ndvi, ndmi = indices(im["red"], im["nir"], im["swir"])
         m = im["valido"] & np.isfinite(ndvi)
         if m.sum() < 20: continue
-        linhas.append({"data": im["data"], "ndvi": float(np.median(ndvi[m])), "ndre": float(np.nanmedian(ndre[m])), "ndmi": float(np.nanmedian(ndmi[m])),
+        linhas.append({"data": im["data"], "ndvi": float(np.median(ndvi[m])), "ndmi": float(np.nanmedian(ndmi[m])),
                        "ndvi_p10": float(np.percentile(ndvi[m], 10)), "ndvi_p90": float(np.percentile(ndvi[m], 90)), "pct_valido": float(m.sum() / im["dentro"].sum())})
         ultimo = {"data": im["data"], "ndvi": np.where(m, ndvi, np.nan), "ndmi": np.where(m, ndmi, np.nan)}
     return pd.DataFrame(linhas), ultimo
@@ -85,8 +85,8 @@ def analisa(t, df, ultimo, pares):
     if df.empty:
         r["alertas"].append("Sem imagem útil recente (nuvem ou falha de leitura). Nenhuma conclusão possível."); r["nivel"] = "sem_dado"; return r
     u = df.iloc[-1]; dias_sem = (HOJE - u["data"]).days
-    r["ultima_imagem"] = {"data": str(u["data"]), "dias_atras": dias_sem, "ndvi": round(u["ndvi"], 3), "ndre": round(u["ndre"], 3), "ndmi": round(u["ndmi"], 3), "pct_valido": round(u["pct_valido"], 2)}
-    if dias_sem > 12: r["alertas"].append(f"Última imagem útil há {dias_sem} dias (nuvens). Leitura desatualizada.")
+    r["ultima_imagem"] = {"data": str(u["data"]), "dias_atras": dias_sem, "ndvi": round(u["ndvi"], 3), "ndmi": round(u["ndmi"], 3), "pct_valido": round(u["pct_valido"], 2)}
+    if dias_sem > 20: r["alertas"].append(f"Última imagem útil há {dias_sem} dias (nuvens). Leitura desatualizada.")
     if cult and plantio:
         dap = (u["data"] - plantio).days
         r["dap_na_imagem"] = dap; r["fase_informada"] = fase(cult, dap)
@@ -116,7 +116,7 @@ sel = [t for t in TALHOES if cultura_de(t)]
 SERIES, ULTIMOS = {}, {}
 for t in sel:
     pl = pd.Timestamp(t["plantio"]).date() if t.get("plantio") else HOJE - dt.timedelta(days=120)
-    ini = min(pl, HOJE - dt.timedelta(days=60)) - dt.timedelta(days=15)
+    ini = min(pl, HOJE - dt.timedelta(days=DIAS_JANELA)) - dt.timedelta(days=15)
     print(f"{t['nome']}: imagens de {ini} a {HOJE}", flush=True)
     try:
         imgs = baixa_talhao(t, ini, HOJE)
@@ -133,13 +133,13 @@ for t in sel:
         if o["id"] != t["id"] and cultura_de(o) == cult and o.get("plantio") and t.get("plantio") and abs((pd.Timestamp(o["plantio"]) - pd.Timestamp(t["plantio"])).days) <= 20 and len(SERIES[o["id"]]):
             d = SERIES[o["id"]]; pares.append(float(np.interp(pd.Timestamp(df["data"].iloc[-1]).value if len(df) else 0, pd.to_datetime(d["data"]).astype("int64"), d["ndvi"])))
     r = analisa(t, df, ULTIMOS[t["id"]], pares)
-    r["serie"] = [{"data": str(x.data), "ndvi": round(x.ndvi, 3), "ndre": round(x.ndre, 3), "ndmi": round(x.ndmi, 3)} for x in df.itertuples()]
+    r["serie"] = [{"data": str(x.data), "ndvi": round(x.ndvi, 3), "ndmi": round(x.ndmi, 3)} for x in df.itertuples()]
     RES.append(r)
 
 if not any(r["nivel"] != "sem_dado" for r in RES):
     print("Nenhum talhão com imagem útil: mantendo o arquivo anterior."); sys.exit(1)
 os.makedirs(os.path.dirname(SAIDA), exist_ok=True)
-json.dump({"gerado_em": str(HOJE), "fonte": "Sentinel-2 L2A (ESA/Copernicus) via Microsoft Planetary Computer",
+json.dump({"gerado_em": str(HOJE), "fonte": "Landsat 8/9 Collection 2 Nível-2 (NASA/USGS) via Microsoft Planetary Computer",
            "aviso": "Alerta de triagem; não é diagnóstico. Curva esperada aproximada.", "talhoes": RES},
           open(SAIDA, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 for r in RES:
