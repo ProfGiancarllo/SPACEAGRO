@@ -2,6 +2,7 @@ import type { Feature, FeatureCollection } from 'geojson';
 import maplibregl, { GeoJSONSource, Map as MLMap, Marker } from 'maplibre-gl';
 import { FarmData } from '../types';
 import { st } from '../i18n/satText';
+import { fetchNasaSeries, summarizeNasa } from '../utils/nasaPower';
 
 export interface SatelliteHealthOptions { getFarm: () => FarmData; getMap: () => MLMap; /** coluna de botões do mapa */ getTools: () => HTMLElement; }
 interface Res {
@@ -99,8 +100,8 @@ export class SatelliteHealth {
       el.innerHTML = `<span class="sat-dot ${r.nivel}">${label}</span>`;
       el.tabIndex = 0; el.title = `${t.name}: ${this.levelName(r.nivel)}`;
       el.setAttribute('role', 'button'); el.setAttribute('aria-label', el.title);
-      el.addEventListener('click', (e) => { e.stopPropagation(); this.detail(t.name, r); });
-      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.detail(t.name, r); } });
+      el.addEventListener('click', (e) => { e.stopPropagation(); this.detail(t.name, r, lat, lng); });
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.detail(t.name, r, lat, lng); } });
       // fica logo acima do rótulo do talhão (T01, T12…), sem ser coberto por ele
       this.markers.push(new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -14] }).setLngLat([lng, lat]).addTo(map));
     }
@@ -111,7 +112,7 @@ export class SatelliteHealth {
 
   private levelName(n: string): string { return n === 'atencao' ? st('lvAtencao') : n === 'ok' ? st('lvOk') : st('lvSem'); }
 
-  private detail(name: string, r: Res): void {
+  private detail(name: string, r: Res, lat: number, lng: number): void {
     if (!this.modal) {
       this.modal = document.createElement('div'); this.modal.className = 'mkp-overlay sat-modal';
       this.modal.setAttribute('role', 'dialog'); this.modal.setAttribute('aria-modal', 'true');
@@ -131,10 +132,16 @@ export class SatelliteHealth {
     const tr = rows.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('');
     this.modal.innerHTML = `<div class="mkp-card fire-card"><div class="mkp-head sat-head ${r.nivel}"><div><h2>${esc(name)}</h2><p>${esc(st('title'))} · ${esc(this.levelName(r.nivel))}</p></div><button type="button" class="mkp-x" data-sa="close" aria-label="${esc(st('close'))}">×</button></div><div class="mkp-body">
       <ul>${r.alertas.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>
-      <table class="fire-tbl">${tr}</table>
+      <table class="fire-tbl">${tr}<tr id="sat-nasa-row"><th>${esc(st('rain'))}</th><td>…</td></tr></table>
       <h3>${esc(st('whatT'))}</h3><p>${esc(st('what'))}</p>
-      <p class="fire-src">${esc(st('src', { g: this.data?.gerado_em ?? '' }))}</p></div></div>`;
+      <p class="fire-src">${esc(st('src', { g: this.data?.gerado_em ?? '' }))} ${esc(st('srcNasa'))}</p></div></div>`;
     this.modal.style.display = 'flex';
+    // Chuva dos últimos 14 dias (NASA POWER): ajuda a explicar se o vigor baixo tem a ver com falta d'água
+    const row = this.modal.querySelector<HTMLElement>('#sat-nasa-row td');
+    void fetchNasaSeries(lat, lng, new Date().toISOString().slice(0, 10), 14).then((ser) => {
+      const sm = summarizeNasa(ser);
+      if (row) row.textContent = sm.daysWithData ? `${sm.rainTotal.toFixed(0)} mm · ${sm.dryDays} ${st('dry')}` : '—';
+    }).catch(() => { if (row) row.textContent = '—'; });
   }
   private close(): void { if (this.modal) this.modal.style.display = 'none'; }
 }

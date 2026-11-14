@@ -4,7 +4,7 @@ import { et } from './estelaText';
 import { playEstelaIntro, shouldShowIntro } from './EstelaIntro';
 import { estelaBaseUrl } from '../admin/server';
 import { calculateTalhaoCropStatus, addDaysToDate } from '../utils/cropCalendar';
-import { fetchNasaSeries, polygonCentroid } from '../utils/nasaPower';
+import { fetchNasaSeries, polygonCentroid, summarizeNasa } from '../utils/nasaPower';
 import { assessPlanting } from '../utils/agronomyRules';
 import { resolveWeather } from '../utils/weather';
 import { wt } from '../i18n/weatherText';
@@ -49,6 +49,8 @@ function voiceUrl(): string | null {
 
 const CANCEL_RE = /cancel|desist|anula|abbrech|annul|取消/;
 const SKIP_RE = /pular|depois|skip|later|omitir|despues|passer|plus tard|ueberspringen|spaeter|跳过|稍后|nao sei|no se|i do not know|i don't know|weiss nicht|je ne sais pas|不知道|ainda nao|todavia no|not yet|pas encore|noch nicht|还没有/;
+const YES_RE = /^(sim|s|ok|pode|claro|isso|confirm\w*|vamos|bora|yes|y|si|oui|ja|是|好|确认)(?![a-z])/;
+const NO_RE = /^(nao|n|cancel\w*|depois|agora nao|no|non|nein|later|不|取消)(?![a-z])/;
 const NOTHING_RE = /sem novidade|nada de novo|sem ocorrencia|nenhuma|nothing new|sin novedades|rien de neuf|nichts neues|没有新情况|^nada$|^nothing$/;
 const CROP_RE: [string, RegExp][] = [['soja', /soja|soy|大豆/], ['milho', /milho|corn|maiz|\bmais\b|玉米/], ['pasto', /pasto|pastagem|pasture|braquiaria|pâturage|pature|weide|牧草/], ['sorgo', /sorgo|sorghum|高粱/], ['feijao', /feijao|bean|frijol|haricot|bohne|豆/], ['algodao', /algodao|cotton|algodon|coton|baumwolle|棉/], ['trigo', /trigo|wheat|ble\b|weizen|小麦/], ['cana', /cana|sugarcane|caña|canne|zuckerrohr|甘蔗/]];
 const MONTHS: string[][] = [
@@ -125,10 +127,6 @@ export class EstelaChat {
           </div>
         </div>
         <div class="estela-list" id="estela-list" aria-live="polite"></div>
-        <div class="estela-chips" id="estela-chips">
-          <button type="button" data-chip="pend">${pq('chipPend')}</button>
-          ${['chip1', 'chip2', 'chip3', 'chip4'].map((k) => `<button type="button" data-chip="${k}">${et(k)}</button>`).join('')}
-        </div>
         <form class="estela-form" id="estela-form">
           <div class="estela-type">
             <input id="estela-input" type="text" autocomplete="off" placeholder="${et('placeholder')}" aria-label="${et('placeholder')}" />
@@ -146,7 +144,6 @@ export class EstelaChat {
     this.root.querySelector('#estela-clear')!.addEventListener('click', () => { this.msgs = []; this.painted = 0; this.pendingDiary = null; this.hello(); });
     this.root.querySelector('#estela-speak')?.addEventListener('click', () => this.toggleSpeak());
     this.root.querySelector('#estela-mic')!.addEventListener('click', () => this.toggleMic());
-    this.root.querySelectorAll<HTMLButtonElement>('[data-chip]').forEach((b) => (b.onclick = () => (b.dataset.chip === 'pend' ? (this.fromVoice = false, this.msgs.push({ who: 'me', html: esc(pq('chipPend')) }), this.startPending()) : this.submit(et(b.dataset.chip!)))));
     const formEl = this.root.querySelector<HTMLFormElement>('#estela-form')!;
     this.input.addEventListener('input', () => formEl.classList.toggle('has-text', this.input.value.trim().length > 0));
     formEl.onsubmit = (e) => {
@@ -193,18 +190,11 @@ export class EstelaChat {
 
   private hello(): void {
     this.say(esc(et('hello')));
-    // Toda vez que o produtor entra: lembrar de informar o histórico (o que já fez nas safras passadas)
-    const regs = this.opts.getFarm().talhoes.reduce((a, tl) => a + (tl.diary?.length || 0), 0);
-    this.say(esc(pq('hist', { n: regs })), [
-      ...(this.opts.openDiary ? [{ label: pq('histOpen'), run: () => this.opts.openDiary!() }] : []),
-      { label: pq('histHere'), run: () => this.startPending() },
-      { label: pq('histLater'), run: () => { /* nada */ } },
-    ]);
+    // Um único pedido por vez: pendências, ou então o histórico da fazenda
     const n = computePending(this.opts.getFarm(), this.ref(), this.skipped).length;
-    if (n) this.say(esc(pq('intro', { n })), [
-      { label: '' + pq('go'), run: () => this.startPending() },
-      { label: pq('later'), run: () => { /* nada */ } },
-    ]);
+    if (n) { this.say(esc(pq('intro', { n })), [{ label: '' + pq('go'), run: () => this.startPending() }, { label: pq('later'), run: () => { /* nada */ } }]); return; }
+    const regs = this.opts.getFarm().talhoes.reduce((a, tl) => a + (tl.diary?.length || 0), 0);
+    this.say(esc(pq('hist', { n: regs })), [{ label: pq('histHere'), run: () => this.startPending() }, { label: pq('histLater'), run: () => { /* nada */ } }]);
   }
 
   // ---------------- Pendências guiadas
@@ -357,27 +347,19 @@ export class EstelaChat {
       if (i >= fresh) { el.classList.add('enter'); el.style.animationDelay = `${Math.min(i - fresh, 4) * 0.12}s`; }
       el.innerHTML = m.html;
       if (!m.t) m.t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      if (!m.actions?.length) el.insertAdjacentHTML('beforeend', `<span class="estela-time">${m.t}${m.who === 'me' ? '<svg class="estela-ticks" viewBox="0 0 18 12" width="16" height="11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6.5 4.5 10 11 2M7 8.5 8.5 10 15 2"/></svg>' : ''}</span>`);
-      if (m.actions?.length) {
-        const row = document.createElement('div');
-        row.className = 'estela-actions';
-        m.actions.forEach((a) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.textContent = a.label;
-          b.onclick = () => { m.actions = []; a.run(); this.paint(); };
-          row.appendChild(b);
-        });
-        el.appendChild(row);
-      }
+      el.insertAdjacentHTML('beforeend', `<span class="estela-time">${m.t}${m.who === 'me' ? '<svg class="estela-ticks" viewBox="0 0 18 12" width="16" height="11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6.5 4.5 10 11 2M7 8.5 8.5 10 15 2"/></svg>' : ''}</span>`);
       this.list.appendChild(el);
     });
     this.painted = this.msgs.length;
     this.list.scrollTop = this.list.scrollHeight;
   }
 
+  /** Opções que a pessoa responde escrevendo ("sim", "não", "depois"), sem botões. */
+  private choices: NonNullable<Msg['actions']> = [];
+
   private say(html: string, actions?: Msg['actions'], speakText?: string): void {
-    this.msgs.push({ who: 'estela', html, actions });
+    this.choices = actions || [];
+    this.msgs.push({ who: 'estela', html });
     this.paint();
     if (this.speak || this.fromVoice) this.speakOut(speakText ?? html.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' '));
   }
@@ -387,7 +369,6 @@ export class EstelaChat {
     this.input.value = ''; this.root.querySelector('#estela-form')?.classList.remove('has-text');
     this.msgs.push({ who: 'me', html: esc(text) });
     this.paint();
-    this.root.querySelector<HTMLElement>('#estela-chips')!.style.display = 'none';
     void this.answer(text);
   }
 
@@ -516,6 +497,12 @@ export class EstelaChat {
     const n = norm(text);
     const farm = this.opts.getFarm();
     try {
+      // 00) "sim" / "não" para a última pergunta da Estrela (sem botões, como no WhatsApp)
+      if (this.choices.length && n.split(/\s+/).length <= 4) {
+        const yesL = [et('yes'), pq('go'), pq('histHere'), pq('openRot')], noL = [et('no'), pq('later'), pq('histLater')];
+        const hit = YES_RE.test(n) ? this.choices.find((c) => yesL.includes(c.label)) : NO_RE.test(n) ? this.choices.find((c) => noL.includes(c.label)) : undefined;
+        if (hit) { this.choices = []; hit.run(); return; }
+      }
       // 0) Resposta a uma pendência perguntada pela Estrela
       if (this.ask && !this.pendingDiary && this.handleAsk(text)) return;
       // 1) Resposta a "qual talhão?"
@@ -639,7 +626,6 @@ export class EstelaChat {
   /** Chamado pelos botões grandes da tela simples (Chuva, Irrigação, ...). */
   public quickRecord(type: DiaryEntryType): void {
     this.toggle(true);
-    this.root.querySelector<HTMLElement>('#estela-chips')!.style.display = 'none';
     this.ask = null; this.amountAsked = false;
     this.pendingDiary = { type, date: this.ref() };
     this.msgs.push({ who: 'me', html: esc(et('diary_' + type)) });
@@ -653,7 +639,6 @@ export class EstelaChat {
   /** Abre o chat já fazendo as perguntas pendentes. */
   public askPending(): void {
     this.toggle(true);
-    this.root.querySelector<HTMLElement>('#estela-chips')!.style.display = 'none';
     this.startPending();
   }
 
@@ -752,8 +737,18 @@ export class EstelaChat {
     const farm = this.opts.getFarm();
     const now = new Date();
     const hoje = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    // Dados da NASA POWER dos últimos 14 dias (chuva, temperatura, sol) para a resposta se apoiar neles
+    const nasa: Record<string, unknown> = {};
+    await Promise.all(farm.talhoes.filter((x) => x.coordinates?.length >= 3).slice(0, 4).map(async (tl) => {
+      try {
+        const c = polygonCentroid(tl.coordinates);
+        const sm = summarizeNasa(await fetchNasaSeries(c.lat, c.lng, hoje, 14));
+        if (sm.daysWithData) nasa[this.tName(tl)] = { chuvaMm14d: Math.round(sm.rainTotal), chuvaMm7d: Math.round(sm.rainLast7), diasSecos: sm.dryDays, tempMediaC: sm.tavg === null ? null : Math.round(sm.tavg), tempMaxC: sm.tmaxPeak, radiacaoMJm2: sm.radAvg === null ? null : Number(sm.radAvg.toFixed(1)) };
+      } catch { /* sem NASA: segue sem */ }
+    }));
     const ctx = {
       dataDeHojeReal: hoje,
+      nasaPower14dias: Object.keys(nasa).length ? { fonte: 'NASA POWER', porTalhao: nasa } : undefined,
       avisoDatas: 'dataDeHojeReal é a data de hoje de verdade. dataDoCalendarioDaFazenda é só a data simulada do calendário agrícola do app (pode estar diferente de hoje). Se perguntarem que dia é hoje, responda dataDeHojeReal.',
       dataDoCalendarioDaFazenda: this.ref(),
       language: getCurrentLanguage(),

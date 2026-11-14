@@ -3100,11 +3100,7 @@ body {
 .estela-msg{max-width:88%;padding:8px 11px;border-radius:9px;font-size:13.5px;line-height:1.4}
 .estela-msg.estela{background:#fff;align-self:flex-start}
 .estela-msg.me{background:#245b43;color:#fff;align-self:flex-end}
-.estela-actions{display:flex;gap:6px;margin-top:8px}
-.estela-actions button{background:#fff;color:#182b25;border:0;border-radius:8px;padding:6px 10px;cursor:pointer}
 .estela-src{font-size:11px;opacity:.7}
-.estela-chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 10px 8px}
-.estela-chips button{background:#fff;color:#3d5249;border:1px solid #dfe6e1;border-radius:999px;padding:5px 10px;font-size:12px;cursor:pointer}
 .estela-form{display:flex;gap:6px;padding:8px;border-top:1px solid #dfe6e1}
 .estela-form input{flex:1;background:#fff;border:1px solid #dfe6e1;border-radius:10px;color:#182b25;padding:9px;font-size:14px;min-width:0}
 .estela-mic,.estela-send{background:#fff;border:0;color:#182b25;border-radius:10px;width:42px;cursor:pointer;font-size:16px}
@@ -3410,10 +3406,6 @@ body, #app { background: #f5f7f5; color: #182b25; font-size: 14px; }
 #estela-close { font-size: 20px; line-height: 1; }
 .estela-msg.estela { background: #f1f4f1; }
 .estela-msg.me { background: #e2eee6; color: #182b25; }
-.estela-actions button { background: #fff; border: 1px solid #dfe6e1; border-radius: 7px; }
-.estela-actions button:hover { background: #f2f5f2; }
-.estela-actions button:first-child { background: #245b43; border-color: #245b43; color: #fff; }
-.estela-chips button { border-radius: 7px; }
 .estela-form input { border-color: #cbd7cf; border-radius: 8px; }
 .estela-form input:focus { outline: 2px solid #245b43; outline-offset: -1px; }
 .estela-mic { border: 1px solid #dfe6e1; border-radius: 8px; }
@@ -3783,8 +3775,6 @@ body.map-max .estela-fab, body.map-max .estela-fab-mic { display: none !importan
 /* Chat da Estrela: nada passa da largura do painel */
 .estela-list { overflow-x: hidden; }
 .estela-msg { overflow-wrap: anywhere; min-width: 0; }
-.estela-actions { flex-wrap: wrap; }
-.estela-actions button { white-space: nowrap; }
 .estela-head { gap: 8px; }
 .estela-title { flex: 1; min-width: 0; line-height: 1.25; }
 .estela-head-btns { flex: none; }
@@ -4020,13 +4010,6 @@ body.estela-docked .estela-panel { position: relative; }
 .estela-msg { max-width: 92%; padding: 12px 14px; font-size: 16px; line-height: 1.5; border-radius: 10px; }
 .estela-msg.me { font-weight: 500; }
 .estela-src { display: inline-block; margin-top: 4px; font-size: 13px; opacity: 1; color: #65756e; }
-.estela-actions { gap: 8px; margin-top: 12px; }
-.estela-actions button { flex: 1 1 auto; min-height: 48px; padding: 0 18px; font-size: 16px; font-weight: 600; color: #182b25; border: 1px solid #9fb3a7; border-radius: 8px; }
-.estela-actions button:first-child { font-weight: 700; }
-.estela-actions button:focus-visible, .estela-chips button:focus-visible, .estela-mic:focus-visible, .estela-send:focus-visible, .estela-head-btns button:focus-visible { outline: 3px solid #245b43; outline-offset: 2px; }
-.estela-chips { flex-direction: column; flex-wrap: nowrap; gap: 6px; padding: 4px 14px 10px; }
-.estela-chips button { width: 100%; min-height: 46px; padding: 8px 14px; text-align: left; font-size: 15px; font-weight: 500; color: #182b25; border: 1px solid #cbd7cf; border-radius: 8px; background: #fff; }
-.estela-chips button:hover { background: #f2f5f2; border-color: #9fb3a7; }
 .estela-form { flex-direction: column; gap: 8px; padding: 10px 14px 14px; }
 .estela-mic { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 2px solid #245b43; border-radius: 9px; background: #fff; color: #245b43; font-size: 17px; font-weight: 700; }
 .estela-mic svg { margin: 0; flex: none; }
@@ -4047,8 +4030,6 @@ body.estela-docked .estela-panel { position: relative; }
 body.estela-docked #estela-root { min-width: 0; max-width: 100%; }
 body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width: 100%; min-width: 0; }
 /* Sugestões lado a lado (continuam grandes), para não espremer a conversa */
-.estela-chips { flex-direction: row; flex-wrap: wrap; gap: 8px; }
-.estela-chips button { width: auto; min-height: 44px; flex: 0 1 auto; }
 
 /* Alerta de queimadas (focos de calor NASA FIRMS) */
 .fire-ico { background: none; border: 0; }
@@ -4196,13 +4177,6 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
 .estela-ticks { color: #3b8f66; }
 .estela-msg::after { content: ''; display: block; clear: both; }
 /* Botões de resposta rápida, como nos aplicativos de mensagem */
-.estela-actions { margin-top: 8px; border-top: 1px solid #e6ece8; padding-top: 6px; gap: 0; flex-direction: column; }
-.estela-actions button { width: 100%; background: transparent; border: 0; border-radius: 0; color: #1f6c8f; font-weight: 600; font-size: 14.5px; min-height: 40px; text-align: center; border-top: 1px solid #eef2ef; }
-.estela-actions button:first-child { background: transparent; color: #1f6c8f; border-top: 0; }
-.estela-actions button:hover { background: #f4f7f5; }
-.estela-chips { padding: 6px 12px 8px; gap: 6px; background: transparent; flex-direction: row; flex-wrap: wrap; }
-.estela-chips button { width: auto; min-height: 36px; padding: 6px 14px; border: 0; border-radius: 18px; background: #fff; color: #1f6c8f; font-size: 14px; font-weight: 600; box-shadow: 0 1px 1px rgba(24, 43, 37, 0.14); text-align: center; }
-.estela-chips button:hover { background: #f4f7f5; border: 0; }
 /* Barra de escrever: campo arredondado e botão redondo (microfone ou enviar) */
 .estela-form { flex-direction: row; align-items: flex-end; gap: 8px; padding: 6px 8px 8px; background: #e8eee9; border-top: 0; }
 .estela-type { flex: 1; min-width: 0; display: flex; background: #fff; border-radius: 24px; box-shadow: 0 1px 1px rgba(24, 43, 37, 0.14); }

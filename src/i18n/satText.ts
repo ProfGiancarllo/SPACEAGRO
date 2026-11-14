@@ -1,6 +1,7 @@
 import { getCurrentLanguage } from './index';
 type D = Record<string, string>;
 const pt: D = {
+  rain: 'Chuva em 14 dias (NASA POWER)', srcNasa: 'Chuva medida pela NASA POWER no período; use junto com o vigor.', dry: 'dias secos',
   btn: 'Saúde por satélite', btnOn: 'Ocultar satélite', loading: 'Lendo análise de satélite…',
   pillSome: 'Satélite (Sentinel-2): {n} talhão(ões) em atenção · imagem de {d}',
   pillNone: 'Satélite (Sentinel-2): nenhum talhão com sinal de problema · imagem de {d}',
@@ -13,6 +14,7 @@ const pt: D = {
   src: 'Fonte: Sentinel-2 L2A (ESA/Copernicus) via Microsoft Planetary Computer. Análise gerada em {g}; renovada a cada 2 dias.',
 };
 const en: D = {
+  rain: 'Rain in 14 days (NASA POWER)', srcNasa: 'Rain from NASA POWER over the period; read it together with vigor.', dry: 'dry days',
   btn: 'Satellite health', btnOn: 'Hide satellite', loading: 'Reading satellite analysis…',
   pillSome: 'Satellite (Sentinel-2): {n} field(s) need attention · image of {d}',
   pillNone: 'Satellite (Sentinel-2): no field with a warning sign · image of {d}',
@@ -25,6 +27,7 @@ const en: D = {
   src: 'Source: Sentinel-2 L2A (ESA/Copernicus) via Microsoft Planetary Computer. Analysis generated on {g}; refreshed every 2 days.',
 };
 const es: D = {
+  rain: 'Lluvia en 14 días (NASA POWER)', srcNasa: 'Lluvia de NASA POWER en el período; úsela junto con el vigor.', dry: 'días secos',
   btn: 'Salud por satélite', btnOn: 'Ocultar satélite', loading: 'Leyendo análisis de satélite…',
   pillSome: 'Satélite (Sentinel-2): {n} parcela(s) en atención · imagen del {d}',
   pillNone: 'Satélite (Sentinel-2): ninguna parcela con señal de problema · imagen del {d}',
