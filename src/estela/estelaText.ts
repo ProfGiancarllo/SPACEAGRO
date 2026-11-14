@@ -4,6 +4,7 @@ type D = Record<string, string>;
 const pt: D = {
   fab: 'Pergunte à Estrela', title: 'Estrela • Agrônoma virtual', placeholder: 'Escreva ou fale…', send: 'Enviar',
   mic: 'Falar', micOn: 'Ouvindo… fale agora', micNo: 'Este navegador não tem reconhecimento de voz. Use o Chrome ou digite.', micDenied: 'Permita o microfone para falar com a Estrela.',
+  minimize: 'Minimizar conversa',
   speakOn: 'Voz da Estrela ligada', speakOff: 'Voz da Estrela desligada', clear: 'Limpar conversa', close: 'Fechar',
   hello: 'Oi, sou a Estrela. Mande sua pergunta ou o que você fez hoje na roça.',
   help: 'Digo se dá pra plantar, como estão os talhões e o tempo, e anoto no diário. Ex.: "irrigação de 20 mm no talhão 2 hoje".',
@@ -27,6 +28,7 @@ const pt: D = {
 const en: D = {
   fab: 'Ask Estrela', title: 'Estrela • Virtual agronomist', placeholder: 'Ask or request a diary entry…', send: 'Send',
   mic: 'Speak', micOn: 'Listening… speak now', micNo: 'This browser has no speech recognition. Use Chrome or type.', micDenied: 'Allow the microphone to talk to Estrela.',
+  minimize: 'Minimize chat',
   speakOn: 'Estrela voice on', speakOff: 'Estrela voice off', clear: 'Clear chat', close: 'Close',
   hello: "Hi, I'm Estrela, SpaceAgro's virtual agronomist. I can tell you whether it is a good time to plant, how your fields are doing, the weather, and log diary entries by voice or text.",
   help: 'I can: assess planting risk with NASA data, summarize your fields, talk about the weather, open the rotation planner and log diary entries (e.g. "log irrigation of 20 mm on field 2 today").',
@@ -50,6 +52,7 @@ const en: D = {
 const es: D = {
   fab: 'Pregunta a Estrela', title: 'Estrela • Agrónoma virtual', placeholder: 'Pregunta o pide un registro…', send: 'Enviar',
   mic: 'Hablar', micOn: 'Escuchando… habla ahora', micNo: 'Este navegador no tiene reconocimiento de voz. Usa Chrome o escribe.', micDenied: 'Permite el micrófono para hablar con Estrela.',
+  minimize: 'Minimizar conversación',
   speakOn: 'Voz de Estrela activada', speakOff: 'Voz de Estrela desactivada', clear: 'Limpiar chat', close: 'Cerrar',
   hello: 'Hola, soy Estrela, la agrónoma virtual de SpaceAgro. Puedo decirte si conviene sembrar, cómo están tus lotes, el clima y registrar en el diario por voz o texto.',
   help: 'Puedo: evaluar el riesgo de siembra con datos de la NASA, resumir tus lotes, hablar del clima, abrir el planificador de rotación y registrar en el diario (ej.: "registrar riego de 20 mm en el lote 2 hoy").',
@@ -73,6 +76,7 @@ const es: D = {
 const de: D = {
   fab: 'Estrela fragen', title: 'Estrela • Virtuelle Agronomin', placeholder: 'Fragen oder Eintrag anfordern…', send: 'Senden',
   mic: 'Sprechen', micOn: 'Ich höre zu… jetzt sprechen', micNo: 'Dieser Browser hat keine Spracherkennung. Chrome nutzen oder tippen.', micDenied: 'Mikrofon erlauben, um mit Estrela zu sprechen.',
+  minimize: 'Chat minimieren',
   speakOn: 'Estelas Stimme an', speakOff: 'Estelas Stimme aus', clear: 'Chat leeren', close: 'Schließen',
   hello: 'Hallo, ich bin Estrela, die virtuelle Agronomin von SpaceAgro. Ich sage Ihnen, ob Säen sinnvoll ist, wie Ihre Felder stehen, wie das Wetter ist, und trage per Sprache oder Text ins Tagebuch ein.',
   help: 'Ich kann: Aussaatrisiko mit NASA-Daten bewerten, Felder zusammenfassen, übers Wetter sprechen, den Fruchtfolge-Planer öffnen und ins Tagebuch eintragen (z. B. "Bewässerung 20 mm auf Feld 2 heute eintragen").',
@@ -96,6 +100,7 @@ const de: D = {
 const zh: D = {
   fab: '问问 Estrela', title: 'Estrela • 虚拟农艺师', placeholder: '提问或请求记录…', send: '发送',
   mic: '说话', micOn: '正在聆听… 请说话', micNo: '此浏览器不支持语音识别，请使用 Chrome 或手动输入。', micDenied: '请允许麦克风以便与 Estrela 对话。',
+  minimize: '最小化对话',
   speakOn: 'Estrela 语音已开启', speakOff: 'Estrela 语音已关闭', clear: '清空对话', close: '关闭',
   hello: '你好，我是 Estrela，SpaceAgro 的虚拟农艺师。我可以告诉你现在适不适合播种、地块状况、天气，并通过语音或文字记录农事日记。',
   help: '我可以：用 NASA 数据评估播种风险、汇总地块情况、介绍天气、打开轮作规划器并记录日记（例如“在地块 2 记录今天灌溉 20 毫米”）。',
@@ -119,6 +124,7 @@ const zh: D = {
 const fr: D = {
   fab: 'Demander à Estrela', title: 'Estrela • Agronome virtuelle', placeholder: 'Posez une question ou demandez un enregistrement…', send: 'Envoyer',
   mic: 'Parler', micOn: 'J’écoute… parlez maintenant', micNo: "Ce navigateur n'a pas de reconnaissance vocale. Utilisez Chrome ou tapez.", micDenied: 'Autorisez le micro pour parler avec Estrela.',
+  minimize: 'Réduire la conversation',
   speakOn: 'Voix d’Estrela activée', speakOff: 'Voix d’Estrela désactivée', clear: 'Effacer la conversation', close: 'Fermer',
   hello: "Bonjour, je suis Estrela, l'agronome virtuelle de SpaceAgro. Je peux dire s'il est bon de semer, comment vont vos parcelles, la météo, et enregistrer dans le journal par la voix ou le texte.",
   help: 'Je peux : évaluer le risque de semis avec les données NASA, résumer vos parcelles, parler de la météo, ouvrir le planificateur de rotation et enregistrer dans le journal (ex. : « enregistrer une irrigation de 20 mm sur la parcelle 2 aujourd\'hui »).',

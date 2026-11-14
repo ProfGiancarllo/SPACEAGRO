@@ -149,6 +149,9 @@ export class MapManager {
     });
     updateZoomClass();
 
+    // a coluna da Estrela abre/minimiza (ou a janela muda): o mapa acompanha o novo tamanho
+    window.addEventListener('resize', () => this.map.resize());
+    window.addEventListener('estela-layout', () => this.map.resize());
     this.setupMapListeners();
     this.addAdjustControl();
     this.addWandControl();

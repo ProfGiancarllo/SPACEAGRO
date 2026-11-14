@@ -3,6 +3,9 @@ import { getCurrentLanguage, t, translateCropName } from '../i18n';
 import { et } from './estelaText';
 import { playEstelaIntro, shouldShowIntro } from './EstelaIntro';
 import { estelaBaseUrl } from '../admin/server';
+
+/** Chat minimizado na lateral (vale entre visitas). */
+const MIN_KEY = 'myroca_estela_min_v1';
 import { calculateTalhaoCropStatus, addDaysToDate } from '../utils/cropCalendar';
 import { fetchNasaSeries, polygonCentroid, summarizeNasa } from '../utils/nasaPower';
 import { assessPlanting } from '../utils/agronomyRules';
@@ -108,7 +111,33 @@ export class EstelaChat {
     (dock || document.body).appendChild(this.root);
     this.renderShell();
     // Na tela larga o chat fica fixo na lateral direita da visão geral, já aberto.
-    if (dock && window.matchMedia('(min-width: 1100px)').matches) { document.body.classList.add('estela-docked'); this.toggle(true); }
+    if (dock && window.matchMedia('(min-width: 1100px)').matches) {
+      document.body.classList.add('estela-docked');
+      let min = false;
+      try { min = localStorage.getItem(MIN_KEY) === '1'; } catch { /* ignora */ }
+      if (min) this.setMinimized(true); else this.toggle(true);
+    }
+  }
+
+  // ---------------- Minimizar (chat fixo na lateral): a coluna some e o mapa/painéis ocupam a tela
+  private isMinimized(): boolean { return document.body.classList.contains('estela-min'); }
+
+  public setMinimized(min: boolean): void {
+    document.body.classList.toggle('estela-min', min);
+    try { localStorage.setItem(MIN_KEY, min ? '1' : '0'); } catch { /* ignora */ }
+    if (min) {
+      this.open = false;
+      this.panel.style.display = 'none';
+      this.root.querySelector('#estela-fab')?.classList.remove('hidden');
+      this.root.querySelector('#estela-fab-mic')?.classList.add('hidden');
+      (this.root.querySelector('#estela-fab') as HTMLElement | null)?.focus();
+    } else {
+      this.toggle(true);
+    }
+    // o mapa e os painéis recalculam o tamanho com a coluna aberta/fechada
+    const relayout = () => { window.dispatchEvent(new Event('estela-layout')); window.dispatchEvent(new Event('resize')); };
+    requestAnimationFrame(() => requestAnimationFrame(relayout));
+    window.setTimeout(relayout, 250);
   }
 
   private renderShell(): void {
@@ -123,6 +152,7 @@ export class EstelaChat {
           <div class="estela-head-btns">
             ${voiceUrl() ? `<button id="estela-speak" title="${this.speak ? et('speakOn') : et('speakOff')}" aria-label="${this.speak ? et('speakOn') : et('speakOff')}">${this.speak ? SPK_ON : SPK_OFF}</button>` : ''}
             <button id="estela-clear" title="${et('clear')}">${et('clear')}</button>
+            <button id="estela-min" type="button" title="${et('minimize')}" aria-label="${et('minimize')}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
             <button id="estela-close" title="${et('close')}">&times;</button>
           </div>
         </div>
@@ -138,7 +168,8 @@ export class EstelaChat {
     this.panel = this.root.querySelector('#estela-panel')!;
     this.list = this.root.querySelector('#estela-list')!;
     this.input = this.root.querySelector('#estela-input')!;
-    this.root.querySelector('#estela-fab')!.addEventListener('click', () => this.toggle());
+    this.root.querySelector('#estela-fab')!.addEventListener('click', () => (this.isMinimized() ? this.setMinimized(false) : this.toggle()));
+    this.root.querySelector('#estela-min')!.addEventListener('click', () => this.setMinimized(true));
     this.root.querySelector('#estela-fab-mic')!.addEventListener('click', () => { this.fromVoice = true; this.toggle(true); if (!this.listening) this.toggleMic(); });
     this.root.querySelector('#estela-close')!.addEventListener('click', () => this.toggle(false));
     this.root.querySelector('#estela-clear')!.addEventListener('click', () => { this.msgs = []; this.painted = 0; this.pendingDiary = null; this.hello(); });

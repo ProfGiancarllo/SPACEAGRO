@@ -4276,3 +4276,12 @@ body.estela-docked .estela-panel { border: 0; border-radius: 0; box-shadow: none
 .maplibregl-marker.sat-ico { z-index: 1101; }
 .maplibregl-marker.sat-ico:has(.atencao) { z-index: 1102; }
 .maplibregl-marker.fire-ico { z-index: 1201; }
+
+/* ===== Estrela minimizada (chat fixo na lateral): a coluna some e a tela expande ===== */
+#estela-min { min-width: 40px; justify-content: center; }
+body:not(.estela-docked) #estela-min { display: none !important; }
+body.estela-docked.estela-min .home-layout { grid-template-columns: minmax(0, 1fr) 0; }
+body.estela-docked.estela-min .home-chat { width: 0; min-width: 0; border-left: 0; overflow: visible; }
+body.estela-docked.estela-min .estela-panel { display: none !important; }
+/* botão para reabrir no canto inferior direito */
+body.estela-docked.estela-min .estela-fab { display: flex !important; position: fixed; left: auto; right: 20px; bottom: 20px; z-index: 1500; }
