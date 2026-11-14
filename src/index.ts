@@ -3,6 +3,7 @@ import { calculatePolygonAreaHectares, calculatePerimeterKm, formatHectares, par
 import { loadFarmData, saveFarmData, resetToDemoFarm, clearAllFarmData } from './utils/storage';
 import { FireAlert } from './components/FireAlert';
 import { SatelliteHealth } from './components/SatelliteHealth';
+import { enableDraggableWindows } from './utils/dragWindows';
 import { MapManager } from './components/MapManager';
 import { CoordinateRow, parseCoordinatePair, parsePastedCoordinateText, validateCoordinate } from './utils/coordinateParser';
 import { DEFAULT_REFERENCE_DATE, formatBrDateWithWeekday, formatBrDateShort, addDaysToDate, calculateTalhaoCropStatus, calculateExpectedHarvestDate, checkCropDatesOverlap, getCropColor, DEFAULT_CROP_CYCLES } from './utils/cropCalendar';
@@ -170,6 +171,7 @@ class AgroApp {
     this.fireAlert.start();
     this.satHealth = new SatelliteHealth({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap() });
     this.satHealth.start();
+    enableDraggableWindows();
   }
 
   private renderDOM(): void {

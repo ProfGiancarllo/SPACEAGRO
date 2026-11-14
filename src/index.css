@@ -4307,3 +4307,13 @@ body.estela-docked .estela-head { padding-top: 16px; }
 .nasa-date-ctl input:focus { outline: 2px solid #245b43; outline-offset: -1px; }
 .nasa-date-ctl p { margin: 6px 0 0; color: #65756e; line-height: 1.4; font-size: 11.5px; }
 @media (max-width: 640px) { .nasa-date-ctl { width: 180px; } }
+/* Janela do talhão também acoplada à direita; todas as janelas arrastáveis pelo cabeçalho */
+.game-talhao-sheet-overlay { position: fixed !important; inset: 0; z-index: 1700; background: transparent !important; pointer-events: none; padding: 0 !important; align-items: stretch !important; justify-content: flex-end !important; }
+.game-talhao-sheet-card { pointer-events: auto; width: min(600px, 44vw) !important; max-width: none !important; height: 100vh; max-height: 100vh !important; border-radius: 0 !important; border-width: 0 0 0 1px !important; box-shadow: -10px 0 28px rgba(24, 43, 37, 0.18) !important; }
+.mkp-head, .modal-header, .wx-dialog .panelhead, .rot-head, .sheet-header { cursor: grab; touch-action: none; user-select: none; }
+.mkp-card.dragged, .modal-card.dragged, .wx-dialog.dragged, .rot-card.dragged, .game-talhao-sheet-card.dragged { position: fixed !important; right: auto !important; bottom: auto !important; height: min(620px, calc(100vh - 24px)); max-height: calc(100vh - 24px) !important; border-radius: 10px !important; border-width: 1px !important; box-shadow: 0 10px 34px rgba(24, 43, 37, 0.32) !important; z-index: 1; }
+@media (max-width: 900px) {
+  .game-talhao-sheet-card { width: 100% !important; height: auto; max-height: 40vh !important; align-self: flex-end; border-width: 1px 0 0 0 !important; box-shadow: 0 -8px 24px rgba(24, 43, 37, 0.22) !important; }
+  .game-talhao-sheet-overlay { align-items: flex-end !important; }
+  .mkp-card.dragged, .modal-card.dragged, .wx-dialog.dragged, .rot-card.dragged, .game-talhao-sheet-card.dragged { width: min(92vw, 420px) !important; height: auto; max-height: 60vh !important; }
+}
