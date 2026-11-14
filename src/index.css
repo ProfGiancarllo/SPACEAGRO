@@ -634,6 +634,12 @@ body {
   display: none !important;
 }
 
+/* Mapa afastado (país ou mundo): etiquetas dos talhões e da fazenda de exemplo ficam ocultas */
+.map-zoom-far .custom-talhao-label-container,
+.map-zoom-far .car-label {
+  display: none !important;
+}
+
 /* Talhão labels always visible with priority over structures */
 .custom-talhao-label-container {
   z-index: 1000 !important;

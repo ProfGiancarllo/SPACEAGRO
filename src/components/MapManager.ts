@@ -135,6 +135,9 @@ export class MapManager {
     this.map.addControl(new maplibregl.AttributionControl({ compact: window.innerWidth < 640 }), 'bottom-right');
     this.map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
     this.addLayerSwitcher();
+    // ao perder ou voltar a internet, prende ou solta o mapa (ver applySnapLimits)
+    window.addEventListener('online', () => this.applySnapLimits());
+    window.addEventListener('offline', () => this.applySnapLimits());
 
     this.ready = new Promise((resolve) => this.map.on('load', () => { this.setupLayers(); resolve(); }));
 
@@ -142,6 +145,8 @@ export class MapManager {
       const c = this.map.getContainer(), z = this.map.getZoom();
       c.classList.toggle('map-zoom-low', z < Z(15));
       c.classList.toggle('map-zoom-below-14', z < Z(14));
+      // longe da fazenda (vendo país ou mundo) as etiquetas dos talhões se espalhariam: ficam ocultas
+      c.classList.toggle('map-zoom-far', z < Z(11));
     };
     let lastZ = this.map.getZoom();
     this.map.on('zoomend', () => {
@@ -189,8 +194,8 @@ export class MapManager {
       'line-color': '#ffffff', 'line-opacity': 0.9,
       'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 3.5, 1.5],
     } });
-    m.addLayer({ id: 'leaders', type: 'line', source: 'leaders', paint: { 'line-color': ['get', 'color'], 'line-width': 1.5, 'line-dasharray': [1.5, 2], 'line-opacity': 0.85 }, filter: ['==', ['geometry-type'], 'LineString'] });
-    m.addLayer({ id: 'leaders-dot', type: 'circle', source: 'leaders', paint: { 'circle-radius': 3, 'circle-color': '#ffffff', 'circle-stroke-color': ['get', 'color'], 'circle-stroke-width': 1.5 }, filter: ['==', ['geometry-type'], 'Point'] });
+    m.addLayer({ id: 'leaders', type: 'line', source: 'leaders', minzoom: Z(11), paint: { 'line-color': ['get', 'color'], 'line-width': 1.5, 'line-dasharray': [1.5, 2], 'line-opacity': 0.85 }, filter: ['==', ['geometry-type'], 'LineString'] });
+    m.addLayer({ id: 'leaders-dot', type: 'circle', source: 'leaders', minzoom: Z(11), paint: { 'circle-radius': 3, 'circle-color': '#ffffff', 'circle-stroke-color': ['get', 'color'], 'circle-stroke-width': 1.5 }, filter: ['==', ['geometry-type'], 'Point'] });
 
     // desenho, prévia digitada, ajuste e varinha
     const dashed = (id: string, color: string, fillOpacity: number) => {
@@ -712,17 +717,17 @@ export class MapManager {
     this.map.setLayoutProperty('snapbg', 'visibility', esri && navigator.onLine ? 'visible' : 'none');
   }
 
-  /** Limites de zoom e de arraste conforme o fundo disponível. */
+  /** Limites de zoom e de arraste: com internet o mapa é livre (mundo todo); sem internet fica preso à foto fixa da fazenda. */
   private applySnapLimits(): void {
-    if (!this.snapBounds) return;
-    const [[s, w], [n, e]] = this.snapBounds;
-    const b: LngLatBoundsLike = [[w, s], [e, n]];
-    const cover = this.map.cameraForBounds(b)?.zoom ?? Z(13);
-    const online = navigator.onLine;
-    const minZ = online ? Math.max(Z(3), cover - 3) : cover;
-    this.map.setMinZoom(minZ);
-    const padLat = (n - s) * 1.5, padLng = (e - w) * 1.5;
-    this.map.setMaxBounds(online ? [[w - padLng, s - padLat], [e + padLng, n + padLat]] : b);
+    if (!navigator.onLine && this.snapBounds) {
+      const [[s, w], [n, e]] = this.snapBounds;
+      const b: LngLatBoundsLike = [[w, s], [e, n]];
+      this.map.setMinZoom(this.map.cameraForBounds(b)?.zoom ?? Z(13));
+      this.map.setMaxBounds(b);
+      return;
+    }
+    this.map.setMaxBounds(null);
+    this.map.setMinZoom(0);
   }
 
   public refitAfterResize(talhoes: Talhao[], waterPoints: WaterPoint[]): void {
