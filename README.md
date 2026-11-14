@@ -26,6 +26,7 @@ Código e conteúdo originais da equipe: [Apache License 2.0](LICENSE).
 | Dado | Para que serve no app | Fonte |
 |---|---|---|
 | NASA POWER (chuva, temperatura, radiação, umidade) | Clima do talhão, janela de semeadura, diário de safra | https://power.larc.nasa.gov |
+| NASA HLS L30 (Landsat 8/9, 30 m, cor verdadeira) | Camada "Landsat 30 m" do mapa: a passagem mais recente sem nuvem sobre a área | https://gibs.earthdata.nasa.gov (camada HLS_L30_Nadir_BRDF_Adjusted_Reflectance) |
 | NASA GIBS (VIIRS NOAA-20 / MODIS cor verdadeira) | Camada de satélite diária no mapa | https://gibs.earthdata.nasa.gov |
 | NASA FIRMS (focos de calor VIIRS 375 m) | Alerta de fogo perto da fazenda | https://firms.modaps.eosdis.nasa.gov |
 | Landsat 8/9 Collection 2 Level-2 (NASA/USGS) | Saúde da lavoura por talhão (verde e água na folha) | via Microsoft Planetary Computer |

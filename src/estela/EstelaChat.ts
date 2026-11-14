@@ -32,6 +32,24 @@ interface Msg { who: 'me' | 'estela'; html: string; t?: string; actions?: { labe
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+
+/**
+ * Resposta da IA pronta para o chat: **negrito** vira negrito de verdade, sobras de markdown (marcadores de lista, #, *, `)
+ * somem, cada linha vira um parágrafo e o rótulo do início da linha ("Atenção:", "Próximo passo:") fica em destaque.
+ * Devolve também o texto limpo para a voz (sem ler os símbolos).
+ */
+export function formatAnswer(raw: string): { html: string; speech: string } {
+  const lines = raw.replace(/\r/g, '').split(/\n+/)
+    .map((l) => l.replace(/^\s*(?:[-*•]|\d+[.)]|#{1,6})\s+/, '').trim())
+    .filter(Boolean);
+  const html = lines.map((l) => {
+    let h = esc(l).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/[*`#]+/g, '');
+    if (!h.startsWith('<strong>')) h = h.replace(/^([^:<]{2,26}:)\s/, '<strong>$1</strong> ');
+    return `<p class="estela-p">${h}</p>`;
+  }).join('');
+  const speech = lines.map((l) => l.replace(/[*`#]+/g, '')).join(' ');
+  return { html, speech };
+}
 const LANG_TAG: Record<string, string> = { pt: 'pt-BR', es: 'es-ES', en: 'en-US', de: 'de-DE', zh: 'zh-CN', fr: 'fr-FR' };
 
 const DIARY_RULES: [DiaryEntryType, RegExp, string | null][] = [
@@ -804,7 +822,8 @@ export class EstelaChat {
       const ans = String(j.answer || '').trim();
       if (!ans) throw new Error('empty');
       this.msgs.pop(); this.painted = Math.min(this.painted, this.msgs.length);
-      this.say(esc(ans).replace(/\n/g, '<br>') + `<br><span class="estela-src">${esc(et('extNotice'))}</span>`, undefined, ans);
+      const out = formatAnswer(ans);
+      this.say(out.html + `<span class="estela-src">${esc(et('extNotice'))}</span>`, undefined, out.speech);
     } catch {
       this.msgs.pop(); this.painted = Math.min(this.painted, this.msgs.length);
       this.say(esc(et('extFail')));

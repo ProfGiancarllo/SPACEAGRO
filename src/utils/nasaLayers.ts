@@ -34,3 +34,65 @@ export const nasaTrueColorUrl = (date: string): string =>
 export const nasaDefaultDate = (): string => new Date(Date.now() - 864e5).toISOString().slice(0, 10);
 export const nasaTileUrl = (d: NasaLayerDef, matrix: string): string =>
   `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${d.layer}/default/${matrix}/{z}/{y}/{x}.${d.ext}`;
+
+/**
+ * Landsat 8/9 a 30 m (NASA HLS L30: Harmonized Landsat Sentinel-2, reflectância corrigida), cor verdadeira.
+ * No EPSG:3857 vai até o nível 12 (~38 m/pixel); acima disso o mapa amplia a mesma imagem.
+ * Cada dia só tem as faixas por onde o satélite passou (revisita de ~8 dias com os dois satélites), por isso a data
+ * é escolhida por findLandsatDate: a passagem mais recente sobre o ponto, com pouca nuvem.
+ */
+export const LANDSAT = { layer: 'HLS_L30_Nadir_BRDF_Adjusted_Reflectance', matrix: 'GoogleMapsCompatible_Level12', maxNativeZoom: 12 };
+export const landsatUrl = (date: string): string =>
+  `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${LANDSAT.layer}/default/${date}/${LANDSAT.matrix}/{z}/{y}/{x}.png`;
+
+export interface LandsatPick { date: string; cloud: number; cover: number }
+
+const tileXY = (lat: number, lng: number, z: number): [number, number] => {
+  const n = 2 ** z, r = (lat * Math.PI) / 180;
+  return [Math.floor(((lng + 180) / 360) * n), Math.floor(((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n)];
+};
+
+/** Lê um tile e devolve a fração com dado (não transparente) e a fração de nuvem (pixels claros) entre os que têm dado. */
+async function tileStats(url: string): Promise<{ cover: number; cloud: number } | null> {
+  const r = await fetch(url);
+  if (!r.ok) return null;
+  const blob = await r.blob();
+  if (blob.size < 4000) return { cover: 0, cloud: 0 }; // tile vazio: sem passagem nesse dia
+  const bmp = await createImageBitmap(blob);
+  const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  if (!g) return null;
+  g.drawImage(bmp, 0, 0);
+  const px = g.getImageData(0, 0, c.width, c.height).data;
+  let data = 0, cloud = 0;
+  for (let i = 0; i < px.length; i += 16) { // amostra 1 a cada 4 pixels
+    if (px[i + 3] < 128) continue;
+    data++;
+    if (px[i] > 175 && px[i + 1] > 175 && px[i + 2] > 175) cloud++;
+  }
+  const total = px.length / 16;
+  return { cover: data / total, cloud: data ? cloud / data : 1 };
+}
+
+/**
+ * Procura, do dia mais recente para trás (até `maxDays`), a imagem Landsat sobre o ponto com cobertura e pouca nuvem.
+ * Se nenhuma estiver limpa, devolve a de menos nuvem encontrada; null se não houver nenhuma passagem.
+ */
+export async function findLandsatDate(lat: number, lng: number, maxDays = 90): Promise<LandsatPick | null> {
+  const [x, y] = tileXY(lat, lng, LANDSAT.maxNativeZoom);
+  const day = (k: number) => new Date(Date.now() - (k + 1) * 864e5).toISOString().slice(0, 10);
+  let best: LandsatPick | null = null;
+  for (let k0 = 0; k0 < maxDays; k0 += 10) {
+    const dates = Array.from({ length: Math.min(10, maxDays - k0) }, (_, i) => day(k0 + i));
+    const stats = await Promise.all(dates.map((d) =>
+      tileStats(landsatUrl(d).replace('{z}', String(LANDSAT.maxNativeZoom)).replace('{y}', String(y)).replace('{x}', String(x))).catch(() => null)));
+    for (let i = 0; i < dates.length; i++) {
+      const s = stats[i];
+      if (!s || s.cover < 0.5) continue;
+      const pick = { date: dates[i], cloud: s.cloud, cover: s.cover };
+      if (s.cloud <= 0.15) return pick; // mais recente sem nuvem
+      if (!best || s.cloud < best.cloud) best = pick;
+    }
+  }
+  return best;
+}

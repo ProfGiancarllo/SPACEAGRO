@@ -4016,6 +4016,9 @@ body.estela-docked .estela-panel { position: relative; }
 .estela-msg { max-width: 92%; padding: 12px 14px; font-size: 16px; line-height: 1.5; border-radius: 10px; }
 .estela-msg.me { font-weight: 500; }
 .estela-src { display: inline-block; margin-top: 4px; font-size: 13px; opacity: 1; color: #65756e; }
+/* resposta da IA: uma ideia por parágrafo */
+.estela-p { margin: 0 0 8px; line-height: 1.45; }
+.estela-p strong { color: #182b25; }
 .estela-form { flex-direction: column; gap: 8px; padding: 10px 14px 14px; }
 .estela-mic { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 2px solid #245b43; border-radius: 9px; background: #fff; color: #245b43; font-size: 17px; font-weight: 700; }
 .estela-mic svg { margin: 0; flex: none; }
@@ -4214,6 +4217,7 @@ body.estela-docked .estela-panel { border: 0; border-radius: 0; box-shadow: none
 .nasa-date-ctl input { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #cbd7cf; border-radius: 6px; color: #182b25; background: #fff; }
 .nasa-date-ctl input:focus { outline: 2px solid #245b43; outline-offset: -1px; }
 .nasa-date-ctl p { margin: 6px 0 0; color: #65756e; line-height: 1.4; font-size: 11.5px; }
+.nasa-date-ctl p.nasa-date-status { color: #182b25; font-weight: 600; }
 @media (max-width: 640px) { .nasa-date-ctl { width: 180px; } }
 /* Janela do talhão também acoplada à direita; todas as janelas arrastáveis pelo cabeçalho */
 .game-talhao-sheet-overlay { position: fixed !important; inset: 0; z-index: 1700; background: transparent !important; pointer-events: none; padding: 0 !important; align-items: stretch !important; justify-content: flex-end !important; }
@@ -4316,7 +4320,8 @@ body.estela-docked.estela-min .estela-fab { display: flex !important; position: 
 .tl-ring .talhao-crop-dot { width: 9px !important; height: 9px !important; margin: 0 !important; border: 2px solid #fff; box-sizing: content-box; box-shadow: none !important; }
 
 /* Cartão com a data correndo */
-.tl-lapse { position: absolute; top: 14px; left: 50%; transform: translate(-50%, -8px); z-index: 1300; min-width: 220px; padding: 10px 16px; border-radius: 10px;
+/* embaixo, no centro: fica longe dos botões do mapa (topo) e da caixa de data da imagem (direita) */
+.tl-lapse { position: absolute; bottom: 44px; left: 50%; transform: translate(-50%, 8px); z-index: 1450; min-width: 220px; max-width: min(340px, calc(100% - 140px)); padding: 10px 16px; border-radius: 10px;
   background: rgba(14, 33, 26, 0.92); color: #fff; text-align: center; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); opacity: 0; animation: tlIn .25s ease-out forwards; pointer-events: none; }
 .tl-lapse-delta { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #b9f27c; }
 .tl-lapse-date { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
@@ -4324,7 +4329,14 @@ body.estela-docked.estela-min .estela-fab { display: flex !important; position: 
 .tl-lapse.done .tl-lapse-sum { max-height: 40px; margin-top: 4px; }
 .tl-lapse.out { animation: tlOut .35s ease-in forwards; }
 @keyframes tlIn { to { opacity: 1; transform: translate(-50%, 0); } }
-@keyframes tlOut { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, -8px); } }
+@keyframes tlOut { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, 8px); } }
+.tl-lapse-list { list-style: none; margin: 0; padding: 0; text-align: left; }
+.tl-lapse.done .tl-lapse-list:not(:empty) { margin-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 6px; }
+.tl-lapse-list li { display: flex; align-items: baseline; gap: 8px; font-size: 12.5px; line-height: 1.5; color: #d7e6dc; }
+.tl-lapse-list li b { flex: none; min-width: 34px; color: #fff; }
+.tl-lapse-list li b::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c, #2f9a3a); margin-right: 6px; }
+.tl-lapse-list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-lapse-list li.more { color: #9fb5a8; padding-left: 14px; }
 
 /* Faixa de luz atravessando o mapa */
 .tl-sweep { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
@@ -4340,6 +4352,6 @@ body.estela-docked.estela-min .estela-fab { display: flex !important; position: 
 @keyframes chipIn { to { opacity: 1; transform: none; } }
 @keyframes chipOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { .tl-lapse, .phase-chip, .tl-sweep::before { animation-duration: .01s !important; } }
-@media (max-width: 640px) { .tl-lapse { min-width: 180px; padding: 8px 12px; } .tl-lapse-date { font-size: 17px; } }
+@media (max-width: 640px) { .tl-lapse { min-width: 180px; max-width: calc(100% - 100px); padding: 8px 12px; } .tl-lapse-date { font-size: 17px; } }
 /* Botões e controles do mapa sempre por cima dos marcadores (rótulos, etiquetas de fase, saúde) */
 .maplibregl-ctrl-top-left, .maplibregl-ctrl-top-right, .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right { z-index: 1400; }

@@ -1208,15 +1208,7 @@ ${isSuperAdmin() ? `<div class="menu-head">Sistema</div>
 
     // Refresh drawer list
     this.renderDrawerLists();
-
-    const weeks = Math.abs(days / 7);
-    this.showToast(
-      `${t('toastDateAdvanced', {
-        date: formatBrDateShort(this.referenceDate),
-        days: days >= 0 ? `+${days}` : `${days}`,
-        weeks: days >= 0 ? `+${weeks}` : `-${weeks}`,
-      })}`
-    );
+    // sem aviso extra: o cartão da passagem do tempo no mapa já mostra a nova data e as fases que mudaram
   }
 
   public resetReferenceDate(): void {

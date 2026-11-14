@@ -8,7 +8,8 @@
 import type { Feature, FeatureCollection } from 'geojson';
 import maplibregl, { GeoJSONSource, LngLatBoundsLike, Map as MLMap, Marker, Popup, RasterTileSource } from 'maplibre-gl';
 import { twinLook, TwinLook } from '../utils/twinLook';
-import { NASA_LAYERS, NasaLayerId, nasaTileUrl, matrixZoom, NASA_TRUECOLOR, nasaTrueColorUrl, nasaDefaultDate } from '../utils/nasaLayers';
+import { NASA_LAYERS, NasaLayerId, nasaTileUrl, matrixZoom, NASA_TRUECOLOR, nasaTrueColorUrl, nasaDefaultDate, LANDSAT, landsatUrl, findLandsatDate } from '../utils/nasaLayers';
+import { lt } from '../i18n/landsatText';
 import { ensureSnapshot, farmBounds, Snap } from '../utils/farmSnapshot';
 import { CAR_PROPERTY, CAR_RESERVA, CAR_NATIVA, CAR_APP, CAR_VIEW, CAR_FIT } from '../data/farmCar';
 import { segmentField } from '../utils/segment';
@@ -31,6 +32,7 @@ type LatLng = [number, number];
 type FC = FeatureCollection;
 
 /** Progresso do ciclo (0–100) para o anel do rótulo. */
+const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 const clampPct = (v: number) => Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
 
 /** Zoom do Leaflet → zoom equivalente no MapLibre (mesma escala na tela). */
@@ -65,7 +67,7 @@ const ESRI_IMG = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Ima
 const ESRI_LABELS = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
 const OSM = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
-type BaseId = 'esri' | 'nasa' | 'osm';
+type BaseId = 'esri' | 'landsat' | 'nasa' | 'osm';
 
 export class MapManager {
   private map: MLMap;
@@ -96,6 +98,11 @@ export class MapManager {
   private nasaDate = nasaDefaultDate();
   private labelsOn = true;
   private nasaDateBox: HTMLElement | null = null;
+  private landsatDate = nasaDefaultDate();
+  /** Ponto onde foi feita a última busca de passagem Landsat (refaz se o mapa for para longe). */
+  private landsatProbe: maplibregl.LngLat | null = null;
+  private landsatSeq = 0;
+  private landsatReady = false;
 
   constructor(containerId: string, events: MapEvents) {
     this.events = events;
@@ -115,12 +122,14 @@ export class MapManager {
         sources: {
           esri: { type: 'raster', tiles: [ESRI_IMG], tileSize: 256, maxzoom: 19, attribution: `Tiles &copy; Esri &mdash; ${t('attribSatellite')}` },
           nasa: { type: 'raster', tiles: [nasaTrueColorUrl(this.nasaDate)], tileSize: 256, maxzoom: NASA_TRUECOLOR.maxNativeZoom, attribution: 'NASA GIBS &mdash; VIIRS NOAA-20' },
+          landsat: { type: 'raster', tiles: [landsatUrl(this.landsatDate)], tileSize: 256, maxzoom: LANDSAT.maxNativeZoom, attribution: 'NASA HLS &mdash; Landsat 8/9 (30 m)' },
           osm: { type: 'raster', tiles: [OSM], tileSize: 256, maxzoom: 19, attribution: '&copy; OpenStreetMap contributors' },
           labels: { type: 'raster', tiles: [ESRI_LABELS], tileSize: 256, maxzoom: 19, attribution: 'Labels &copy; Esri' },
         },
         layers: [
           { id: 'bg', type: 'background', paint: { 'background-color': '#e8eee9' } },
           { id: 'base-esri', type: 'raster', source: 'esri' },
+          { id: 'base-landsat', type: 'raster', source: 'landsat', layout: { visibility: 'none' } },
           { id: 'base-nasa', type: 'raster', source: 'nasa', layout: { visibility: 'none' } },
           { id: 'base-osm', type: 'raster', source: 'osm', layout: { visibility: 'none' } },
         ],
@@ -133,6 +142,8 @@ export class MapManager {
     this.map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
     // créditos das imagens sempre à vista (exigência do OpenStreetMap, Esri e das regras do Space Apps); compacto só em tela estreita
     this.map.addControl(new maplibregl.AttributionControl({ compact: window.innerWidth < 640 }), 'bottom-right');
+    // no celular os créditos começam recolhidos no botão "i" (abertos, cobriam o mapa e os avisos)
+    if (window.innerWidth < 640) this.map.once('idle', () => this.map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show'));
     this.map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
     this.addLayerSwitcher();
     // ao perder ou voltar a internet, prende ou solta o mapa (ver applySnapLimits)
@@ -255,7 +266,7 @@ export class MapManager {
     btn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="m2 13 10 5 10-5"/><path d="m2 17.5 10 5 10-5" opacity=".55"/></svg>';
     const menu = document.createElement('div');
     menu.className = 'ml-layers-menu'; menu.hidden = true;
-    const opts: [BaseId, string][] = [['esri', t('layerSatellite')], ['nasa', t('layerNasa')], ['osm', t('layerRoads')]];
+    const opts: [BaseId, string][] = [['esri', t('layerSatellite')], ['landsat', lt('name')], ['nasa', t('layerNasa')], ['osm', t('layerRoads')]];
     menu.innerHTML = `
       <fieldset><legend class="sr-only">Mapa base</legend>
         ${opts.map(([id, name]) => `<label><input type="radio" name="ml-base" value="${id}" ${id === this.base ? 'checked' : ''}/> <span>${name}</span></label>`).join('')}
@@ -263,7 +274,7 @@ export class MapManager {
       <label class="ml-sep"><input type="checkbox" name="ml-labels" ${this.labelsOn ? 'checked' : ''}/> <span>${t('layerLabels')}</span></label>`;
     const date = document.createElement('div');
     date.className = 'nasa-date-ctl'; date.hidden = true;
-    date.innerHTML = `<label><span>${t('layerNasaDate')}</span><input type="date" value="${this.nasaDate}" max="${nasaDefaultDate()}" min="2018-01-01" title="${t('layerNasaNote')}" /></label><p>${t('layerNasaNote')}</p>`;
+    date.innerHTML = `<label><span>${t('layerNasaDate')}</span><input type="date" value="${this.nasaDate}" max="${nasaDefaultDate()}" min="2013-04-01" title="${t('layerNasaNote')}" /></label><p class="nasa-date-status" hidden></p><p class="nasa-date-note">${t('layerNasaNote')}</p>`;
     this.nasaDateBox = date;
     box.append(btn, menu, date);
     btn.onclick = () => { menu.hidden = !menu.hidden; btn.setAttribute('aria-expanded', String(!menu.hidden)); };
@@ -276,8 +287,14 @@ export class MapManager {
     date.querySelector('input')!.addEventListener('change', (e) => {
       const v = (e.target as HTMLInputElement).value;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+      if (this.base === 'landsat') { this.setLandsatDate(v); this.dateStatus(''); return; }
       this.nasaDate = v;
       (this.map.getSource('nasa') as RasterTileSource | undefined)?.setTiles([nasaTrueColorUrl(v)]);
+    });
+    // Landsat: ao levar o mapa para longe (> ~60 km) da última busca, procura a passagem mais recente do novo lugar
+    this.map.on('moveend', () => {
+      if (this.base !== 'landsat' || !this.landsatProbe) return;
+      if (this.map.getCenter().distanceTo(this.landsatProbe) > 60_000) void this.pickLandsat();
     });
     this.map.addControl(new ElControl(box), 'top-right');
   }
@@ -285,10 +302,50 @@ export class MapManager {
   private setBase(id: BaseId): void {
     this.base = id;
     void this.ready.then(() => {
-      (['esri', 'nasa', 'osm'] as BaseId[]).forEach((b) => this.map.setLayoutProperty(`base-${b}`, 'visibility', b === id ? 'visible' : 'none'));
+      // Landsat só aparece depois que a busca escolhe a data (antes disso os tiles do dia ainda não existem)
+      const show = (b: BaseId) => b === id && (b !== 'landsat' || this.landsatReady);
+      (['esri', 'landsat', 'nasa', 'osm'] as BaseId[]).forEach((b) => this.map.setLayoutProperty(`base-${b}`, 'visibility', show(b) ? 'visible' : 'none'));
       this.applySnapZoom();
     });
-    if (this.nasaDateBox) this.nasaDateBox.hidden = id !== 'nasa';
+    const box = this.nasaDateBox;
+    if (box) {
+      box.hidden = id !== 'nasa' && id !== 'landsat';
+      const input = box.querySelector('input')!;
+      box.querySelector<HTMLElement>('.nasa-date-note')!.textContent = id === 'landsat' ? lt('note') : t('layerNasaNote');
+      input.value = id === 'landsat' ? this.landsatDate : this.nasaDate;
+      if (id !== 'landsat') this.dateStatus('');
+    }
+    if (id === 'landsat' && !this.landsatProbe) void this.pickLandsat();
+  }
+
+  private dateStatus(txt: string): void {
+    const p = this.nasaDateBox?.querySelector<HTMLElement>('.nasa-date-status');
+    if (p) { p.textContent = txt; p.hidden = !txt; }
+  }
+
+  private setLandsatDate(d: string): void {
+    this.landsatDate = d;
+    (this.map.getSource('landsat') as RasterTileSource | undefined)?.setTiles([landsatUrl(d)]);
+    if (!this.landsatReady) {
+      this.landsatReady = true;
+      if (this.base === 'landsat') void this.ready.then(() => this.map.setLayoutProperty('base-landsat', 'visibility', 'visible'));
+    }
+    const input = this.nasaDateBox?.querySelector('input');
+    if (input && this.base === 'landsat') input.value = d;
+  }
+
+  /** Procura a passagem Landsat mais recente e sem nuvem no centro do mapa e a mostra. */
+  private async pickLandsat(): Promise<void> {
+    const c = this.map.getCenter();
+    this.landsatProbe = c;
+    const seq = ++this.landsatSeq;
+    this.dateStatus(lt('searching'));
+    const pick = await findLandsatDate(c.lat, c.lng).catch(() => null);
+    if (seq !== this.landsatSeq) return; // outra busca começou depois
+    if (!pick) { this.dateStatus(lt('none')); return; }
+    this.setLandsatDate(pick.date);
+    const d = new Date(pick.date + 'T12:00:00Z').toLocaleDateString(undefined, { timeZone: 'UTC' });
+    this.dateStatus(lt('found', { d, c: pick.cloud > 0.15 ? lt('cloudy', { p: Math.round(pick.cloud * 100) }) : '' }));
   }
 
   // ==========================================
@@ -422,13 +479,13 @@ export class MapManager {
   private lapseTimer = 0;
   private lapseRaf = 0;
   private phaseChips: Marker[] = [];
-  private static LAPSE: Record<string, [string, string, string, string]> = {
-    pt: ['dias', '{n} talhão mudou de fase', '{n} talhões mudaram de fase', 'Nenhum talhão mudou de fase'],
-    en: ['days', '{n} field changed phase', '{n} fields changed phase', 'No field changed phase'],
-    es: ['días', '{n} lote cambió de fase', '{n} lotes cambiaron de fase', 'Ningún lote cambió de fase'],
-    de: ['Tage', '{n} Feld hat die Phase gewechselt', '{n} Felder haben die Phase gewechselt', 'Kein Feld hat die Phase gewechselt'],
-    zh: ['天', '{n} 块地进入新阶段', '{n} 块地进入新阶段', '没有地块进入新阶段'],
-    fr: ['jours', '{n} parcelle a changé de phase', '{n} parcelles ont changé de phase', 'Aucune parcelle n’a changé de phase'],
+  private static LAPSE: Record<string, [string, string, string, string, string]> = {
+    pt: ['dias', '{n} talhão mudou de fase', '{n} talhões mudaram de fase', 'Nenhum talhão mudou de fase', 'e mais {n}'],
+    en: ['days', '{n} field changed phase', '{n} fields changed phase', 'No field changed phase', 'and {n} more'],
+    es: ['días', '{n} lote cambió de fase', '{n} lotes cambiaron de fase', 'Ningún lote cambió de fase', 'y {n} más'],
+    de: ['Tage', '{n} Feld hat die Phase gewechselt', '{n} Felder haben die Phase gewechselt', 'Kein Feld hat die Phase gewechselt', 'und {n} weitere'],
+    zh: ['天', '{n} 块地进入新阶段', '{n} 块地进入新阶段', '没有地块进入新阶段', '另有 {n} 块'],
+    fr: ['jours', '{n} parcelle a changé de phase', '{n} parcelles ont changé de phase', 'Aucune parcelle n’a changé de phase', 'et {n} autres'],
   };
   private lt(i: number, n = 0): string { const l = (document.documentElement.lang || 'pt').slice(0, 2); return (MapManager.LAPSE[l] || MapManager.LAPSE.pt)[i].replace('{n}', String(n)); }
 
@@ -448,7 +505,7 @@ export class MapManager {
     // 1) cartão com a data correndo dia a dia
     const card = document.createElement('div');
     card.className = 'tl-lapse'; card.setAttribute('role', 'status');
-    card.innerHTML = `<div class="tl-lapse-delta">${days > 0 ? '+' : ''}${days} ${this.lt(0)}</div><div class="tl-lapse-date"></div><div class="tl-lapse-sum"></div>`;
+    card.innerHTML = `<div class="tl-lapse-delta">${days > 0 ? '+' : ''}${days} ${this.lt(0)}</div><div class="tl-lapse-date"></div><div class="tl-lapse-sum"></div><ul class="tl-lapse-list"></ul>`;
     box.appendChild(card);
     const dateEl = card.querySelector('.tl-lapse-date') as HTMLElement, sumEl = card.querySelector('.tl-lapse-sum') as HTMLElement;
     // 2) faixa de luz atravessando o mapa (o tempo passando)
@@ -473,21 +530,21 @@ export class MapManager {
       sumEl.textContent = changed.length ? this.lt(changed.length === 1 ? 1 : 2, changed.length) : this.lt(3);
       card.classList.add('done');
       (m.getSource('talhoes-prev') as GeoJSONSource | undefined)?.setData(EMPTY);
-      changed.slice(0, 12).forEach((tl, i) => {
+      // a nova fase de cada talhão vai numa lista dentro do cartão (etiquetas soltas no mapa se amontoavam);
+      // o contorno pulsando mostra no mapa quais talhões mudaram
+      const MAX = 6;
+      const list = card.querySelector('.tl-lapse-list') as HTMLElement;
+      list.innerHTML = changed.slice(0, MAX).map((tl) => {
         const st = calculateTalhaoCropStatus(tl, toIso);
-        const el = document.createElement('div');
-        el.className = 'phase-chip';
-        el.style.animationDelay = `${i * 70}ms`;
-        el.style.setProperty('--c', st.phase.badgeColor);
-        el.textContent = `${st.phase.icon || ''} ${translateCropPhase(st.phase.key)}`.trim();
-        this.phaseChips.push(new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -22] }).setLngLat(ll(calculatePolygonCenter(tl.coordinates) as LatLng)).addTo(m));
-      });
+        const name = tl.name.replace(/s*[[^]]*]s*/, '');
+        return `<li style="--c:${st.phase.badgeColor}"><b>${escapeHtml(name)}</b><span>${escapeHtml(translateCropPhase(st.phase.key))}</span></li>`;
+      }).join('') + (changed.length > MAX ? `<li class="more">${this.lt(4, changed.length - MAX)}</li>` : '');
       this.lapseTimer = window.setTimeout(() => {
         card.classList.add('out');
         this.phaseChips.forEach((c) => c.getElement().classList.add('out'));
         (m.getSource('phase-flash') as GeoJSONSource | undefined)?.setData(EMPTY);
         window.setTimeout(() => { card.remove(); this.phaseChips.forEach((c) => c.remove()); this.phaseChips = []; }, 400);
-      }, 3600);
+      }, changed.length ? 5200 : 3200);
     };
     this.lapseRaf = requestAnimationFrame(step);
   }
