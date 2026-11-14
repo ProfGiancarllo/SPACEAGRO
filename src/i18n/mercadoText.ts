@@ -1,3 +1,4 @@
+import { curSymbol } from '../utils/currency';
 import { getCurrentLanguage } from './index';
 
 type D = Record<string, string>;
@@ -14,7 +15,7 @@ const pt: D = {
   impactNow: 'Decisão agora: {t}', impactBtn: 'Abrir decisão de troca de safra', basisFut: 'Preço da colheita pelos futuros ({c}): {p}', basisTrend: 'Preço da colheita pela tendência: {p}',
   fxTitle: 'Dólar (R$ por US$)', parity: 'Preço internacional convertido pelo dólar (paridade de exportação). O preço da praça de Rio Verde costuma ser menor, por frete e prêmio. Digite o seu preço no planejador de safra.',
   exch: 'Bolsas usadas: CBOT (Chicago) e ICE (Nova York) para soja, milho, trigo e algodão; dólar e histórico mensal pelo FRED. A B3 não oferece dados abertos gratuitos.',
-  footer: 'Estimativa para planejamento, não é recomendação de compra ou venda.', noData: 'Sem dados de mercado carregados.', perUnit: 'R$/{u}', months: 'meses',
+  footer: 'Estimativa para planejamento, não é recomendação de compra ou venda.', noData: 'Sem dados de mercado carregados.', perUnit: '{cur}/{u}', months: 'meses',
   unitSc: 'saca 60 kg', unitArr: 'arroba', unitT: 'tonelada', up: 'alta', down: 'queda', pess: 'Pessimista', base: 'Base', opt: 'Otimista',
 };
 const en: D = {
@@ -29,7 +30,7 @@ const en: D = {
   impactNow: 'Decision now: {t}', impactBtn: 'Open crop-switch decision', basisFut: 'Harvest price from futures ({c}): {p}', basisTrend: 'Harvest price from trend: {p}',
   fxTitle: 'Dollar (R$ per US$)', parity: 'International price converted by the dollar (export parity). The Rio Verde local price is usually lower because of freight and premium. Type your price in the crop planner.',
   exch: 'Exchanges used: CBOT (Chicago) and ICE (New York) for soybeans, corn, wheat and cotton; dollar and monthly history from FRED. B3 has no free open data.',
-  footer: 'Planning estimate, not a buy or sell recommendation.', noData: 'No market data loaded.', perUnit: 'R$/{u}', months: 'months',
+  footer: 'Planning estimate, not a buy or sell recommendation.', noData: 'No market data loaded.', perUnit: '{cur}/{u}', months: 'months',
   unitSc: '60 kg bag', unitArr: 'arroba', unitT: 'tonne', up: 'up', down: 'down', pess: 'Pessimistic', base: 'Base', opt: 'Optimistic',
 };
 const es: D = {
@@ -44,7 +45,7 @@ const es: D = {
   impactNow: 'Decisión ahora: {t}', impactBtn: 'Abrir decisión de cambio de cultivo', basisFut: 'Precio de cosecha por futuros ({c}): {p}', basisTrend: 'Precio de cosecha por tendencia: {p}',
   fxTitle: 'Dólar (R$ por US$)', parity: 'Precio internacional convertido por el dólar (paridad de exportación). El precio local de Rio Verde suele ser menor por flete y prima. Escriba su precio en el planificador.',
   exch: 'Bolsas usadas: CBOT (Chicago) e ICE (Nueva York) para soja, maíz, trigo y algodón; dólar e historial mensual por FRED. B3 no ofrece datos abiertos gratuitos.',
-  footer: 'Estimación para planificación, no es recomendación de compra o venta.', noData: 'Sin datos de mercado cargados.', perUnit: 'R$/{u}', months: 'meses',
+  footer: 'Estimación para planificación, no es recomendación de compra o venta.', noData: 'Sin datos de mercado cargados.', perUnit: '{cur}/{u}', months: 'meses',
   unitSc: 'saca 60 kg', unitArr: 'arroba', unitT: 'tonelada', up: 'alza', down: 'baja', pess: 'Pesimista', base: 'Base', opt: 'Optimista',
 };
 const de: D = {
@@ -59,7 +60,7 @@ const de: D = {
   impactNow: 'Entscheidung jetzt: {t}', impactBtn: 'Entscheidung zum Kulturwechsel öffnen', basisFut: 'Erntepreis aus Terminkurs ({c}): {p}', basisTrend: 'Erntepreis aus Trend: {p}',
   fxTitle: 'Dollar (R$ pro US$)', parity: 'Internationaler Preis, per Dollar umgerechnet (Exportparität). Der lokale Preis in Rio Verde ist meist niedriger (Fracht, Aufschlag). Tragen Sie Ihren Preis im Planer ein.',
   exch: 'Genutzte Börsen: CBOT (Chicago) und ICE (New York) für Soja, Mais, Weizen und Baumwolle; Dollar und Monatsverlauf über FRED. Die B3 bietet keine kostenlosen offenen Daten.',
-  footer: 'Planungsschätzung, keine Kauf- oder Verkaufsempfehlung.', noData: 'Keine Marktdaten geladen.', perUnit: 'R$/{u}', months: 'Monate',
+  footer: 'Planungsschätzung, keine Kauf- oder Verkaufsempfehlung.', noData: 'Keine Marktdaten geladen.', perUnit: '{cur}/{u}', months: 'Monate',
   unitSc: '60-kg-Sack', unitArr: 'Arroba', unitT: 'Tonne', up: 'steigend', down: 'fallend', pess: 'Pessimistisch', base: 'Basis', opt: 'Optimistisch',
 };
 const zh: D = {
@@ -74,7 +75,7 @@ const zh: D = {
   impactNow: '当前决策：{t}', impactBtn: '打开换茬决策', basisFut: '按期货的收获价格（{c}）：{p}', basisTrend: '按趋势的收获价格：{p}',
   fxTitle: '美元（雷亚尔/美元）', parity: '按美元换算的国际价格（出口平价）。里奥韦尔迪本地价格通常更低（运费与升贴水）。请在规划器中输入您的价格。',
   exch: '使用的交易所：CBOT（芝加哥）与 ICE（纽约），涵盖大豆、玉米、小麦、棉花；美元和月度历史来自 FRED。B3 无免费开放数据。',
-  footer: '规划估算，不构成买卖建议。', noData: '未加载市场数据。', perUnit: 'R$/{u}', months: '个月',
+  footer: '规划估算，不构成买卖建议。', noData: '未加载市场数据。', perUnit: '{cur}/{u}', months: '个月',
   unitSc: '60公斤袋', unitArr: '阿罗巴', unitT: '吨', up: '上涨', down: '下跌', pess: '悲观', base: '基准', opt: '乐观',
 };
 const fr: D = {
@@ -89,7 +90,7 @@ const fr: D = {
   impactNow: 'Décision actuelle : {t}', impactBtn: 'Ouvrir la décision de changement de culture', basisFut: 'Prix à la récolte selon les contrats ({c}) : {p}', basisTrend: 'Prix à la récolte selon la tendance : {p}',
   fxTitle: 'Dollar (R$ par US$)', parity: 'Prix international converti par le dollar (parité export). Le prix local à Rio Verde est souvent plus bas (fret, prime). Saisissez votre prix dans le planificateur.',
   exch: 'Bourses utilisées : CBOT (Chicago) et ICE (New York) pour soja, maïs, blé et coton ; dollar et historique mensuel via FRED. La B3 n’offre pas de données ouvertes gratuites.',
-  footer: 'Estimation de planification, pas une recommandation d’achat ou de vente.', noData: 'Aucune donnée de marché chargée.', perUnit: 'R$/{u}', months: 'mois',
+  footer: 'Estimation de planification, pas une recommandation d’achat ou de vente.', noData: 'Aucune donnée de marché chargée.', perUnit: '{cur}/{u}', months: 'mois',
   unitSc: 'sac de 60 kg', unitArr: 'arroba', unitT: 'tonne', up: 'hausse', down: 'baisse', pess: 'Pessimiste', base: 'Base', opt: 'Optimiste',
 };
 
@@ -97,5 +98,6 @@ const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
 export function mk2(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));
+  if (s.includes("{cur}")) s = s.split("{cur}").join(curSymbol());
   return s;
 }

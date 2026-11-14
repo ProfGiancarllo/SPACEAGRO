@@ -15,11 +15,12 @@ import { sf } from '../i18n/safraText';
 import { decide, Decision, focusTalhao } from '../utils/decision';
 import { currentForecast } from '../utils/forecast';
 import { calculateExpectedHarvestDate, diffDays, getCropColor } from '../utils/cropCalendar';
-import { getCurrentLanguage } from '../i18n';
 import {
   clearOverrides, cropMarket, currentMarket, hasOverrides, loadMarket, setOverride, slotMargin, strategyMargin,
   Scenario, StrategyMargin,
 } from '../utils/market';
+import { curSymbol, fromCur, money, toCur } from '../utils/currency';
+const round2 = (v: number): number => Math.round(v * 100) / 100;
 
 export interface RotationPlannerOptions {
   getFarm: () => FarmData;
@@ -28,8 +29,7 @@ export interface RotationPlannerOptions {
   onChange: (talhao: Talhao, adopted: boolean) => void;
 }
 
-const LOCALES: Record<string, string> = { pt: 'pt-BR', es: 'es', en: 'en-US', de: 'de-DE', zh: 'zh-CN', fr: 'fr-FR' };
-export const fmtMoney = (v: number): string => `${v < 0 ? '−' : ''}R$ ${Math.abs(Math.round(v)).toLocaleString(LOCALES[getCurrentLanguage()] || 'pt-BR')}`;
+export const fmtMoney = (v: number): string => `${v < 0 ? '−' : ''}${money(Math.abs(v), 0)}`;
 const cropLabel = (c: CropKey): string => {
   if (c === 'cobertura') return rt('cover').split(' (')[0];
   if (c === 'pousio') return rt('fallow').split(' (')[0];
@@ -193,9 +193,9 @@ export class RotationPlanner {
       const arrow = m.trend12m >= 0 ? '▲' : '▼';
       return `<tr>
         <td>${esc(this.cropName(c))} ${m.example === false ? `<span class="mk-tag real" title="${esc(m.source || '')} ${esc((m.asOf || '').slice(0, 7))}">${mt('realTag')}</span>` : ''}</td>
-        <td><input type="number" min="0" step="0.5" class="mk-in ${edited.price ? 'edited' : ''}" data-mk="price" data-crop="${c}" value="${m.price}" title="${esc(mt('yourValue'))}" aria-label="${esc(mt('price'))} ${esc(this.cropName(c))}" /> <span class="mk-unit">R$/${m.unit}</span></td>
+        <td><input type="number" min="0" step="0.5" class="mk-in ${edited.price ? 'edited' : ''}" data-mk="price" data-crop="${c}" value="${round2(toCur(m.price))}" title="${esc(mt('yourValue'))}" aria-label="${esc(mt('price'))} ${esc(this.cropName(c))}" /> <span class="mk-unit">${esc(curSymbol())}/${m.unit}</span></td>
         <td class="${m.trend12m >= 0 ? 'mk-up' : 'mk-down'}">${arrow} ${trendTxt} ${this.spark(m.series)}</td>
-        <td><input type="number" min="0" step="50" class="mk-in ${edited.cost ? 'edited' : ''}" data-mk="cost" data-crop="${c}" value="${m.cost}" title="${esc(mt('yourValue'))}" aria-label="${esc(mt('cost'))} ${esc(this.cropName(c))}" /></td>
+        <td><input type="number" min="0" step="50" class="mk-in ${edited.cost ? 'edited' : ''}" data-mk="cost" data-crop="${c}" value="${Math.round(toCur(m.cost))}" title="${esc(mt('yourValue'))}" aria-label="${esc(mt('cost'))} ${esc(this.cropName(c))}" /></td>
       </tr>`;
     }).join('');
     const badge = md.example || crops.every((c) => cropMarket(c)?.m.example !== false) ? '' : `<span class="mk-badge real">${mt('realBadge')}</span>`;
@@ -541,7 +541,9 @@ export class RotationPlanner {
     });
     root.querySelectorAll<HTMLInputElement>('input[data-mk]').forEach((el) => {
       el.onchange = () => {
-        const v = el.value.trim() === '' ? null : Number(el.value.replace(',', '.'));
+        const typed = el.value.trim() === '' ? null : Number(el.value.replace(',', '.'));
+        // o produtor digita na moeda do idioma; o valor é guardado em reais
+        const v = typed === null ? null : fromCur(typed);
         setOverride(el.dataset.crop as CropKey, el.dataset.mk as 'price' | 'cost', v);
         this.render();
       };

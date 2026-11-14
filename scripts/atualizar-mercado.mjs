@@ -103,6 +103,12 @@ async function main() {
   const fxLast = fxDaily[fxDaily.length - 1][1];
   const fxAsOf = fxDaily[fxDaily.length - 1][0];
   console.log('Dólar (último):', fxLast, fxAsOf);
+  // câmbio do dólar para euro e yuan (o app mostra os preços na moeda do idioma)
+  const usd = {};
+  for (const [cur, id, inv] of [['EUR', 'DEXUSEU', true], ['CNY', 'DEXCHUS', false]]) {
+    try { const d = await fred(id); const v = d[d.length - 1][1]; usd[cur] = round(inv ? 1 / v : v, 4); console.log(cur, 'por US$:', usd[cur]); }
+    catch (e) { console.warn('Câmbio ignorado', cur, '-', e.message); }
+  }
 
   const crops = {};
   let asOf = '';
@@ -151,7 +157,7 @@ async function main() {
   writeFileSync('public/data/mercado.json', JSON.stringify({
     example: false,
     source: [...sources].join(' + ') + ': preço internacional convertido pelo dólar (paridade, sem prêmio/base local)',
-    asOf, generatedAt: new Date().toISOString(), fx: { last: round(fxLast, 4), asOf: fxAsOf, history: fxMonthly }, crops,
+    asOf, generatedAt: new Date().toISOString(), fx: { last: round(fxLast, 4), asOf: fxAsOf, history: fxMonthly, usd }, crops,
   }, null, 1));
   console.log('mercado.json gravado com', Object.keys(crops).join(', '));
 }

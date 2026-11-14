@@ -1,3 +1,4 @@
+import { curSymbol } from '../utils/currency';
 import { getCurrentLanguage } from './index';
 
 type D = Record<string, string>;
@@ -8,7 +9,7 @@ const pt: D = {
   title: 'Mercado e margem estimada', exampleBadge: 'Dados de exemplo', realBadge: 'Dados de mercado',
   exampleNote: 'Preços, tendências e custos abaixo são ilustrativos até a série real ser carregada. Você pode digitar o seu preço e o seu custo.',
   realNote: 'Fonte: {src} ({date}).',
-  crop: 'Cultura', price: 'Preço', trend: '12 meses', cost: 'Custo (R$/ha)', yourValue: 'edite com o seu valor', reset: 'Restaurar valores',
+  crop: 'Cultura', price: 'Preço', trend: '12 meses', cost: 'Custo ({cur}/ha)', yourValue: 'edite com o seu valor', reset: 'Restaurar valores',
   stress: 'Teste de preço', stressHelp: 'Simule uma queda ou alta de preço em todas as culturas e veja a decisão mudar.', stressNow: 'Preços {v}',
   margin: 'Margem estimada', perHa: 'por hectare', total: 'no talhão ({ha} ha)', pess: 'Pessimista', base: 'Base', opt: 'Otimista',
   best: 'Melhor margem com o risco considerado', loss: 'No cenário pessimista esta estratégia dá prejuízo.', yieldAdj: 'Produtividade usada: {v} {u}/ha (ajustada pelo risco)',
@@ -25,7 +26,7 @@ const en: D = {
   title: 'Market and estimated margin', exampleBadge: 'Example data', realBadge: 'Market data',
   exampleNote: 'Prices, trends and costs below are illustrative until the real series is loaded. You can type your own price and cost.',
   realNote: 'Source: {src} ({date}).',
-  crop: 'Crop', price: 'Price', trend: '12 months', cost: 'Cost (R$/ha)', yourValue: 'edit with your value', reset: 'Reset values',
+  crop: 'Crop', price: 'Price', trend: '12 months', cost: 'Cost ({cur}/ha)', yourValue: 'edit with your value', reset: 'Reset values',
   stress: 'Price test', stressHelp: 'Simulate a price drop or rise for all crops and watch the decision change.', stressNow: 'Prices {v}',
   margin: 'Estimated margin', perHa: 'per hectare', total: 'on the field ({ha} ha)', pess: 'Pessimistic', base: 'Base', opt: 'Optimistic',
   best: 'Best margin with risk considered', loss: 'In the pessimistic scenario this strategy loses money.', yieldAdj: 'Yield used: {v} {u}/ha (risk-adjusted)',
@@ -42,7 +43,7 @@ const es: D = {
   title: 'Mercado y margen estimado', exampleBadge: 'Datos de ejemplo', realBadge: 'Datos de mercado',
   exampleNote: 'Los precios, tendencias y costos de abajo son ilustrativos hasta cargar la serie real. Puede escribir su precio y su costo.',
   realNote: 'Fuente: {src} ({date}).',
-  crop: 'Cultivo', price: 'Precio', trend: '12 meses', cost: 'Costo (R$/ha)', yourValue: 'edite con su valor', reset: 'Restaurar valores',
+  crop: 'Cultivo', price: 'Precio', trend: '12 meses', cost: 'Costo ({cur}/ha)', yourValue: 'edite con su valor', reset: 'Restaurar valores',
   stress: 'Prueba de precio', stressHelp: 'Simule una caída o alza de precio en todos los cultivos y vea cambiar la decisión.', stressNow: 'Precios {v}',
   margin: 'Margen estimado', perHa: 'por hectárea', total: 'en el lote ({ha} ha)', pess: 'Pesimista', base: 'Base', opt: 'Optimista',
   best: 'Mejor margen considerando el riesgo', loss: 'En el escenario pesimista esta estrategia da pérdida.', yieldAdj: 'Rendimiento usado: {v} {u}/ha (ajustado por riesgo)',
@@ -59,7 +60,7 @@ const de: D = {
   title: 'Markt und geschätzte Marge', exampleBadge: 'Beispieldaten', realBadge: 'Marktdaten',
   exampleNote: 'Preise, Trends und Kosten unten sind Beispiele, bis die echte Reihe geladen ist. Sie können Ihren eigenen Preis und Ihre Kosten eingeben.',
   realNote: 'Quelle: {src} ({date}).',
-  crop: 'Kultur', price: 'Preis', trend: '12 Monate', cost: 'Kosten (R$/ha)', yourValue: 'mit Ihrem Wert bearbeiten', reset: 'Werte zurücksetzen',
+  crop: 'Kultur', price: 'Preis', trend: '12 Monate', cost: 'Kosten ({cur}/ha)', yourValue: 'mit Ihrem Wert bearbeiten', reset: 'Werte zurücksetzen',
   stress: 'Preistest', stressHelp: 'Simulieren Sie einen Preisrückgang oder -anstieg für alle Kulturen und sehen Sie, wie sich die Entscheidung ändert.', stressNow: 'Preise {v}',
   margin: 'Geschätzte Marge', perHa: 'pro Hektar', total: 'auf dem Schlag ({ha} ha)', pess: 'Pessimistisch', base: 'Basis', opt: 'Optimistisch',
   best: 'Beste Marge unter Berücksichtigung des Risikos', loss: 'Im pessimistischen Szenario macht diese Strategie Verlust.', yieldAdj: 'Verwendeter Ertrag: {v} {u}/ha (risikoangepasst)',
@@ -76,7 +77,7 @@ const zh: D = {
   title: '市场与预估利润', exampleBadge: '示例数据', realBadge: '市场数据',
   exampleNote: '下方价格、趋势和成本仅为示例，待真实数据序列加载后替换。您也可以输入自己的价格和成本。',
   realNote: '来源：{src}（{date}）。',
-  crop: '作物', price: '价格', trend: '12个月', cost: '成本（R$/公顷）', yourValue: '填入您的数值', reset: '恢复默认值',
+  crop: '作物', price: '价格', trend: '12个月', cost: '成本（{cur}/公顷）', yourValue: '填入您的数值', reset: '恢复默认值',
   stress: '价格压力测试', stressHelp: '模拟所有作物价格下跌或上涨，观察决策如何变化。', stressNow: '价格 {v}',
   margin: '预估利润', perHa: '每公顷', total: '整块地（{ha} 公顷）', pess: '悲观', base: '基准', opt: '乐观',
   best: '考虑风险后的最佳利润', loss: '在悲观情景下，该方案会亏损。', yieldAdj: '采用产量：{v} {u}/公顷（已按风险调整）',
@@ -93,7 +94,7 @@ const fr: D = {
   title: 'Marché et marge estimée', exampleBadge: 'Données d’exemple', realBadge: 'Données de marché',
   exampleNote: 'Les prix, tendances et coûts ci-dessous sont illustratifs jusqu’au chargement de la série réelle. Vous pouvez saisir votre prix et votre coût.',
   realNote: 'Source : {src} ({date}).',
-  crop: 'Culture', price: 'Prix', trend: '12 mois', cost: 'Coût (R$/ha)', yourValue: 'modifiez avec votre valeur', reset: 'Rétablir les valeurs',
+  crop: 'Culture', price: 'Prix', trend: '12 mois', cost: 'Coût ({cur}/ha)', yourValue: 'modifiez avec votre valeur', reset: 'Rétablir les valeurs',
   stress: 'Test de prix', stressHelp: 'Simulez une baisse ou une hausse de prix pour toutes les cultures et voyez la décision changer.', stressNow: 'Prix {v}',
   margin: 'Marge estimée', perHa: 'par hectare', total: 'sur la parcelle ({ha} ha)', pess: 'Pessimiste', base: 'Base', opt: 'Optimiste',
   best: 'Meilleure marge en tenant compte du risque', loss: 'Dans le scénario pessimiste, cette stratégie est déficitaire.', yieldAdj: 'Rendement utilisé : {v} {u}/ha (ajusté au risque)',
@@ -109,5 +110,6 @@ const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
 export function mt(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));
+  if (s.includes("{cur}")) s = s.split("{cur}").join(curSymbol());
   return s;
 }

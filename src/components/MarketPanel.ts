@@ -9,6 +9,7 @@ import { CROP_STANDARD_NAME, CropKey, asCropKey } from '../utils/rotation';
 import { CropMarket, cropMarket, currentMarket, forwardFactor, loadMarket, slotMargin } from '../utils/market';
 import { fmtMoney, switchHeadline } from './RotationPlanner';
 import { mk2 } from '../i18n/mercadoText';
+import { curSymbol, money, toCur } from '../utils/currency';
 import { ht } from '../i18n/homeText';
 
 export interface MarketPanelOptions {
@@ -29,7 +30,7 @@ const HORIZON = 5; // meses até a colheita usados na comparação de margens
 
 const cropLabel = (c: CropKey) => translateCropName(CROP_STANDARD_NAME[c]);
 const num = (v: number, d = 2) => v.toLocaleString(loc(), { minimumFractionDigits: d, maximumFractionDigits: d });
-const money2 = (v: number) => `R$ ${num(v, v >= 100 ? 0 : 2)}`;
+const money2 = (v: number) => money(v);
 const pct = (v: number) => `${v > 0 ? '+' : ''}${num(v, 1)}%`;
 const unitName = (u: CropMarket['unit']) => (u === 'sc' ? mk2('unitSc') : u === '@' ? mk2('unitArr') : mk2('unitT'));
 const monthLbl = (iso: string) => { const d = new Date(iso.slice(0, 10) + 'T12:00:00Z'); return `${d.toLocaleDateString(loc(), { month: 'short', timeZone: 'UTC' }).replace('.', '')}/${String(d.getUTCFullYear()).slice(2)}`; };
@@ -211,7 +212,7 @@ export class MarketPanel {
     box.innerHTML = `<div class="panelhead"><h2>${esc(ht('cmTitle'))}</h2><div class="cm-tools"><span class="cm-info" tabindex="0" title="${esc(info)}" aria-label="${esc(info)}">i</span><span class="cm-count">${this.cmIdx + 1}/${list.length}</span><button type="button" class="cm-btn" data-cm-pause aria-pressed="${this.cmPaused}" aria-label="${esc(this.cmPaused ? ht('play') : ht('pause'))}">${this.cmPaused ? PLAY_SVG : PAUSE_SVG}</button></div></div>
       <div class="cm-prog${this.cmPaused ? ' paused' : ''}"><i class="cm-prog-bar"></i></div>
       <div class="cm-feat">
-        <div class="cm-feat-head"><div><strong>${esc(cropLabel(crop))}</strong><small>${esc(src)} · R$ ${esc(ht('per'))} ${esc(unitName(m.unit))}</small></div><span class="cm-chg ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${pct(m.trend12m)}</span></div>
+        <div class="cm-feat-head"><div><strong>${esc(cropLabel(crop))}</strong><small>${esc(src)} · ${esc(curSymbol())} ${esc(ht('per'))} ${esc(unitName(m.unit))}</small></div><span class="cm-chg ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${pct(m.trend12m)}</span></div>
         <div class="cm-price">${money2(m.price)} <small>/ ${esc(unitName(m.unit))}</small></div>
         ${spark}
         <button type="button" class="cm-open" data-cm-open>${esc(ht('mkOpen'))} ›</button>
@@ -293,9 +294,9 @@ export class MarketPanel {
       kpi(mk2('vol'), `±${num(m.vol, 0)}%`),
       sm ? kpi(mk2('margin'), fmtMoney(sm.margin.base), sm.margin.base >= 0 ? 'up' : 'dn') : '',
     ].join('');
-    const hist = (m.history && m.history.length >= 4) ? m.history.map((h) => ({ x: monthLbl(h.d), y: h.p })) : (m.series || []).map((v, i, a) => ({ x: `${i - a.length + 1}`, y: v }));
+    const hist = (m.history && m.history.length >= 4) ? m.history.map((h) => ({ x: monthLbl(h.d), y: toCur(h.p) })) : (m.series || []).map((v, i, a) => ({ x: `${i - a.length + 1}`, y: toCur(v) }));
     const hist2 = hist.length > 60 ? hist.filter((_, i) => i % 2 === 0 || i === hist.length - 1) : hist;
-    const fut = m.futures && m.futures.length >= 2 ? lineChart(m.futures.map((f) => ({ x: f.label, y: f.brl })), color, { ref: m.price, dots: true, every: 1 }) : `<p class="mkp-note">${mk2('noFut')}</p>`;
+    const fut = m.futures && m.futures.length >= 2 ? lineChart(m.futures.map((f) => ({ x: f.label, y: toCur(f.brl) })), color, { ref: toCur(m.price), dots: true, every: 1 }) : `<p class="mkp-note">${mk2('noFut')}</p>`;
     const ex = '';
     return `<div class="mkp-detail"><h3 style="--c:${color}">${ICON[c] || ''} ${esc(cropLabel(c))} <small>${esc(unitName(m.unit))}${m.native ? ` · ${num(m.native.price, 1)} ${esc(m.native.unit)}` : ''}</small></h3>${ex}
       <div class="mkp-kpis">${kpis}</div>

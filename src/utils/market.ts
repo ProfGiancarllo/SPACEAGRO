@@ -38,7 +38,7 @@ export interface CropMarket {
 
 export interface MarketData {
   /** Dólar (R$ por US$): último valor e histórico mensal. */
-  fx?: { last: number; asOf: string; history: Array<{ d: string; p: number }> };
+  fx?: { last: number; asOf: string; history: Array<{ d: string; p: number }>; usd?: Partial<Record<'EUR' | 'CNY', number>> };
   example: boolean;
   source: string;
   asOf: string;

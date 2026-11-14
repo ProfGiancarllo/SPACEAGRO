@@ -269,7 +269,11 @@ async function precosMercado(env) {
       if (reais.length) {
         const nome = { soja: 'soja', milho: 'milho', trigo: 'trigo', algodao: 'algodão', sorgo: 'sorgo' };
         const linhas = reais.map(([k, c]) => `- ${nome[k] || k}: R$ ${Number(c.price).toFixed(2)}/${c.unit}${typeof c.trend12m === 'number' ? ` (${c.trend12m > 0 ? '+' : ''}${c.trend12m.toFixed(1)}% em 12 meses)` : ''}${c.source ? `, fonte ${c.source}` : ''}${c.asOf ? `, em ${c.asOf}` : ''}`);
-        texto = 'Preços de referência (bolsa internacional convertida para R$, SEM prêmio nem base local de Rio Verde; diga isso e que o preço pago ao produtor pode diferir). Fonte: FRED/Yahoo Finance (CBOT/ICE)' + (m.fx ? `; dólar R$ ${Number(m.fx.last).toFixed(2)}` : '') + '.\n' + linhas.join('\n') + '\nNão faça previsão de preço nem recomende vender ou comprar; apresente só os números e a tendência.';
+        const usd = m.fx?.usd || {};
+        const cambio = m.fx ? `; dólar R$ ${Number(m.fx.last).toFixed(4)} por US$${usd.EUR ? `; € ${usd.EUR} por US$` : ''}${usd.CNY ? `; ¥ ${usd.CNY} por US$` : ''}` : '';
+        texto = 'Preços de referência (bolsa internacional convertida para R$, SEM prêmio nem base local de Rio Verde; diga isso e que o preço pago ao produtor pode diferir). Fonte: FRED/Yahoo Finance (CBOT/ICE)' + cambio + '.\n' + linhas.join('\n') +
+          '\nMoeda: o app mostra os preços na moeda do idioma da conversa (português: R$; inglês e espanhol: US$; alemão e francês: €; chinês: ¥). Converta pelo câmbio acima ao responder em outro idioma.' +
+          '\nNão faça previsão de preço nem recomende vender ou comprar; apresente só os números e a tendência.';
       }
     }
   } catch { /* mantém o texto padrão */ }

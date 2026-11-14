@@ -26,3 +26,8 @@ Limiares e fatores ficam em `src/utils/market.ts` (`RISK_YIELD_FACTOR`, cenário
 ## Fonte de preços automática (FRED)
 O workflow "Publicar site" roda `scripts/atualizar-mercado.mjs` antes do build. Ele baixa as séries mensais abertas do FRED (sem chave) — soja PSOYBUSDM, milho PMAIZMTUSDM, trigo PWHEAMTUSDM, algodão PCOTTINDUSDM — e o dólar diário DEXBZUS, converte para R$/saca (60 kg) ou R$/@ e grava `public/data/mercado.json` (não versionado). São preços internacionais convertidos pelo dólar, com defasagem de cerca de dois meses; o preço da praça de Rio Verde pode ser diferente (o produtor edita na tabela).
 Culturas sem série (sorgo, feijão, cana, pastagem) continuam como "exemplo". Para atualizar os preços, basta publicar de novo (Actions > Publicar site > Run workflow).
+
+## Moeda conforme o idioma
+Os dados ficam sempre em reais (mercado.json, valores digitados, margens). Na tela, `src/utils/currency.ts` converte para a moeda do idioma: português → R$, inglês e espanhol → US$, alemão e francês → €, chinês → ¥.
+O câmbio vem do próprio mercado.json: `fx.last` (R$ por US$, FRED DEXBZUS) e `fx.usd` (€ e ¥ por US$, FRED DEXUSEU e DEXCHUS). Sem esses campos, usa o câmbio de referência fixo em `currency.ts`.
+O produtor digita preço e custo na moeda do idioma; o app converte e guarda em reais.
