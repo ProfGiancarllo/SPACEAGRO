@@ -4243,3 +4243,59 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
   .mkp-card .mkp-body, .modal-card .modal-body { overflow-y: auto; }
   .mkp-overlay, .modal-overlay { z-index: 9200 !important; }
 }
+
+/* ===== Estrela no formato de conversa de celular (cores próprias da marca) ===== */
+.estela-panel { background: #e8eee9; border: 0; border-radius: 0; }
+/* Cabeçalho: avatar, nome, situação e ações */
+.estela-head { background: #1f5a42; color: #fff; border-bottom: 0; padding: 10px 12px; min-height: 60px; }
+.estela-head .estela-title { gap: 12px; }
+.estela-head .estela-title .estela-ico { width: 40px; height: 40px; padding: 4px; border-radius: 50%; background: #fff; box-sizing: border-box; }
+.estela-title-txt b { font-size: 16px; font-weight: 600; color: #fff; }
+.estela-title-txt small { font-size: 12.5px; font-weight: 400; color: rgba(255, 255, 255, 0.82); }
+.estela-title-txt small::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #8be0a8; vertical-align: 1px; }
+.estela-head-btns button, #estela-clear { color: #fff; border: 0; min-height: 40px; font-size: 13px; font-weight: 500; }
+.estela-head-btns button:hover { background: rgba(255, 255, 255, 0.14); }
+.estela-head-btns svg { stroke: currentColor; }
+/* Conversa: fundo com textura leve e separador de dia */
+.estela-list { padding: 10px 12px 6px; gap: 3px; background-color: #e8eee9; background-image: radial-gradient(rgba(31, 90, 66, 0.07) 1.2px, transparent 1.3px), radial-gradient(rgba(31, 90, 66, 0.05) 1px, transparent 1.1px); background-size: 22px 22px, 22px 22px; background-position: 0 0, 11px 11px; }
+.estela-day { align-self: center; margin: 4px 0 8px; padding: 4px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.92); color: #55665e; font-size: 12px; box-shadow: 0 1px 1px rgba(24, 43, 37, 0.1); }
+/* Balões com rabinho, hora e confirmação */
+.estela-msg { position: relative; max-width: 82%; padding: 7px 10px 7px; border-radius: 10px; font-size: 14.5px; line-height: 1.38; box-shadow: 0 1px 1px rgba(24, 43, 37, 0.14); margin-bottom: 2px; }
+.estela-msg.estela { background: #fff; color: #182b25; align-self: flex-start; border-top-left-radius: 2px; }
+.estela-msg.me { background: #d4e6da; color: #12261e; align-self: flex-end; border-top-right-radius: 2px; }
+.estela-msg.estela::before, .estela-msg.me::before { content: ''; position: absolute; top: 0; width: 9px; height: 12px; }
+.estela-msg.estela::before { left: -8px; background: #fff; clip-path: polygon(100% 0, 0 0, 100% 100%); }
+.estela-msg.me::before { right: -8px; background: #d4e6da; clip-path: polygon(0 0, 100% 0, 0 100%); }
+.estela-time { float: right; margin: 6px 0 -2px 10px; font-size: 11px; line-height: 1; color: #74857d; display: inline-flex; align-items: center; gap: 3px; }
+.estela-msg.me .estela-time { color: #4f7360; }
+.estela-ticks { color: #3b8f66; }
+.estela-msg::after { content: ''; display: block; clear: both; }
+/* Botões de resposta rápida, como nos aplicativos de mensagem */
+.estela-actions { margin-top: 8px; border-top: 1px solid #e6ece8; padding-top: 6px; gap: 0; flex-direction: column; }
+.estela-actions button { width: 100%; background: transparent; border: 0; border-radius: 0; color: #1f6c8f; font-weight: 600; font-size: 14.5px; min-height: 40px; text-align: center; border-top: 1px solid #eef2ef; }
+.estela-actions button:first-child { background: transparent; color: #1f6c8f; border-top: 0; }
+.estela-actions button:hover { background: #f4f7f5; }
+.estela-chips { padding: 6px 12px 8px; gap: 6px; background: transparent; flex-direction: row; flex-wrap: wrap; }
+.estela-chips button { width: auto; min-height: 36px; padding: 6px 14px; border: 0; border-radius: 18px; background: #fff; color: #1f6c8f; font-size: 14px; font-weight: 600; box-shadow: 0 1px 1px rgba(24, 43, 37, 0.14); text-align: center; }
+.estela-chips button:hover { background: #f4f7f5; border: 0; }
+/* Barra de escrever: campo arredondado e botão redondo (microfone ou enviar) */
+.estela-form { flex-direction: row; align-items: flex-end; gap: 8px; padding: 6px 8px 8px; background: #e8eee9; border-top: 0; }
+.estela-type { flex: 1; min-width: 0; display: flex; background: #fff; border-radius: 24px; box-shadow: 0 1px 1px rgba(24, 43, 37, 0.14); }
+.estela-form input { flex: 1; min-width: 0; height: 46px; border: 0; background: transparent; border-radius: 24px; padding: 0 16px; font-size: 16px; }
+.estela-form input:focus { outline: none; }
+.estela-type:focus-within { box-shadow: 0 0 0 2px #1f5a42; }
+.estela-mic, .estela-send { flex: none; width: 46px; min-width: 46px; height: 46px; min-height: 46px; padding: 0; border: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #1f5a42; color: #fff; box-shadow: 0 1px 2px rgba(24, 43, 37, 0.25); }
+.estela-mic:hover, .estela-send:hover { background: #17432f; }
+.estela-mic.on { background: #b34848; border: 0; color: #fff; animation: estelaPulse 1s infinite; }
+.estela-mic-txt { display: none; }
+.estela-send { display: none; }
+.estela-form.has-text .estela-send { display: flex; }
+.estela-form.has-text .estela-mic { display: none; }
+/* Moldura de celular na coluna lateral do computador */
+body.estela-docked .estela-panel { border: 7px solid #1b2622; border-radius: 30px; overflow: hidden; box-shadow: 0 6px 18px rgba(24, 43, 37, 0.25); }
+body.estela-docked .estela-panel::before { content: ''; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); width: 64px; height: 6px; border-radius: 4px; background: #1b2622; z-index: 2; opacity: 0.9; }
+body.estela-docked .estela-head { padding-top: 16px; }
+/* Celular: conversa em tela cheia */
+@media (max-width: 640px) {
+  .estela-panel { left: 0; bottom: 0; top: 0; width: 100vw; height: 100dvh; border-radius: 0; }
+}

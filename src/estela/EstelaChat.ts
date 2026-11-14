@@ -25,7 +25,7 @@ export interface EstelaOptions {
   getFireSummary?: () => object | null;
 }
 
-interface Msg { who: 'me' | 'estela'; html: string; actions?: { label: string; run: () => void }[] }
+interface Msg { who: 'me' | 'estela'; html: string; t?: string; actions?: { label: string; run: () => void }[] }
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
@@ -59,6 +59,7 @@ const MONTHS: string[][] = [
 ];
 const RECORD_VERB = /registr|anot|lanc|record|log\b|enregistr|eintrag|记录|grav|apunt|note\b/;
 
+const DAY: Record<string, string> = { pt: 'Hoje', en: 'Today', es: 'Hoy' };
 const SPK_ON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
 const SPK_OFF = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
 
@@ -129,11 +130,11 @@ export class EstelaChat {
           ${['chip1', 'chip2', 'chip3', 'chip4'].map((k) => `<button type="button" data-chip="${k}">${et(k)}</button>`).join('')}
         </div>
         <form class="estela-form" id="estela-form">
-          <button type="button" class="estela-mic" id="estela-mic" title="${et('mic')}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span class="estela-mic-txt">${et('mic')}</span></button>
           <div class="estela-type">
             <input id="estela-input" type="text" autocomplete="off" placeholder="${et('placeholder')}" aria-label="${et('placeholder')}" />
-            <button type="submit" class="estela-send">${et('send')}</button>
           </div>
+          <button type="button" class="estela-mic" id="estela-mic" title="${et('mic')}" aria-label="${et('mic')}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+          <button type="submit" class="estela-send" title="${et('send')}" aria-label="${et('send')}"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6l-.01 6.5L15 12 3.39 13.9z"/></svg></button>
         </form>
       </div>`;
     this.panel = this.root.querySelector('#estela-panel')!;
@@ -146,7 +147,9 @@ export class EstelaChat {
     this.root.querySelector('#estela-speak')?.addEventListener('click', () => this.toggleSpeak());
     this.root.querySelector('#estela-mic')!.addEventListener('click', () => this.toggleMic());
     this.root.querySelectorAll<HTMLButtonElement>('[data-chip]').forEach((b) => (b.onclick = () => (b.dataset.chip === 'pend' ? (this.fromVoice = false, this.msgs.push({ who: 'me', html: esc(pq('chipPend')) }), this.startPending()) : this.submit(et(b.dataset.chip!)))));
-    this.root.querySelector<HTMLFormElement>('#estela-form')!.onsubmit = (e) => {
+    const formEl = this.root.querySelector<HTMLFormElement>('#estela-form')!;
+    this.input.addEventListener('input', () => formEl.classList.toggle('has-text', this.input.value.trim().length > 0));
+    formEl.onsubmit = (e) => {
       e.preventDefault();
       const v = this.input.value.trim();
       if (v) { this.fromVoice = false; this.submit(v); }
@@ -345,7 +348,7 @@ export class EstelaChat {
   }
 
   private paint(): void {
-    this.list.innerHTML = '';
+    this.list.innerHTML = this.msgs.length ? `<div class="estela-day">${DAY[(document.documentElement.lang || 'pt').slice(0, 2)] || DAY.en}</div>` : '';
     const fresh = this.painted;
     this.msgs.forEach((m, i) => {
       const el = document.createElement('div');
@@ -353,6 +356,8 @@ export class EstelaChat {
       // só as mensagens novas entram com animação (em cascata quando chegam juntas)
       if (i >= fresh) { el.classList.add('enter'); el.style.animationDelay = `${Math.min(i - fresh, 4) * 0.12}s`; }
       el.innerHTML = m.html;
+      if (!m.t) m.t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (!m.actions?.length) el.insertAdjacentHTML('beforeend', `<span class="estela-time">${m.t}${m.who === 'me' ? '<svg class="estela-ticks" viewBox="0 0 18 12" width="16" height="11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6.5 4.5 10 11 2M7 8.5 8.5 10 15 2"/></svg>' : ''}</span>`);
       if (m.actions?.length) {
         const row = document.createElement('div');
         row.className = 'estela-actions';
@@ -379,7 +384,7 @@ export class EstelaChat {
 
   private submit(text: string): void {
     this.stopVoice();
-    this.input.value = '';
+    this.input.value = ''; this.root.querySelector('#estela-form')?.classList.remove('has-text');
     this.msgs.push({ who: 'me', html: esc(text) });
     this.paint();
     this.root.querySelector<HTMLElement>('#estela-chips')!.style.display = 'none';
