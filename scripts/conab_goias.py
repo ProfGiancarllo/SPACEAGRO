@@ -61,7 +61,9 @@ if f:
 texto = "\n".join(linhas)
 json.dump(out, open("public/data/conab-goias.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 w = open("worker/estela-worker.js", encoding="utf-8").read()
-bloco = "// >>> CONAB (gerado por scripts/conab_goias.py; não editar à mão)\nconst CONAB_GOIAS = " + json.dumps(texto, ensure_ascii=False) + ";\n// <<< CONAB\n\n"
+serie_go = {k: v["GO"] for k, v in out["produtividade_kg_ha"].items()}
+bloco = ("// >>> CONAB (gerado por scripts/conab_goias.py; não editar à mão)\nconst CONAB_GOIAS = " + json.dumps(texto, ensure_ascii=False) + ";\n"
+         "const GO_YIELD_KG = " + json.dumps(serie_go, ensure_ascii=False, separators=(",", ":")) + ";\n// <<< CONAB\n\n")
 if "// >>> CONAB" in w:
     w = re.sub(r"// >>> CONAB.*?// <<< CONAB\n\n", lambda m: bloco, w, flags=re.S)
 else:

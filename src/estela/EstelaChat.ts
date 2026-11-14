@@ -11,7 +11,7 @@ import { wt } from '../i18n/weatherText';
 import { cropKey } from '../utils/forecast';
 import { TranslationDictionary } from '../i18n/types';
 import { pq } from './pendText';
-import { computePending, Pending } from './pending';
+import { computePending, auditDiary, Pending } from './pending';
 import { CROP_STANDARD_NAME, DEFAULT_CYCLE, asCropKey } from '../utils/rotation';
 import { calculateExpectedHarvestDate } from '../utils/cropCalendar';
 
@@ -21,6 +21,7 @@ export interface EstelaOptions {
   /** Chamado depois de gravar uma entrada no diário (salvar e atualizar telas). */
   onDiaryAdded: (talhao: Talhao) => void;
   openRotation: (talhaoId?: string) => void;
+  openDiary?: () => void;
 }
 
 interface Msg { who: 'me' | 'estela'; html: string; actions?: { label: string; run: () => void }[] }
@@ -188,6 +189,13 @@ export class EstelaChat {
 
   private hello(): void {
     this.say(esc(et('hello')));
+    // Toda vez que o produtor entra: lembrar de informar o histórico (o que já fez nas safras passadas)
+    const regs = this.opts.getFarm().talhoes.reduce((a, tl) => a + (tl.diary?.length || 0), 0);
+    this.say(esc(pq('hist', { n: regs })), [
+      ...(this.opts.openDiary ? [{ label: pq('histOpen'), run: () => this.opts.openDiary!() }] : []),
+      { label: pq('histHere'), run: () => this.startPending() },
+      { label: pq('histLater'), run: () => { /* nada */ } },
+    ]);
     const n = computePending(this.opts.getFarm(), this.ref(), this.skipped).length;
     if (n) this.say(esc(pq('intro', { n })), [
       { label: '' + pq('go'), run: () => this.startPending() },
@@ -745,8 +753,14 @@ export class EstelaChat {
       language: getCurrentLanguage(),
       fields: farm.talhoes.map((tl) => {
         const st = calculateTalhaoCropStatus(tl, this.ref());
-        return { name: this.tName(tl), crop: tl.crop, cultivar: tl.cultivar, areaHa: tl.areaHectares, plantingDate: tl.plantingDate, cycleDays: tl.cycleDays, stage: st.stageBadgeText, nextCrop: tl.nextCropPlan?.crop };
+        const d = tl.diary || [];
+        const tipos: Record<string, number> = {};
+        d.forEach((e) => { tipos[e.type] = (tipos[e.type] || 0) + 1; });
+        const ult = d.map((e) => e.date).sort().pop();
+        return { name: this.tName(tl), crop: tl.crop, cultivar: tl.cultivar, areaHa: tl.areaHectares, plantingDate: tl.plantingDate, cycleDays: tl.cycleDays, stage: st.stageBadgeText, nextCrop: tl.nextCropPlan?.crop, diario: { registros: d.length, porTipo: tipos, ultimoRegistro: ult } };
       }),
+      pendencias: computePending(farm, this.ref(), new Set()).map((p) => ({ talhao: this.tName(farm.talhoes.find((x) => x.id === p.talhaoId)!), tipo: p.kind, diasAtraso: p.days })),
+      problemasDoDiario: auditDiary(farm, hoje).slice(0, 25).map((i) => ({ talhao: this.tName(farm.talhoes.find((x) => x.id === i.talhaoId)!), codigo: i.code, detalhe: i.detail })),
     };
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 30000);
