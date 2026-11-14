@@ -31,6 +31,16 @@ const AUTH_ERR: Record<string, string> = {
   errServer: 'O servidor recusou a criação da conta. Confira a senha de administração.',
 };
 
+/** Traduz o motivo devolvido pela rota /tts (código de erro da OpenAI) para uma orientação clara. */
+function voiceErrorText(raw: string): string {
+  if (/credit_balance_exhausted|insufficient_quota|billing/.test(raw)) return 'A conta da OpenAI está sem crédito. Coloque saldo em platform.openai.com → Billing; a voz volta sozinha, sem mudar nada aqui.';
+  if (/invalid_api_key|401/.test(raw)) return 'A OpenAI recusou a chave (inválida ou revogada). Gere uma nova em platform.openai.com → API keys.';
+  if (/model_not_found|404|403/.test(raw)) return 'O projeto da chave não tem acesso ao modelo de voz gpt-4o-mini-tts. Libere o modelo no projeto da OpenAI.';
+  if (/rate_limit|429/.test(raw)) return 'A OpenAI limitou as chamadas agora. Tente de novo em alguns minutos.';
+  if (/não configurada|501/.test(raw)) return 'A chave da OpenAI não chegou ao servidor. Confira OPENAI_API_KEY na stack.';
+  return 'Não foi possível gerar a amostra de voz' + (raw ? ` (${raw.slice(0, 80)})` : '') + '.';
+}
+
 interface AccountRow { email: string; name: string; farmName: string; city: string; role: string; createdAt: string; lastSave: string | null }
 
 // ============================================================ Criação do super admin
@@ -350,14 +360,14 @@ export class AdminPanel {
       const voiceSel = this.overlay?.querySelector<HTMLSelectElement>('#adm-voice')?.value;
       try {
         const r = await fetch(base + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'Olá! Eu sou a Estrela, a inteligência artificial que ajuda o produtor a tomar decisões.', lang: 'pt-BR', voice: voiceSel }) });
-        if (!r.ok) throw new Error(String(r.status));
+        if (!r.ok) throw new Error(await r.text().catch(() => String(r.status)));
         const url = URL.createObjectURL(await r.blob());
         const audio = new Audio(url);
         audio.onended = () => URL.revokeObjectURL(url);
         await audio.play();
         this.note('voice', 'ok', 'Tocando a amostra.');
-      } catch {
-        this.note('voice', 'err', 'Não foi possível gerar a amostra de voz. Confira a chave da OpenAI.');
+      } catch (e) {
+        this.note('voice', 'err', voiceErrorText(e instanceof Error ? e.message : ''));
       }
       this.busy = '';
       this.render();
