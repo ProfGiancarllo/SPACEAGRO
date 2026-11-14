@@ -54,7 +54,7 @@ for colecao, trecho, nome, esc, faixa in PC_BANDAS:
         tarefas = []
         for it in itens:
             ch = next((k for k in it.assets if trecho in k.lower()), None)
-            if ch: tarefas.append((it.assets[ch].href, esc, faixa, pd.Timestamp(it.datetime).tz_localize(None).normalize()))
+            if ch: tarefas.append((it.assets[ch].href, esc, faixa, pd.Timestamp(it.datetime or it.properties.get("start_datetime") or it.properties.get("datetime")).tz_localize(None).normalize()))
         print(f"MODIS {nome}: {len(tarefas)} imagens em {colecao}")
         with ThreadPoolExecutor(16) as ex: res = list(ex.map(_ler, tarefas))
         por = {c: {} for c in MUN}
