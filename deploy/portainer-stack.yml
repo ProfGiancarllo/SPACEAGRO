@@ -48,7 +48,7 @@ services:
       PGPORT: "5432"
       PGDATABASE: spaceagro
       PGUSER: spaceagro
-      PGPASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD nas variaveis da stack}
+      PGPASSWORD: ${DB_PASSWORD}
     volumes:
       - spaceagro_data:/data
     networks:
@@ -74,7 +74,7 @@ services:
     environment:
       POSTGRES_DB: spaceagro
       POSTGRES_USER: spaceagro
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD nas variaveis da stack}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       TZ: America/Sao_Paulo
     volumes:
       - spaceagro_pg:/var/lib/postgresql/data
