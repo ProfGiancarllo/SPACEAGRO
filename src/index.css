@@ -4231,3 +4231,15 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
   .top-nav .nav-trigger { padding: 8px 4px; font-size: 12.5px; letter-spacing: -0.01em; }
   .top-nav .nav-trigger .caret, .top-nav .nav-trigger .nav-caret { margin-left: 2px; }
 }
+
+/* ===== Janelas acopladas à direita: o mapa fica sempre visível e clicável ===== */
+.mkp-overlay, .modal-overlay, .wx-overlay, .rot-overlay { background: transparent !important; pointer-events: none; padding: 0 !important; align-items: stretch !important; justify-content: flex-end !important; overflow: visible !important; }
+.mkp-card, .modal-card, .modal-card-lg, .rot-card, .wx-dialog { pointer-events: auto; width: min(600px, 44vw) !important; max-width: none !important; height: 100vh; max-height: 100vh !important; margin: 0 !important; border-radius: 0 !important; border-width: 0 0 0 1px; box-shadow: -10px 0 28px rgba(24, 43, 37, 0.18) !important; overflow-y: auto; animation: none; }
+.rot-card { width: min(760px, 54vw) !important; }
+.mkp-card .mkp-charts, .mkp-card .mkp-two { grid-template-columns: 1fr; }
+@media (max-width: 900px) {
+  .mkp-card, .modal-card, .modal-card-lg, .rot-card, .wx-dialog { width: 100% !important; height: auto; max-height: 40vh !important; align-self: flex-end; border-width: 1px 0 0 0; box-shadow: 0 -8px 24px rgba(24, 43, 37, 0.22) !important; }
+  .mkp-overlay, .modal-overlay, .wx-overlay, .rot-overlay { align-items: flex-end !important; }
+  .mkp-card .mkp-body, .modal-card .modal-body { overflow-y: auto; }
+  .mkp-overlay, .modal-overlay { z-index: 9200 !important; }
+}
