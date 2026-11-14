@@ -31,6 +31,7 @@ jobs:
             ghcr.io/profgiancarllo/myroca:${{ github.sha }}
           build-args: |
             VITE_ESTELA_URL=https://spaceagro.pro/api
+            VITE_FORECAST_URL=https://spaceagro.pro/api/forecast
             FRED_API_KEY=${{ secrets.FRED_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
