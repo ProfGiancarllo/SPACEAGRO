@@ -140,7 +140,7 @@ export class SimpleHome {
       curText = sf('heroCurText', { n: live.length, harvest: sf(nxt.d === 0 ? 'chipHarvestToday' : 'chipHarvest', { name: this.tName(nxt.tl), d: nxt.d }) });
     }
     const hl = switchHeadline(farm, ref);
-    const swText = hl ? hl.text + (hl.example ? ` (${sf('exampleShort')})` : '') : sf('heroSwitchNone');
+    const swText = hl ? hl.text : sf('heroSwitchNone');
     return `
       <div class="sh-hero">
         <button type="button" class="sh-hcard cur" id="sh-h-cur"><span class="sh-hic"></span><div class="sh-htx"><h2>${sf('heroCur')}</h2><p>${esc(curText)}</p></div><span class="sh-hgo">${sf('heroOpen')} ➜</span></button>

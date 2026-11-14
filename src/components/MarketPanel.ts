@@ -193,8 +193,8 @@ export class MarketPanel {
     const key = `${crop}|${m.price}|${m.trend12m}|${this.cmPaused}|${list.length}`;
     if (key === this.cmKey) return;
     this.cmKey = key;
-    const src = m.example !== false || md.example ? mk2('example') : (m.source || md.source || '');
-    const info = `${src}${m.asOf || md.asOf ? ' · ' + (m.asOf || md.asOf) : ''} · ${ht('base12')}`;
+    const src = m.example !== false || md.example ? '' : (m.source || md.source || '');
+    const info = [src, m.asOf || md.asOf, ht('base12')].filter(Boolean).join(' · ');
     const pts = (m.history && m.history.length >= 4 ? m.history.slice(-24).map((h) => h.p) : (m.series || []));
     const spark = pts.length >= 2 ? (() => {
       const W = 300, H = 56, mn = Math.min(...pts), mx = Math.max(...pts), r = mx - mn || 1;
@@ -296,7 +296,7 @@ export class MarketPanel {
     const hist = (m.history && m.history.length >= 4) ? m.history.map((h) => ({ x: monthLbl(h.d), y: h.p })) : (m.series || []).map((v, i, a) => ({ x: `${i - a.length + 1}`, y: v }));
     const hist2 = hist.length > 60 ? hist.filter((_, i) => i % 2 === 0 || i === hist.length - 1) : hist;
     const fut = m.futures && m.futures.length >= 2 ? lineChart(m.futures.map((f) => ({ x: f.label, y: f.brl })), color, { ref: m.price, dots: true, every: 1 }) : `<p class="mkp-note">${mk2('noFut')}</p>`;
-    const ex = m.example !== false ? `<p class="mkp-warn">${mk2('exampleCrop')}</p>` : '';
+    const ex = '';
     return `<div class="mkp-detail"><h3 style="--c:${color}">${ICON[c] || ''} ${esc(cropLabel(c))} <small>${esc(unitName(m.unit))}${m.native ? ` · ${num(m.native.price, 1)} ${esc(m.native.unit)}` : ''}</small></h3>${ex}
       <div class="mkp-kpis">${kpis}</div>
       <div class="mkp-charts"><div class="mkp-chartbox"><h4>${mk2('histTitle')}</h4>${lineChart(hist2, color)}</div>
@@ -316,14 +316,14 @@ export class MarketPanel {
     const rows = items.map(({ c, s }, i) => {
       const y = 12 + i * rowH, base = s.margin.base, col = inFarm.has(c) ? '#3d7a5c' : '#b5c0ba';
       const x1 = Math.min(zero, X(base)), w = Math.abs(X(base) - zero);
-      return `<g><text x="${L - 8}" y="${y + 15}" text-anchor="end" class="mkp-ax lbl">${esc(cropLabel(c))}${cropMarket(c)?.m.example !== false ? ' *' : ''}</text>
+      return `<g><text x="${L - 8}" y="${y + 15}" text-anchor="end" class="mkp-ax lbl">${esc(cropLabel(c))}</text>
         <rect x="${x1}" y="${y + 3}" width="${Math.max(2, w)}" height="18" rx="4" fill="${base >= 0 ? col : '#b34848'}"/>
         <line x1="${X(s.margin.pess)}" x2="${X(s.margin.opt)}" y1="${y + 12}" y2="${y + 12}" stroke="#182b25" stroke-width="1.5"/>
         <line x1="${X(s.margin.pess)}" x2="${X(s.margin.pess)}" y1="${y + 7}" y2="${y + 17}" stroke="#182b25" stroke-width="1.5"/><line x1="${X(s.margin.opt)}" x2="${X(s.margin.opt)}" y1="${y + 7}" y2="${y + 17}" stroke="#182b25" stroke-width="1.5"/>
         <text x="${W - R + 6}" y="${y + 16}" class="mkp-ax val">${fmtMoney(base)}</text><title>${esc(cropLabel(c))}: ${mk2('pess')} ${fmtMoney(s.margin.pess)} · ${mk2('base')} ${fmtMoney(base)} · ${mk2('opt')} ${fmtMoney(s.margin.opt)}</title></g>`;
     }).join('');
     return `<div class="mkp-rank"><h3>${mk2('rankTitle')}</h3><p class="mkp-help">${mk2('rankHelp')}</p>
-      <svg class="mkp-chart" viewBox="0 0 ${W} ${H}" role="img"><line x1="${zero}" x2="${zero}" y1="4" y2="${H - 22}" class="mkp-zero"/>${rows}</svg><p class="mkp-help">* ${mk2('example')}</p></div>`;
+      <svg class="mkp-chart" viewBox="0 0 ${W} ${H}" role="img"><line x1="${zero}" x2="${zero}" y1="4" y2="${H - 22}" class="mkp-zero"/>${rows}</svg></div>`;
   }
 
   private impact(): string {

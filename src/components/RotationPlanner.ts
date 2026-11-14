@@ -192,15 +192,14 @@ export class RotationPlanner {
       const trendTxt = `${m.trend12m > 0 ? '+' : ''}${m.trend12m}%`;
       const arrow = m.trend12m >= 0 ? '▲' : '▼';
       return `<tr>
-        <td>${esc(this.cropName(c))} ${m.example === false ? `<span class="mk-tag real" title="${esc(m.source || '')} ${esc((m.asOf || '').slice(0, 7))}">${mt('realTag')}</span>` : `<span class="mk-tag">${mt('exTag')}</span>`}</td>
+        <td>${esc(this.cropName(c))} ${m.example === false ? `<span class="mk-tag real" title="${esc(m.source || '')} ${esc((m.asOf || '').slice(0, 7))}">${mt('realTag')}</span>` : ''}</td>
         <td><input type="number" min="0" step="0.5" class="mk-in ${edited.price ? 'edited' : ''}" data-mk="price" data-crop="${c}" value="${m.price}" title="${esc(mt('yourValue'))}" aria-label="${esc(mt('price'))} ${esc(this.cropName(c))}" /> <span class="mk-unit">R$/${m.unit}</span></td>
         <td class="${m.trend12m >= 0 ? 'mk-up' : 'mk-down'}">${arrow} ${trendTxt} ${this.spark(m.series)}</td>
         <td><input type="number" min="0" step="50" class="mk-in ${edited.cost ? 'edited' : ''}" data-mk="cost" data-crop="${c}" value="${m.cost}" title="${esc(mt('yourValue'))}" aria-label="${esc(mt('cost'))} ${esc(this.cropName(c))}" /></td>
       </tr>`;
     }).join('');
-    const badge = md.example || crops.every((c) => cropMarket(c)?.m.example !== false) ? `<span class="mk-badge example">${mt('exampleBadge')}</span>` : `<span class="mk-badge real">${mt('realBadge')}</span>`;
-    const anyEx = crops.some((c) => cropMarket(c)?.m.example !== false && c !== 'cobertura');
-    const note = md.example ? mt('exampleNote') : mt('realNote', { src: md.source, date: (md.asOf || '').slice(0, 7) }) + (anyEx ? ' ' + mt('partialNote') : '');
+    const badge = md.example || crops.every((c) => cropMarket(c)?.m.example !== false) ? '' : `<span class="mk-badge real">${mt('realBadge')}</span>`;
+    const note = md.example ? '' : mt('realNote', { src: md.source, date: (md.asOf || '').slice(0, 7) });
     const sv = this.stress;
     const stressTxt = sv === 0 ? '0%' : `${sv > 0 ? '+' : ''}${sv}%`;
     return `

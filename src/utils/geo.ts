@@ -470,7 +470,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         perimeterKm: calculatePerimeterKm(talhao1Coords),
         coordinates: talhao1Coords,
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Soja plantada em 10/10/2026 com ciclo de 115 dias. Histórico de soja 2025/26 e milho safrinha colhido em julho de 2026. Próxima safra: milho safrinha planejado para fevereiro de 2027.',
+        notes: 'Soja plantada em 10/10/2026 com ciclo de 115 dias. Histórico de soja 2025/26 e milho safrinha colhido em julho de 2026. Próxima safra: milho safrinha planejado para fevereiro de 2027.',
       },
       {
         id: 'talhao_demo_02',
@@ -518,7 +518,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         perimeterKm: calculatePerimeterKm(talhao2Coords),
         coordinates: talhao2Coords,
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Soja precoce plantada em 20/09/2026 com ciclo de 105 dias. Mesmo histórico de safra anterior. Próxima safra: milho safrinha planejado para janeiro de 2027.',
+        notes: 'Soja precoce plantada em 20/09/2026 com ciclo de 105 dias. Mesmo histórico de safra anterior. Próxima safra: milho safrinha planejado para janeiro de 2027.',
       },
       {
         id: 'talhao_demo_03',
@@ -549,7 +549,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         perimeterKm: calculatePerimeterKm(talhao3Coords),
         coordinates: talhao3Coords,
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Pastagem de braquiária perene sem plantio recente, mantida para pastejo rotacionado.',
+        notes: 'Pastagem de braquiária perene sem plantio recente, mantida para pastejo rotacionado.',
       },
     ],
     waterPoints: [
@@ -560,7 +560,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         type: 'sede',
         coordinates: [-17.75215, -51.14415],
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Casa principal, alojamento e escritório de gestão rural.',
+        notes: 'Casa principal, alojamento e escritório de gestão rural.',
         isExample: true,
       },
       {
@@ -569,7 +569,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         type: 'silo',
         coordinates: [-17.75125, -51.14385],
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Capacidade estática de 120.000 sacas com secador a lenha.',
+        notes: 'Capacidade estática de 120.000 sacas com secador a lenha.',
         isExample: true,
       },
       {
@@ -578,7 +578,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         type: 'curral',
         coordinates: [-17.75335, -51.1459],
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Brete com balança eletrônica e tronco de contenção.',
+        notes: 'Brete com balança eletrônica e tronco de contenção.',
         isExample: true,
       },
       {
@@ -587,7 +587,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         type: 'estacao_meteo',
         coordinates: [-17.75185, -51.1469],
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Monitoramento em tempo real de chuva, vento e umidade.',
+        notes: 'Monitoramento em tempo real de chuva, vento e umidade.',
         isExample: true,
       },
       {
@@ -596,7 +596,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         type: 'estrada',
         coordinates: [-17.7517, -51.1522],
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Pista de pouso de aviões agrícolas no centro da fazenda.',
+        notes: 'Pista de pouso de aviões agrícolas no centro da fazenda.',
         isExample: true,
       },
       {
@@ -605,7 +605,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         type: 'estrada',
         coordinates: [-17.7531, -51.1432],
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Via cascalhada para escoamento de carretas bitrem e colheitadeiras.',
+        notes: 'Via cascalhada para escoamento de carretas bitrem e colheitadeiras.',
         isExample: true,
       },
       {
@@ -614,7 +614,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         type: 'reserva',
         coordinates: [-17.7494, -51.1526],
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Área de Preservação Permanente (APP) averbada no CAR.',
+        notes: 'Área de Preservação Permanente (APP) averbada no CAR.',
         isExample: true,
       },
 
@@ -625,7 +625,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         type: 'nascente',
         coordinates: CAR_NASCENTE,
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Mina protegida com raio de 50 metros preservado.',
+        notes: 'Mina protegida com raio de 50 metros preservado.',
         isExample: true,
       },
       {
@@ -634,7 +634,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         type: 'poco',
         coordinates: [-17.7523, -51.1451],
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Profundidade 140 m, vazão 25.000 L/h para uso da sede.',
+        notes: 'Profundidade 140 m, vazão 25.000 L/h para uso da sede.',
         isExample: true,
       },
       {
@@ -643,7 +643,7 @@ export function getRioVerdeDemoFarm(): FarmData {
         type: 'rio',
         coordinates: [-17.7568, -51.138],
         createdAt: new Date().toISOString(),
-        notes: '[Exemplo] Corpo hídrico na divisa sul da propriedade rural.',
+        notes: 'Corpo hídrico na divisa sul da propriedade rural.',
         isExample: true,
       },
     ],
@@ -666,7 +666,7 @@ export function getRioVerdeDemoFarm(): FarmData {
       plantingDate: f.plant, cycleDays: cycle, harvestDateExpected: harvest, isExample: true, healthStatus: 'verde',
       diary: [...(f.plant ? [{ id: id + '_d1', date: f.plant, type: 'plantio' as const }] : []), { id: id + '_d2', date: '2026-11-09', type: 'monitoramento' as const }, ...(harvest && f.plant < '2026-08-01' ? [{ id: id + '_d3', date: harvest < '2026-11-09' ? harvest : '2026-11-09', type: 'colheita' as const }] : [])], harvestHistory: [],
       areaHectares: calculatePolygonAreaHectares(coords), perimeterKm: calculatePerimeterKm(coords), coordinates: coords,
-      createdAt: new Date().toISOString(), notes: '[Exemplo]',
+      createdAt: new Date().toISOString(), notes: '',
     });
   }
   demoFarm.demoVersion = 3;
@@ -718,6 +718,15 @@ export function localizeExampleNames(farm: FarmData): boolean {
 
   farm.talhoes.forEach(apply);
   farm.waterPoints.forEach(apply);
+
+  // Fazendas salvas antes ainda têm "[Exemplo]" no nome ou nas notas: a etiqueta sai da tela
+  const TAG = /\s*\[(Exemplo|Example|Ejemplo|Beispiel|Exemple|示例)\]\s*/g;
+  [...farm.talhoes, ...farm.waterPoints].forEach((item) => {
+    if (TAG.test(item.name)) { item.name = item.name.replace(TAG, ' ').trim(); changed = true; }
+    TAG.lastIndex = 0;
+    if (item.notes && TAG.test(item.notes)) { item.notes = item.notes.replace(TAG, ' ').trim(); changed = true; }
+    TAG.lastIndex = 0;
+  });
 
   // A fazenda de exemplo salva antes da troca de marca ainda tem o nome antigo: acompanha o novo nome
   if (farm.farmName === 'Fazenda My' + 'Roça - Rio Verde (GO)') setIf(farm, 'farmName', 'Fazenda SpaceAgro - Rio Verde (GO)');

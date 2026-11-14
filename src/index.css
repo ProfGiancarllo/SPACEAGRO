@@ -4153,3 +4153,73 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
 .adm-acc th { color: #65756e; font-weight: 600; font-size: 12px; }
 .adm-acc td:last-child { text-align: right; }
 .adm-acc .btn { padding: 6px 10px; font-size: 12.5px; }
+/* Sem selos de "exemplo" na interface */
+.badge-exemplo, .mkc-badge.ex, .mkc-badge.part, .mk-badge.example { display: none !important; }
+
+/* ========================================================
+   Cabeçalho e topo da visão geral — celular e tablet
+   ======================================================== */
+@media (max-width: 1099px) {
+  /* Título alinhado à esquerda, ações logo abaixo (nada centralizado) */
+  .home-head { flex-direction: column; align-items: stretch; text-align: left; gap: 10px; }
+  .home-head > div:first-child { text-align: left; }
+  .home-head-actions { justify-content: flex-start; }
+}
+@media (max-width: 640px) {
+  /* Barra do topo: marca e conta na 1ª linha, menus na 2ª, sem nada saindo da tela */
+  .top-nav { padding: 6px 10px; row-gap: 2px; }
+  .top-nav .brand-mark-nav { height: 24px; }
+  .top-nav .nav-trigger { padding: 8px 8px; font-size: 14px; white-space: nowrap; }
+  /* Menus abrem em largura total, logo abaixo da barra */
+  .top-nav { position: relative; }
+  .top-nav .dropdown-container, .top-nav .nav-group { position: static; }
+  .top-nav .dropdown-menu.show {
+    position: absolute; top: 100%; left: 8px; right: 8px; width: auto; min-width: 0; max-width: none; margin-top: 2px;
+    max-height: calc(100dvh - 140px); overflow-y: auto; z-index: 9500;
+  }
+  #btn-lang-dropdown, .top-nav .user-chip, .top-nav [id*='user'] { padding: 6px 10px; font-size: 13px; }
+
+  /* Mercado agrícola: rótulo curto para sobrar espaço aos preços */
+  .mc-head .mc-title { font-size: 13px; }
+
+  /* Topo da visão geral: título compacto e botões em grade (data em cima, 3 ações embaixo) */
+  .home-head h1 { font-size: 20px; }
+  .home-head .home-sub { font-size: 12.5px; }
+  .home-head-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
+  .home-head .calendar-time-bar, .home-head .calendar-actions-group { display: contents; }
+  .home-head-actions .dropdown-container { position: relative; width: 100%; min-width: 0; }
+  .home-head-actions .dropdown-container .dropdown-menu { right: 0; left: auto; max-width: calc(100vw - 24px); }
+  .home-head .calendar-today-box { grid-column: 1 / -1; justify-content: center; }
+  .home-head .btn-advance-time, .home-head #btn-calendar-more-options, .home-head-actions #simple-pill {
+    width: 100%; min-height: 40px; justify-content: center; text-align: center; padding: 8px 6px; font-size: 13px; white-space: nowrap;
+  }
+}
+@media (max-width: 380px) {
+  .top-nav .nav-trigger { padding: 8px 6px; font-size: 13px; }
+  .home-head .btn-advance-time, .home-head #btn-calendar-more-options, .home-head-actions #simple-pill { font-size: 12.5px; padding: 8px 4px; }
+}
+
+/* ========================================================
+   Celular: botões flutuantes e controles do mapa sem sobreposição
+   ======================================================== */
+@media (max-width: 640px) {
+  /* Estrela e microfone lado a lado no canto inferior direito, fora do caminho do mapa */
+  .estela-fab { left: auto; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); padding: 10px 14px; font-size: 14px; gap: 6px; box-shadow: 0 2px 8px rgba(24, 43, 37, 0.25); }
+  .estela-fab .estela-fab-ico { width: 22px; height: 22px; }
+  .estela-fab-mic { left: auto; right: 12px; bottom: calc(68px + env(safe-area-inset-bottom)); width: 46px; height: 46px; }
+  /* Aviso de queimadas: só aparece quando tem algo a dizer; fica no canto inferior esquerdo */
+  .fire-pill.off { display: none !important; }
+  .fire-pill { left: 10px; right: auto; bottom: calc(14px + env(safe-area-inset-bottom)); max-width: calc(100vw - 200px); white-space: normal; font-size: 12.5px; }
+  /* Controles do mapa compactos, numa linha */
+  .leaflet-top.leaflet-left { display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 64px); padding: 8px 0 0 8px; }
+  .leaflet-top.leaflet-left .leaflet-control { margin: 0 !important; float: none; clear: none; }
+  .leaflet-top.leaflet-left .adjust-btn { padding: 7px 10px; font-size: 13px; min-height: 36px; }
+  .leaflet-control-scale { display: none; }
+  /* Respiro no fim da página para os botões flutuantes não cobrirem o conteúdo */
+  #app { padding-bottom: 72px; }
+}
+@media (max-width: 360px) {
+  .top-nav { padding-left: 6px; padding-right: 6px; }
+  .top-nav .nav-trigger { padding: 8px 4px; font-size: 12.5px; letter-spacing: -0.01em; }
+  .top-nav .nav-trigger .caret, .top-nav .nav-trigger .nav-caret { margin-left: 2px; }
+}
