@@ -131,7 +131,8 @@ export class MapManager {
     if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV) (window as unknown as { __saMap?: MLMap }).__saMap = this.map;
 
     this.map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
-    this.map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+    // créditos das imagens sempre à vista (exigência do OpenStreetMap, Esri e das regras do Space Apps); compacto só em tela estreita
+    this.map.addControl(new maplibregl.AttributionControl({ compact: window.innerWidth < 640 }), 'bottom-right');
     this.map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
     this.addLayerSwitcher();
 
