@@ -4139,7 +4139,7 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
   .sat-pill { left: 10px; right: auto; bottom: calc(62px + env(safe-area-inset-bottom)); max-width: calc(100vw - 200px); border-radius: 12px; font-size: 12.5px; }
   .fire-pill { left: 10px; right: auto; bottom: calc(14px + env(safe-area-inset-bottom)); max-width: calc(100vw - 200px); white-space: normal; font-size: 12.5px; }
   /* Controles do mapa compactos, numa linha */
-  .map-tools { flex-direction: row; flex-wrap: wrap; max-width: calc(100vw - 110px); }
+  .map-tools { max-width: calc(100vw - 110px); }
 
   .map-tools .adjust-btn { padding: 7px 10px; font-size: 13px; min-height: 36px; }
   .maplibregl-ctrl-scale { display: none; }
@@ -4234,8 +4234,14 @@ body.estela-docked .estela-panel { border: 0; border-radius: 0; box-shadow: none
    Mapa (MapLibre GL): controles próprios
    ======================================================== */
 .maplibregl-map { font: inherit; }
-/* Coluna de ferramentas (ajustar talhões, marcar lavoura, saúde por satélite) */
+/* Menu Ferramentas do mapa (ajustar talhões, marcar lavoura, saúde por satélite, estresse hídrico) */
 .map-tools { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; background: none !important; box-shadow: none !important; margin: 10px 0 0 10px !important; }
+.map-tools-toggle { display: inline-flex; align-items: center; gap: 8px; }
+.map-tools.open .map-tools-toggle { background: #f2f5f2; }
+.map-tools-toggle:focus-visible, .map-tools-menu .adjust-btn:focus-visible { outline: 2px solid #245b43; outline-offset: 2px; }
+.map-tools-menu { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+/* menu fechado: só a ferramenta ligada continua à vista (para ver o que está ativo e poder desligar) */
+.map-tools:not(.open) .map-tools-menu > :not(.on):not(:has(.on)) { display: none; }
 /* Seletor de mapa base */
 .ml-layers { position: relative; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; background: none !important; box-shadow: none !important; margin: 10px 10px 0 0 !important; }
 .ml-layers-btn { width: 40px; height: 40px; display: grid; place-items: center; background: #fff; color: #182b25; border: 1px solid #dfe6e1; border-radius: 8px; cursor: pointer; box-shadow: 0 1px 3px rgba(24, 43, 37, 0.15); }

@@ -887,12 +887,31 @@ export class MapManager {
   private adjText(i: number): string { const l = (document.documentElement.lang || 'pt').slice(0, 2); return (MapManager.ADJ[l] || MapManager.ADJ.pt)[i]; }
 
   private topLeftBox: HTMLElement | null = null;
-  /** Coluna de botões do canto superior esquerdo (ajustar, marcar lavoura, saúde por satélite…). */
+  private static TOOLS: Record<string, string> = { pt: 'Ferramentas', en: 'Tools', es: 'Herramientas', de: 'Werkzeuge', zh: '工具', fr: 'Outils' };
+  /**
+   * Menu "Ferramentas" do canto superior esquerdo: um botão que abre a lista (ajustar, marcar lavoura, saúde por satélite,
+   * estresse hídrico…). Devolve a lista, onde cada recurso põe o seu botão. A ferramenta ligada (classe "on") continua à vista
+   * com o menu fechado, para o produtor ver o que está ativo e poder desligar.
+   */
   public topLeft(): HTMLElement {
     if (!this.topLeftBox) {
       const d = document.createElement('div');
       d.className = 'maplibregl-ctrl map-tools';
-      this.topLeftBox = d;
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'adjust-btn map-tools-toggle'; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'map-tools-menu');
+      const label = MapManager.TOOLS[(document.documentElement.lang || 'pt').slice(0, 2)] || MapManager.TOOLS.pt;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>${escapeHtml(label)}</span>`;
+      const menu = document.createElement('div');
+      menu.className = 'map-tools-menu'; menu.id = 'map-tools-menu'; menu.setAttribute('role', 'group'); menu.setAttribute('aria-label', label);
+      const setOpen = (open: boolean) => { d.classList.toggle('open', open); btn.setAttribute('aria-expanded', String(open)); };
+      btn.onclick = (e) => { e.stopPropagation(); setOpen(!d.classList.contains('open')); };
+      // escolher uma ferramenta fecha o menu (os botões param a propagação, por isso a escuta é na captura);
+      // cliques dentro dos painéis das ferramentas (ex.: controle da marcação de lavoura) não fecham
+      menu.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('button.adjust-btn')) window.setTimeout(() => setOpen(false), 0); }, true);
+      document.addEventListener('click', (e) => { if (!d.contains(e.target as Node)) setOpen(false); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && d.classList.contains('open')) { setOpen(false); btn.focus(); } });
+      d.append(btn, menu);
+      this.topLeftBox = menu;
       this.map.addControl(new ElControl(d), 'top-left');
     }
     return this.topLeftBox;
