@@ -135,7 +135,7 @@ export class AdminPanel {
     const st = this.status;
     const n = (k: string) => (this.notes[k] ? `<p class="adm-note ${this.notes[k].kind}" role="${this.notes[k].kind === 'err' ? 'alert' : 'status'}">${esc(this.notes[k].text)}</p>` : '');
     const pill = (on: boolean, yes: string, no: string) => `<span class="adm-pill ${on ? 'on' : 'off'}">${esc(on ? yes : no)}</span>`;
-    const fromTxt = (f: string) => (f === 'painel' ? 'cadastrada por este painel' : f === 'cloudflare' ? 'cadastrada direto na Cloudflare' : '');
+    const fromTxt = (f: string) => (f === 'painel' ? 'cadastrada por este painel' : f === 'cloudflare' ? 'definida no servidor (variável de ambiente)' : '');
 
     const unlock = `
       <section class="adm-sec">

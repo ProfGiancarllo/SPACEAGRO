@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.github
+.claude
+.aistudio
+.env*
+*.log
+coverage
+tests
+docs
+flow_*.png
