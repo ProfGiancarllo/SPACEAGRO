@@ -132,6 +132,7 @@ class AgroApp {
       getFarm: () => this.farmData,
       getRefDate: () => this.referenceDate,
       openRotation: (id) => this.rotationPlanner.open(id),
+      openDiary: () => this.diaryPanel.open(),
       onDiaryAdded: () => {
         saveFarmData(this.farmData);
         this.updateUI();

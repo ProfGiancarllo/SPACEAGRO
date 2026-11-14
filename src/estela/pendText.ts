@@ -1,6 +1,7 @@
 import { getCurrentLanguage } from '../i18n';
 type D = Record<string, string>;
 const pt: D = {
+  hist: 'Atenção: para eu te ajudar de verdade, preciso do HISTÓRICO da sua fazenda. Informe no sistema tudo que você já fez nas safras passadas: plantios, adubações, aplicações, chuvas e, principalmente, as colheitas com a produtividade (sc/ha). Quanto mais para trás você registrar, melhor fica a previsão para os seus talhões. Hoje há {n} registro(s) no diário.', histOpen: 'Abrir o diário', histHere: 'Registrar por aqui', histLater: 'Depois',
   q_amount: '{type}: quantos {unit}? (diga só o número, ou "não sei")',
   intro: 'Encontrei {n} pendência(s) na sua fazenda. Posso te perguntar uma de cada vez? Você responde por texto ou voz e eu peço sua confirmação antes de gravar.',
   go: 'Vamos', later: 'Depois', skip: 'Pular',
@@ -19,6 +20,7 @@ const pt: D = {
   chipPend: 'O que falta?', harvestSaved: 'Colheita registrada. Quer planejar a próxima safra?', openRot: 'Abrir planejador',
 };
 const en: D = {
+  hist: "Heads-up: to really help you, I need your farm's HISTORY. Enter in the system everything you did in past seasons: plantings, fertilizing, spraying, rain and, above all, harvests with yield (sc/ha). The further back you record, the better the forecast for your fields. Right now there are {n} diary entries.", histOpen: 'Open the diary', histHere: 'Record here', histLater: 'Later',
   q_amount: '{type}: how many {unit}? (just say the number, or "I do not know")',
   intro: 'I found {n} pending item(s) on your farm. May I ask them one at a time? Answer by text or voice and I will ask you to confirm before saving.',
   go: "Let's go", later: 'Later', skip: 'Skip',
@@ -37,6 +39,7 @@ const en: D = {
   chipPend: 'What is missing?', harvestSaved: 'Harvest recorded. Want to plan the next season?', openRot: 'Open planner',
 };
 const es: D = {
+  hist: 'Atención: para ayudarle de verdad, necesito el HISTORIAL de su finca. Registre en el sistema todo lo que hizo en zafras pasadas: siembras, fertilizaciones, aplicaciones, lluvias y, sobre todo, cosechas con rendimiento (sc/ha). Cuanto más atrás registre, mejor la previsión de sus lotes. Hoy hay {n} registro(s) en el diario.', histOpen: 'Abrir el diario', histHere: 'Registrar aquí', histLater: 'Después',
   q_amount: '{type}: ¿cuántos {unit}? (diga solo el número, o "no sé")',
   intro: 'Encontré {n} pendiente(s) en su finca. ¿Le pregunto uno por uno? Responda por texto o voz y le pediré confirmar antes de guardar.',
   go: 'Vamos', later: 'Después', skip: 'Omitir',
@@ -55,6 +58,7 @@ const es: D = {
   chipPend: '¿Qué falta?', harvestSaved: 'Cosecha registrada. ¿Quiere planificar la próxima zafra?', openRot: 'Abrir planificador',
 };
 const de: D = {
+  hist: 'Hinweis: Damit ich Ihnen wirklich helfen kann, brauche ich die VERGANGENHEIT Ihres Betriebs. Tragen Sie alles ein, was Sie in früheren Saisons gemacht haben: Aussaat, Düngung, Spritzungen, Regen und vor allem Ernten mit Ertrag (sc/ha). Je weiter zurück, desto besser die Prognose. Derzeit gibt es {n} Eintrag/Einträge im Tagebuch.', histOpen: 'Tagebuch öffnen', histHere: 'Hier erfassen', histLater: 'Später',
   q_amount: '{type}: wie viel {unit}? (nur die Zahl, oder "weiß nicht")',
   intro: 'Ich habe {n} offene Punkte auf Ihrer Farm gefunden. Darf ich sie einzeln fragen? Antworten Sie per Text oder Sprache; ich lasse mir vor dem Speichern bestätigen.',
   go: 'Los', later: 'Später', skip: 'Überspringen',
@@ -73,6 +77,7 @@ const de: D = {
   chipPend: 'Was fehlt?', harvestSaved: 'Ernte erfasst. Nächste Saison planen?', openRot: 'Planer öffnen',
 };
 const zh: D = {
+  hist: '提醒：为了真正帮到您，我需要您农场的历史记录。请在系统中填写过去各季所做的一切：播种、施肥、施药、降雨，尤其是收获及产量（sc/ha）。记录越早，对您地块的预测越准确。目前日记中有 {n} 条记录。', histOpen: '打开日记', histHere: '在这里记录', histLater: '稍后',
   q_amount: '{type}：多少 {unit}？（只说数字，或“不知道”）',
   intro: '我在您的农场发现 {n} 项待补充信息。我可以逐项询问吗？您可用文字或语音回答，保存前我会请您确认。',
   go: '开始', later: '稍后', skip: '跳过',
@@ -91,6 +96,7 @@ const zh: D = {
   chipPend: '还缺什么？', harvestSaved: '已记录收获。要规划下一季吗？', openRot: '打开规划器',
 };
 const fr: D = {
+  hist: 'Attention : pour vraiment vous aider, j’ai besoin de l’HISTORIQUE de votre exploitation. Saisissez tout ce que vous avez fait lors des saisons passées : semis, fertilisation, traitements, pluie et surtout les récoltes avec le rendement (sc/ha). Plus vous remontez dans le temps, meilleure est la prévision. Il y a actuellement {n} entrée(s) dans le journal.', histOpen: 'Ouvrir le journal', histHere: 'Saisir ici', histLater: 'Plus tard',
   q_amount: '{type} : combien de {unit} ? (dites juste le nombre, ou "je ne sais pas")',
   intro: "J'ai trouvé {n} point(s) en attente sur votre ferme. Puis-je vous les demander un par un ? Répondez par texte ou voix ; je demanderai confirmation avant d'enregistrer.",
   go: 'Allons-y', later: 'Plus tard', skip: 'Passer',
