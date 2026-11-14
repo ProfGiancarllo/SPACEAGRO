@@ -45,10 +45,12 @@ const kv = {
 let kvOk = true;
 try { fs.mkdirSync(DATA_DIR, { recursive: true }); fs.accessSync(DATA_DIR, fs.constants.W_OK); } catch { kvOk = false; }
 
+// Chaves coladas no Portainer às vezes vêm com espaço, aspas ou quebra de linha; isso invalida a chave
+const clean = (v) => String(v || '').trim().replace(/^["']|["']$/g, '').trim();
 const env = {
-  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
-  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || '',
+  ANTHROPIC_API_KEY: clean(process.env.ANTHROPIC_API_KEY),
+  OPENAI_API_KEY: clean(process.env.OPENAI_API_KEY),
+  ADMIN_PASSWORD: clean(process.env.ADMIN_PASSWORD),
   ALLOWED_ORIGIN: process.env.ALLOWED_ORIGIN || '*',
   MODEL: process.env.MODEL || '',
   TTS_VOICE: process.env.TTS_VOICE || '',
