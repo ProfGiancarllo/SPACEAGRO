@@ -28,6 +28,19 @@ export function requireAuth(): Promise<void> {
       const field = (id: string, label: string, type = 'text', extra = '') =>
         `<label class="auth-field"><span>${label}</span><input id="${id}" type="${type}" ${extra} /></label>`;
       root.innerHTML = `
+        <aside class="auth-hero">
+          <div class="auth-hero-body">
+            <h2>${at('heroTitle')}</h2>
+            <p>${at('heroText')}</p>
+            <ul class="auth-feats">
+              <li>${at('feat1')}</li>
+              <li>${at('feat2')}</li>
+              <li>${at('feat3')}</li>
+            </ul>
+          </div>
+          <p class="auth-sources">${at('sources')}</p>
+        </aside>
+        <main class="auth-panel">
         <div class="auth-card">
           <div class="auth-top">
             <span class="brand-mark brand-mark-auth" role="img" aria-label="SpaceAgro"><img src="./assets/brand/spaceagro-logo.svg" alt="" /></span>
@@ -58,7 +71,8 @@ export function requireAuth(): Promise<void> {
           ${showForgot ? `<div class="auth-forgot"><p>${at('forgotMsg')}</p><button type="button" class="auth-danger" id="auth-delete">${at('forgotDelete')}</button></div>` : ''}
           <button type="button" class="auth-guest" id="auth-guest">${at('guest')}</button>
           <p class="auth-note">${at('localNote')}</p>
-        </div>`;
+        </div>
+        </main>`;
 
       root.querySelector<HTMLSelectElement>('#auth-lang')!.onchange = (e) => {
         setLanguage((e.target as HTMLSelectElement).value as LanguageCode);

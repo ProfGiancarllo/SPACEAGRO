@@ -16,6 +16,7 @@ const en: Dict = {
   errPwMismatch: 'The passwords do not match.', errConsent: 'You need to accept the data use to create an account.',
   errExists: 'There is already an account with this e-mail.', errBadLogin: 'Wrong e-mail or password.',
   errLocked: 'Too many attempts. Try again in {s} s.', errCrypto: 'This browser cannot protect passwords. Open the app over HTTPS.',
+  heroTitle: 'Farm management built on satellite imagery', heroText: 'Fields, crop calendar and weather for your property in one place.', feat1: 'Field mapping over satellite imagery', feat2: 'Crop calendar and rotation planning', feat3: 'Rainfall and climate from NASA POWER', sources: 'Imagery: Esri World Imagery · Climate: NASA POWER',
   logout: 'Sign out', guestName: 'Guest',
 };
 const pt: Dict = {
@@ -33,6 +34,7 @@ const pt: Dict = {
   errPwMismatch: 'As senhas não são iguais.', errConsent: 'É preciso aceitar o uso dos dados para criar a conta.',
   errExists: 'Já existe uma conta com este e-mail.', errBadLogin: 'E-mail ou senha incorretos.',
   errLocked: 'Muitas tentativas. Tente de novo em {s} s.', errCrypto: 'Este navegador não consegue proteger senhas. Abra o app por HTTPS.',
+  heroTitle: 'Gestão da fazenda a partir de imagens de satélite', heroText: 'Talhões, calendário de safra e clima da sua propriedade em um só lugar.', feat1: 'Mapeamento de talhões sobre imagem de satélite', feat2: 'Calendário de safra e planejamento de rotação', feat3: 'Chuva e clima com dados da NASA POWER', sources: 'Imagens: Esri World Imagery · Clima: NASA POWER',
   logout: 'Sair', guestName: 'Visitante',
 };
 const es: Dict = {
@@ -50,6 +52,7 @@ const es: Dict = {
   errPwMismatch: 'Las contraseñas no coinciden.', errConsent: 'Debes aceptar el uso de los datos para crear la cuenta.',
   errExists: 'Ya existe una cuenta con este correo.', errBadLogin: 'Correo o contraseña incorrectos.',
   errLocked: 'Demasiados intentos. Inténtalo de nuevo en {s} s.', errCrypto: 'Este navegador no puede proteger contraseñas. Abre la app por HTTPS.',
+  heroTitle: 'Gestión de la finca a partir de imágenes satelitales', heroText: 'Lotes, calendario de cosecha y clima de tu propiedad en un solo lugar.', feat1: 'Mapeo de lotes sobre imagen satelital', feat2: 'Calendario de cosecha y planificación de rotación', feat3: 'Lluvia y clima con datos de NASA POWER', sources: 'Imágenes: Esri World Imagery · Clima: NASA POWER',
   logout: 'Salir', guestName: 'Invitado',
 };
 const de: Dict = {
@@ -67,6 +70,7 @@ const de: Dict = {
   errPwMismatch: 'Die Passwörter stimmen nicht überein.', errConsent: 'Zum Erstellen des Kontos muss der Datennutzung zugestimmt werden.',
   errExists: 'Mit dieser E-Mail existiert bereits ein Konto.', errBadLogin: 'E-Mail oder Passwort falsch.',
   errLocked: 'Zu viele Versuche. Erneut versuchen in {s} s.', errCrypto: 'Dieser Browser kann Passwörter nicht schützen. App über HTTPS öffnen.',
+  heroTitle: 'Betriebsführung auf Basis von Satellitenbildern', heroText: 'Schläge, Anbaukalender und Wetter Ihres Betriebs an einem Ort.', feat1: 'Schlagkartierung auf Satellitenbildern', feat2: 'Anbaukalender und Fruchtfolgeplanung', feat3: 'Niederschlag und Klima aus NASA POWER', sources: 'Bilder: Esri World Imagery · Klima: NASA POWER',
   logout: 'Abmelden', guestName: 'Gast',
 };
 const zh: Dict = {
@@ -84,6 +88,7 @@ const zh: Dict = {
   errPwMismatch: '两次输入的密码不一致。', errConsent: '创建账户需同意数据使用。',
   errExists: '该邮箱已有账户。', errBadLogin: '邮箱或密码错误。',
   errLocked: '尝试次数过多，请 {s} 秒后重试。', errCrypto: '此浏览器无法保护密码，请通过 HTTPS 打开应用。',
+  heroTitle: '基于卫星影像的农场管理', heroText: '地块、种植日历和气象信息集中在一处。', feat1: '在卫星影像上绘制地块', feat2: '种植日历与轮作规划', feat3: '来自 NASA POWER 的降雨与气候数据', sources: '影像：Esri World Imagery · 气候：NASA POWER',
   logout: '退出', guestName: '访客',
 };
 const fr: Dict = {
@@ -101,6 +106,7 @@ const fr: Dict = {
   errPwMismatch: 'Les mots de passe ne correspondent pas.', errConsent: "Vous devez accepter l'utilisation des données pour créer le compte.",
   errExists: 'Un compte existe déjà avec cet e-mail.', errBadLogin: 'E-mail ou mot de passe incorrect.',
   errLocked: 'Trop de tentatives. Réessayez dans {s} s.', errCrypto: "Ce navigateur ne peut pas protéger les mots de passe. Ouvrez l'app en HTTPS.",
+  heroTitle: "Gestion de l'exploitation à partir d'images satellite", heroText: 'Parcelles, calendrier cultural et météo de votre exploitation au même endroit.', feat1: 'Cartographie des parcelles sur image satellite', feat2: 'Calendrier cultural et planification des rotations', feat3: 'Pluie et climat avec les données NASA POWER', sources: 'Images : Esri World Imagery · Climat : NASA POWER',
   logout: 'Se déconnecter', guestName: 'Invité',
 };
 const ALL: Record<string, Dict> = { en, pt, es, de, zh, fr };
