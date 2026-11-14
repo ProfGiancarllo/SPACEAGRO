@@ -309,49 +309,49 @@ ${isSuperAdmin() ? `<div class="menu-head">Sistema</div>
       <!-- Tela inicial: visão geral (mapa em cartão, clima e mercado ao lado, chat da Estrela à direita) -->
       <div class="home-layout" id="home-layout">
       <main class="home-main">
-        <div class="home-head">
-          <div><h1 id="home-title"></h1><div class="home-sub" id="home-sub"></div></div>
-          <div class="home-head-actions" id="home-head-actions">
-          <!-- Agricultural Calendar Bar (Reference Date: "Hoje") -->
-          <div class="calendar-time-bar" id="calendar-time-bar">
-            <div class="calendar-today-box">
-              <div class="today-calendar-icon"></div>
-              <div>
-                <div class="today-title-label" id="lbl-calendar-title">${t('cropCalendar')} • ${t('referenceDate')}</div>
-                <div class="today-date-value" id="lbl-calendar-today-row">
-                  ${t('today')}: <span id="calendar-today-display">${formatDateWithWeekdayI18n(this.referenceDate)}</span>
-                  <span class="badge-exemplo">${t('exampleBadge')}</span>
-                </div>
-              </div>
-            </div>
-  
-            <div class="calendar-actions-group">
-              <button class="btn-advance-time" id="btn-advance-time-main" title="${t('advanceTimeWeek')}">
-                <span class="cal-btn-text" id="lbl-btn-advance-time">${ht('advShort')}</span>
-              </button>
-              <div class="dropdown-container">
-                <button class="btn btn-outline" id="btn-calendar-more-options" title="${t('options')}">
-                  <span></span> <span class="cal-btn-text" id="lbl-btn-calendar-options">${t('options')} ▾</span>
-                </button>
-                <div class="dropdown-menu dropdown-menu-right" id="calendar-options-menu">
-                  <button class="dropdown-item" id="opt-advance-1w"><span></span> <span id="lbl-opt-adv-1w">${t('plus1Week')}</span></button>
-                  <button class="dropdown-item" id="opt-advance-2w"><span></span> <span id="lbl-opt-adv-2w">${t('plus2Weeks')}</span></button>
-                  <button class="dropdown-item" id="opt-advance-4w"><span></span> <span id="lbl-opt-adv-4w">${t('plus4Weeks')}</span></button>
-                  <div style="border-top: 1px solid var(--border-color); margin: 4px 0;"></div>
-                  <button class="dropdown-item" id="opt-rewind-1w"><span></span> <span id="lbl-opt-rewind-1w">${t('rewind1Week')}</span></button>
-                  <button class="dropdown-item" id="opt-reset-date"><span></span> <span id="lbl-opt-reset-date">${t('resetToDefaultDate')}</span></button>
-                </div>
-              </div>
-            </div>
-          </div>
-          </div>
-        </div>
         <div class="home-content">
         <div class="home-col">
         <section class="panel home-map-panel">
-          <div class="panelhead">
-            <h2 id="home-map-title"></h2>
-            <div class="home-map-actions"><button type="button" class="btn btn-secondary" id="home-btn-center"></button><button type="button" class="btn btn-secondary" id="home-btn-max" aria-pressed="false"></button></div>
+          <div class="panelhead home-toolbar">
+            <h1 id="home-title" class="sr-only"></h1><h2 id="home-map-title" class="sr-only"></h2>
+            <div class="home-sub" id="home-sub"></div>
+            <div class="home-toolbar-actions">
+            <div class="home-head-actions" id="home-head-actions">
+            <!-- Agricultural Calendar Bar (Reference Date: "Hoje") -->
+            <div class="calendar-time-bar" id="calendar-time-bar">
+              <div class="calendar-today-box">
+                <div class="today-calendar-icon"></div>
+                <div>
+                  <div class="today-title-label" id="lbl-calendar-title">${t('cropCalendar')} • ${t('referenceDate')}</div>
+                  <div class="today-date-value" id="lbl-calendar-today-row">
+                    ${t('today')}: <span id="calendar-today-display">${formatDateWithWeekdayI18n(this.referenceDate)}</span>
+                    <span class="badge-exemplo">${t('exampleBadge')}</span>
+                  </div>
+                </div>
+              </div>
+    
+              <div class="calendar-actions-group">
+                <button class="btn-advance-time" id="btn-advance-time-main" title="${t('advanceTimeWeek')}">
+                  <span class="cal-btn-text" id="lbl-btn-advance-time">${ht('advShort')}</span>
+                </button>
+                <div class="dropdown-container">
+                  <button class="btn btn-outline" id="btn-calendar-more-options" title="${t('options')}">
+                    <span></span> <span class="cal-btn-text" id="lbl-btn-calendar-options">${t('options')} ▾</span>
+                  </button>
+                  <div class="dropdown-menu dropdown-menu-right" id="calendar-options-menu">
+                    <button class="dropdown-item" id="opt-advance-1w"><span></span> <span id="lbl-opt-adv-1w">${t('plus1Week')}</span></button>
+                    <button class="dropdown-item" id="opt-advance-2w"><span></span> <span id="lbl-opt-adv-2w">${t('plus2Weeks')}</span></button>
+                    <button class="dropdown-item" id="opt-advance-4w"><span></span> <span id="lbl-opt-adv-4w">${t('plus4Weeks')}</span></button>
+                    <div style="border-top: 1px solid var(--border-color); margin: 4px 0;"></div>
+                    <button class="dropdown-item" id="opt-rewind-1w"><span></span> <span id="lbl-opt-rewind-1w">${t('rewind1Week')}</span></button>
+                    <button class="dropdown-item" id="opt-reset-date"><span></span> <span id="lbl-opt-reset-date">${t('resetToDefaultDate')}</span></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+                <div class="home-map-actions"><button type="button" class="btn btn-secondary" id="home-btn-center"></button><button type="button" class="btn btn-secondary" id="home-btn-max" aria-pressed="false"></button></div>
+            </div>
           </div>
       <div class="main-viewport-container" id="main-viewport-container">
         <!-- Real Satellite Map View -->

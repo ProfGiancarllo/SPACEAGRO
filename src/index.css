@@ -3466,8 +3466,8 @@ body, #app { background: #f5f7f5; color: #182b25; font-size: 14px; }
 /* Grade da página */
 .home-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 360px; background: #f5f7f5; }
 .home-main { min-width: 0; min-height: 0; overflow-y: auto; padding: 18px 20px 24px; }
-.home-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 14px; }
-.home-head h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; color: #182b25; }
+.home-toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 14px; }
+.home-toolbar h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; color: #182b25; }
 .home-sub { font-size: 12px; color: #65756e; }
 .home-head-actions { display: flex; gap: 8px; flex: none; }
 .home-content { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(270px, 0.8fr); gap: 14px; align-items: start; }
@@ -3518,7 +3518,7 @@ body:not(.estela-docked) .home-chat { display: contents; }
 }
 @media (max-width: 899px) {
   .home-content { grid-template-columns: 1fr; }
-  .home-head { flex-direction: column; align-items: flex-start; }
+  .home-toolbar { flex-direction: column; align-items: flex-start; }
   .home-map-panel .main-viewport-container { height: 62vh; min-height: 340px; }
 }
 .home-map-panel .main-viewport-container { height: clamp(360px, calc(100vh - 400px), 820px); }
@@ -3753,26 +3753,26 @@ body:not(.estela-docked) .home-chat { display: contents; }
 }
 
 /* Linha do título: data de referência compacta, +1 semana, opções e Modo Simples */
-.home-head { align-items: center; }
+.home-toolbar { align-items: center; }
 .home-head-actions { align-items: center; flex-wrap: wrap; justify-content: flex-end; }
-.home-head .calendar-time-bar { position: static; width: auto; max-width: none; height: auto; max-height: none; padding: 0; margin: 0; border: 0; background: transparent; box-shadow: none; gap: 8px; flex-wrap: nowrap; z-index: auto; }
-.home-head .calendar-today-box { display: flex; align-items: center; gap: 0; padding: 7px 12px; border: 1px solid #dfe6e1; border-radius: 7px; background: #fff; }
-.home-head .today-calendar-icon, .home-head .today-title-label { display: none; }
-.home-head .today-date-value { font-size: 13px; font-weight: 600; color: #182b25; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-.home-head .badge-exemplo { margin: 0; }
-.home-head .calendar-actions-group { display: flex; align-items: center; gap: 8px; }
-.home-head .btn-advance-time { background: #fff; color: #182b25; border: 1px solid #dfe6e1; border-radius: 7px; padding: 7px 12px; font-size: 13px; font-weight: 600; box-shadow: none; min-height: 0; height: auto; }
-.home-head .btn-advance-time:hover { background: #f2f5f2; }
-.home-head #btn-calendar-more-options { padding: 7px 12px; font-size: 13px; }
+.home-toolbar .calendar-time-bar { position: static; width: auto; max-width: none; height: auto; max-height: none; padding: 0; margin: 0; border: 0; background: transparent; box-shadow: none; gap: 8px; flex-wrap: nowrap; z-index: auto; }
+.home-toolbar .calendar-today-box { display: flex; align-items: center; gap: 0; padding: 7px 12px; border: 1px solid #dfe6e1; border-radius: 7px; background: #fff; }
+.home-toolbar .today-calendar-icon, .home-toolbar .today-title-label { display: none; }
+.home-toolbar .today-date-value { font-size: 13px; font-weight: 600; color: #182b25; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.home-toolbar .badge-exemplo { margin: 0; }
+.home-toolbar .calendar-actions-group { display: flex; align-items: center; gap: 8px; }
+.home-toolbar .btn-advance-time { background: #fff; color: #182b25; border: 1px solid #dfe6e1; border-radius: 7px; padding: 7px 12px; font-size: 13px; font-weight: 600; box-shadow: none; min-height: 0; height: auto; }
+.home-toolbar .btn-advance-time:hover { background: #f2f5f2; }
+.home-toolbar #btn-calendar-more-options { padding: 7px 12px; font-size: 13px; }
 .home-map-panel .panelhead { padding: 10px 16px; }
 @media (max-width: 899px) {
   .home-head-actions { justify-content: flex-start; }
-  .home-head .calendar-time-bar { flex-wrap: wrap; }
+  .home-toolbar .calendar-time-bar { flex-wrap: wrap; }
 }
 .home-map-panel .main-viewport-container { height: clamp(460px, calc(100vh - 318px), 1000px); }
-.home-head .cal-btn-text { display: inline !important; }
+.home-toolbar .cal-btn-text { display: inline !important; }
 .home-sub { white-space: normal; overflow-wrap: anywhere; }
-.home-head > div:first-child { min-width: 0; }
+.home-toolbar > div:first-child { min-width: 0; }
 
 /* Mapa maximizado */
 .home-map-actions .btn { display: inline-flex; align-items: center; gap: 6px; }
@@ -4093,8 +4093,8 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
    ======================================================== */
 @media (max-width: 1099px) {
   /* Título alinhado à esquerda, ações logo abaixo (nada centralizado) */
-  .home-head { flex-direction: column; align-items: stretch; text-align: left; gap: 10px; }
-  .home-head > div:first-child { text-align: left; }
+  .home-toolbar { flex-direction: column; align-items: stretch; text-align: left; gap: 10px; }
+  .home-toolbar > div:first-child { text-align: left; }
   .home-head-actions { justify-content: flex-start; }
 }
 @media (max-width: 640px) {
@@ -4115,20 +4115,20 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
   .mc-head .mc-title { font-size: 13px; }
 
   /* Topo da visão geral: título compacto e botões em grade (data em cima, 3 ações embaixo) */
-  .home-head h1 { font-size: 20px; }
-  .home-head .home-sub { font-size: 12.5px; }
+  .home-toolbar h1 { font-size: 20px; }
+  .home-toolbar .home-sub { font-size: 12.5px; }
   .home-head-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
-  .home-head .calendar-time-bar, .home-head .calendar-actions-group { display: contents; }
+  .home-toolbar .calendar-time-bar, .home-toolbar .calendar-actions-group { display: contents; }
   .home-head-actions .dropdown-container { position: relative; width: 100%; min-width: 0; }
   .home-head-actions .dropdown-container .dropdown-menu { right: 0; left: auto; max-width: calc(100vw - 24px); }
-  .home-head .calendar-today-box { grid-column: 1 / -1; justify-content: center; }
-  .home-head .btn-advance-time, .home-head #btn-calendar-more-options {
+  .home-toolbar .calendar-today-box { grid-column: 1 / -1; justify-content: center; }
+  .home-toolbar .btn-advance-time, .home-toolbar #btn-calendar-more-options {
     width: 100%; min-height: 40px; justify-content: center; text-align: center; padding: 8px 6px; font-size: 13px; white-space: nowrap;
   }
 }
 @media (max-width: 380px) {
   .top-nav .nav-trigger { padding: 8px 6px; font-size: 13px; }
-  .home-head .btn-advance-time, .home-head #btn-calendar-more-options { font-size: 12.5px; padding: 8px 4px; }
+  .home-toolbar .btn-advance-time, .home-toolbar #btn-calendar-more-options { font-size: 12.5px; padding: 8px 4px; }
 }
 
 /* ========================================================
@@ -4276,3 +4276,25 @@ body.estela-docked .estela-panel { border: 0; border-radius: 0; box-shadow: none
   .map-tools .adjust-btn { white-space: nowrap; }
 }
 
+
+/* ========================================================
+   Visão geral: uma barra só no topo do mapa
+   (linha da fazenda à esquerda; data, avanço, opções, centralizar e maximizar à direita)
+   ======================================================== */
+.home-map-panel > .panelhead.home-toolbar { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; margin: 0; padding: 10px 14px; }
+.home-toolbar .home-sub { flex: 1 1 0; min-width: 120px; margin: 0; font-size: 13px; color: #65756e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.home-toolbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.home-toolbar-actions .home-head-actions { display: flex; align-items: center; gap: 8px; margin: 0; }
+.home-toolbar-actions .home-map-actions { display: flex; align-items: center; gap: 8px; padding-left: 8px; border-left: 1px solid #dfe6e1; }
+.home-toolbar .btn, .home-toolbar .btn-advance-time, .home-toolbar .calendar-today-box { min-height: 36px; }
+@media (max-width: 1099px) {
+  .home-map-panel > .panelhead.home-toolbar { flex-direction: column; align-items: stretch; }
+  .home-toolbar .home-sub { white-space: normal; flex: none; }
+  .home-toolbar-actions { justify-content: flex-start; }
+}
+@media (max-width: 640px) {
+  .home-toolbar-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .home-toolbar-actions .home-head-actions { display: grid; grid-column: 1 / -1; }
+  .home-toolbar-actions .home-map-actions { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding-left: 0; border-left: 0; }
+  .home-toolbar-actions .home-map-actions .btn { width: 100%; justify-content: center; }
+}
