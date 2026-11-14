@@ -1,0 +1,20 @@
+# Sondagem manual: conta cenas do ECOSTRESS (NASA) sobre Rio Verde. Usa os segredos EARTHDATA_USER e EARTHDATA_PASS.
+name: Sondagem ECOSTRESS
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sondagem:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -q earthaccess
+      - run: python scripts/ecostress_sondagem.py
+        env:
+          EARTHDATA_USER: ${{ secrets.EARTHDATA_USER }}
+          EARTHDATA_PASS: ${{ secrets.EARTHDATA_PASS }}
