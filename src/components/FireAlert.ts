@@ -1,15 +1,15 @@
-import L from 'leaflet';
+import maplibregl, { Map as MLMap, Marker } from 'maplibre-gl';
 import { FarmData } from '../types';
 import { ft } from '../i18n/fireText';
 import { NEAR_KM, FireNear, annotate, bboxOf, fetchFires } from '../utils/fires';
 
-export interface FireAlertOptions { getFarm: () => FarmData; getMap: () => L.Map; }
+export interface FireAlertOptions { getFarm: () => FarmData; getMap: () => MLMap; }
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 const MUTE_KEY = 'myroca_fire_mute_v1';
 const POLL_MS = 15 * 60 * 1000;
 
 export class FireAlert {
-  private layer: L.LayerGroup | null = null;
+  private markers: Marker[] = [];
   private fires: FireNear[] = [];
   private banner: HTMLElement | null = null;
   private pill: HTMLElement | null = null;
@@ -62,20 +62,21 @@ export class FireAlert {
 
   private paintLayer(): void {
     const map = this.opts.getMap();
-    if (!map.getPane('fires')) { const pn = map.createPane('fires'); pn.style.zIndex = '640'; }
-    this.layer?.remove();
-    this.layer = L.layerGroup().addTo(map);
+    this.markers.forEach((m) => m.remove());
+    this.markers = [];
     for (const f of this.fires) {
       const near = f.km <= NEAR_KM;
-      const icon = L.divIcon({ className: 'fire-ico', html: `<span class="fire-dot ${near ? 'near' : 'far'}"></span>`, iconSize: near ? [26, 26] : [14, 14], iconAnchor: near ? [13, 13] : [7, 7] });
-      const m = L.marker([f.lat, f.lng], { icon, pane: 'fires', keyboard: true, title: ft('title'), zIndexOffset: near ? 1000 : 0 });
-      m.addTo(this.layer);
-      const el = m.getElement();
-      if (el) {
-        el.setAttribute('role', 'button'); el.setAttribute('aria-label', ft('title'));
-        el.addEventListener('click', (e) => { e.stopPropagation(); this.openDetail(f); });
-        el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.openDetail(f); } });
-      }
+      const el = document.createElement('div');
+      el.className = 'fire-ico';
+      el.style.width = el.style.height = near ? '26px' : '14px';
+      el.style.zIndex = near ? '3' : '2';
+      el.innerHTML = `<span class="fire-dot ${near ? 'near' : 'far'}"></span>`;
+      el.tabIndex = 0;
+      el.title = ft('title');
+      el.setAttribute('role', 'button'); el.setAttribute('aria-label', ft('title'));
+      el.addEventListener('click', (e) => { e.stopPropagation(); this.openDetail(f); });
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.openDetail(f); } });
+      this.markers.push(new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([f.lng, f.lat]).addTo(map));
     }
   }
 
@@ -144,7 +145,7 @@ export class FireAlert {
   private openDetail(f: FireNear | undefined): void {
     if (!f) return;
     const map = this.opts.getMap();
-    map.setView([f.lat, f.lng], Math.max(map.getZoom(), 14));
+    map.easeTo({ center: [f.lng, f.lat], zoom: Math.max(map.getZoom(), 13) });
     if (!this.modal) {
       this.modal = document.createElement('div');
       this.modal.className = 'mkp-overlay fire-modal';

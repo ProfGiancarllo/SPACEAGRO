@@ -1,8 +1,9 @@
-import L from 'leaflet';
+import type { Feature, FeatureCollection } from 'geojson';
+import maplibregl, { GeoJSONSource, Map as MLMap, Marker } from 'maplibre-gl';
 import { FarmData } from '../types';
 import { st } from '../i18n/satText';
 
-export interface SatelliteHealthOptions { getFarm: () => FarmData; getMap: () => L.Map; }
+export interface SatelliteHealthOptions { getFarm: () => FarmData; getMap: () => MLMap; /** coluna de botões do mapa */ getTools: () => HTMLElement; }
 interface Res {
   id: string; nome: string; cultura: string | null; nivel: 'ok' | 'atencao' | 'sem_dado'; alertas: string[];
   ultima_imagem?: { data: string; ndvi: number; ndmi: number }; dap_na_imagem?: number; fase_informada?: string;
@@ -16,7 +17,7 @@ const COLOR = { atencao: '#b45309', ok: '#2f6b4f', sem_dado: '#65756e' };
 /** Botão no mapa que mostra os alertas de saúde da lavoura (Sentinel-2) calculados pela rotina scripts/saude_satelite.py. */
 export class SatelliteHealth {
   private btn: HTMLButtonElement | null = null;
-  private layer: L.LayerGroup | null = null;
+  private markers: Marker[] = [];
   private pill: HTMLElement | null = null;
   private modal: HTMLElement | null = null;
   private on = false;
@@ -25,13 +26,11 @@ export class SatelliteHealth {
   constructor(private opts: SatelliteHealthOptions) {}
 
   start(): void {
-    const self = this;
-    const Ctl = L.Control.extend({ onAdd() {
-      const b = L.DomUtil.create('button', 'adjust-btn sat-btn') as HTMLButtonElement; b.type = 'button';
-      L.DomEvent.disableClickPropagation(b); b.textContent = st('btn'); b.setAttribute('aria-pressed', 'false');
-      b.onclick = () => void self.toggle(); self.btn = b; return b;
-    } });
-    new Ctl({ position: 'topleft' }).addTo(this.opts.getMap());
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'adjust-btn sat-btn'; b.textContent = st('btn'); b.setAttribute('aria-pressed', 'false');
+    b.onclick = (e) => { e.stopPropagation(); void this.toggle(); };
+    this.btn = b;
+    this.opts.getTools().appendChild(b);
   }
 
   private async load(): Promise<Data | null> {
@@ -58,7 +57,7 @@ export class SatelliteHealth {
   }
 
   private off(): void {
-    this.on = false; this.layer?.remove(); this.layer = null; this.pill?.remove(); this.pill = null;
+    this.on = false; this.clearMap(); this.pill?.remove(); this.pill = null;
     if (this.btn) { this.btn.textContent = st('btn'); this.btn.classList.remove('on'); this.btn.setAttribute('aria-pressed', 'false'); }
   }
 
@@ -67,34 +66,44 @@ export class SatelliteHealth {
     this.pill.className = 'sat-pill ' + cls; this.pill.textContent = text;
   }
 
+  private clearMap(): void {
+    this.markers.forEach((m) => m.remove()); this.markers = [];
+    (this.opts.getMap().getSource('sat-attention') as GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features: [] });
+  }
+
   private paint(): void {
     const map = this.opts.getMap();
-    this.layer?.remove(); this.layer = null;
+    this.clearMap();
     if (!this.data) { this.say(st('pillOff'), 'off'); return; }
     const byId = new Map(this.data.talhoes.map((r) => [r.id, r]));
     const hits = this.opts.getFarm().talhoes.filter((t) => byId.has(t.id));
     if (!hits.length) { this.say(st('pillNoMatch'), 'off'); return; }
-    if (!map.getPane('satellite')) { const pn = map.createPane('satellite'); pn.style.zIndex = '630'; }
-    const layer = (this.layer = L.layerGroup().addTo(map));
+    if (!map.getSource('sat-attention')) {
+      map.addSource('sat-attention', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      map.addLayer({ id: 'sat-attention-fill', type: 'fill', source: 'sat-attention', paint: { 'fill-color': COLOR.atencao, 'fill-opacity': 0.12 } });
+      map.addLayer({ id: 'sat-attention-line', type: 'line', source: 'sat-attention', paint: { 'line-color': COLOR.atencao, 'line-width': 3, 'line-dasharray': [2, 1.5] } });
+    }
+    const attentionPolys: Feature[] = [];
     let attention = 0; let lastImg = '';
     for (const t of hits) {
       const r = byId.get(t.id)!;
       if (r.nivel === 'atencao') attention++;
       if (r.ultima_imagem && r.ultima_imagem.data > lastImg) lastImg = r.ultima_imagem.data;
       const c = COLOR[r.nivel] || COLOR.sem_dado;
-      if (r.nivel === 'atencao') L.polygon(t.coordinates, { color: c, weight: 3, dashArray: '6 4', fillOpacity: 0.12, interactive: false, pane: 'satellite' }).addTo(layer);
+      if (r.nivel === 'atencao') { const ring = t.coordinates.map((p) => [p[1], p[0]]); ring.push(ring[0]); attentionPolys.push({ type: 'Feature', properties: { c }, geometry: { type: 'Polygon', coordinates: [ring] } }); }
       const lat = t.coordinates.reduce((s, p) => s + p[0], 0) / t.coordinates.length;
       const lng = t.coordinates.reduce((s, p) => s + p[1], 0) / t.coordinates.length;
       const label = r.nivel === 'atencao' ? '!' : r.nivel === 'ok' ? '✓' : '–';
-      const icon = L.divIcon({ className: 'sat-ico', html: `<span class="sat-dot ${r.nivel}">${label}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] });
-      const m = L.marker([lat, lng], { icon, pane: 'satellite', keyboard: true, title: `${t.name}: ${this.levelName(r.nivel)}`, zIndexOffset: r.nivel === 'atencao' ? 1000 : 0 }).addTo(layer);
-      const el = m.getElement();
-      if (el) {
-        el.setAttribute('role', 'button'); el.setAttribute('aria-label', `${t.name}: ${this.levelName(r.nivel)}`);
-        el.addEventListener('click', (e) => { e.stopPropagation(); this.detail(t.name, r); });
-        el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.detail(t.name, r); } });
-      }
+      const el = document.createElement('div');
+      el.className = 'sat-ico'; el.style.width = el.style.height = '28px'; el.style.zIndex = r.nivel === 'atencao' ? '3' : '2';
+      el.innerHTML = `<span class="sat-dot ${r.nivel}">${label}</span>`;
+      el.tabIndex = 0; el.title = `${t.name}: ${this.levelName(r.nivel)}`;
+      el.setAttribute('role', 'button'); el.setAttribute('aria-label', el.title);
+      el.addEventListener('click', (e) => { e.stopPropagation(); this.detail(t.name, r); });
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.detail(t.name, r); } });
+      this.markers.push(new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map));
     }
+    (map.getSource('sat-attention') as GeoJSONSource).setData({ type: 'FeatureCollection', features: attentionPolys });
     const d = lastImg ? new Date(lastImg + 'T12:00:00').toLocaleDateString() : '—';
     this.say(attention ? st('pillSome', { n: attention, d }) : st('pillNone', { d }), attention ? 'hot' : '');
   }

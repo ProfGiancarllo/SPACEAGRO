@@ -1,5 +1,13 @@
-import L from 'leaflet';
-import { twinLook, ensurePattern } from '../utils/twinLook';
+/**
+ * Mapa da fazenda em MapLibre GL (WebGL).
+ *
+ * Convenção do app: coordenadas como [lat, lng]. O MapLibre usa [lng, lat]; a conversão fica toda aqui (ll/llPoly).
+ * Escala de zoom: o MapLibre trabalha com "tiles" de 512 px, então o zoom dele é 1 a menos que o do Leaflet
+ * para a mesma escala na tela. Os limites antigos (15, 14, 16…) foram convertidos com Z().
+ */
+import type { Feature, FeatureCollection } from 'geojson';
+import maplibregl, { GeoJSONSource, LngLatBoundsLike, Map as MLMap, Marker, Popup, RasterTileSource } from 'maplibre-gl';
+import { twinLook, TwinLook } from '../utils/twinLook';
 import { NASA_LAYERS, NasaLayerId, nasaTileUrl, matrixZoom, NASA_TRUECOLOR, nasaTrueColorUrl, nasaDefaultDate } from '../utils/nasaLayers';
 import { ensureSnapshot, farmBounds, Snap } from '../utils/farmSnapshot';
 import { CAR_PROPERTY, CAR_RESERVA, CAR_NATIVA, CAR_APP, CAR_VIEW, CAR_FIT } from '../data/farmCar';
@@ -19,143 +27,125 @@ export interface MapEvents {
   onTalhaoGeometry?: (talhao: Talhao) => void;
 }
 
+type LatLng = [number, number];
+type FC = FeatureCollection;
+
+/** Zoom do Leaflet → zoom equivalente no MapLibre (mesma escala na tela). */
+const Z = (leafletZoom: number) => leafletZoom - 1;
+const ll = (c: LatLng): [number, number] => [c[1], c[0]];
+const ring = (cs: LatLng[]): [number, number][] => { const r = cs.map(ll); if (r.length && (r[0][0] !== r[r.length - 1][0] || r[0][1] !== r[r.length - 1][1])) r.push(r[0]); return r; };
+const polyFeature = (cs: LatLng[], props: Record<string, unknown> = {}, id?: number): Feature => ({ type: 'Feature', id, properties: props, geometry: { type: 'Polygon', coordinates: [ring(cs)] } });
+const lineFeature = (cs: LatLng[], props: Record<string, unknown> = {}): Feature => ({ type: 'Feature', properties: props, geometry: { type: 'LineString', coordinates: cs.map(ll) } });
+const pointFeature = (c: LatLng, props: Record<string, unknown> = {}): Feature => ({ type: 'Feature', properties: props, geometry: { type: 'Point', coordinates: ll(c) } });
+const fc = (features: Feature[]): FC => ({ type: 'FeatureCollection', features });
+const EMPTY: FC = fc([]);
+const boundsOf = (pts: LatLng[]): maplibregl.LngLatBounds => {
+  const b = new maplibregl.LngLatBounds();
+  pts.forEach((p) => b.extend(ll(p)));
+  return b;
+};
+/** Distância em metros (haversine). */
+const distM = (a: LatLng, b: LatLng) => {
+  const R = 6371000, r = Math.PI / 180, dLat = (b[0] - a[0]) * r, dLng = (b[1] - a[1]) * r;
+  const s = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+};
+
+/** Controle simples: um elemento HTML posicionado num canto do mapa. */
+class ElControl implements maplibregl.IControl {
+  constructor(private el: HTMLElement) {}
+  onAdd(): HTMLElement { return this.el; }
+  onRemove(): void { this.el.remove(); }
+}
+
+const ESRI_IMG = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const ESRI_LABELS = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
+const OSM = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+type BaseId = 'esri' | 'nasa' | 'osm';
+
 export class MapManager {
-  private map: L.Map;
-  private talhoesLayer: L.LayerGroup;
-  private waterPointsLayer: L.LayerGroup;
-  private drawingLayer: L.LayerGroup;
-  private previewLayer: L.LayerGroup;
+  private map: MLMap;
+  private ready: Promise<void>;
+  private layersReady = false;
+  private events: MapEvents;
 
-  // Drawing state
+  // Desenho de talhão
   private isDrawingTalhao = false;
-  private drawingPoints: [number, number][] = [];
-  private tempMarkers: L.CircleMarker[] = [];
-  private tempPolygon: L.Polygon | null = null;
-  private tempGuideLine: L.Polyline | null = null;
+  private drawingPoints: LatLng[] = [];
+  private guideTo: LatLng | null = null;
 
-  // Water point placement state
+  // Estrutura (ponto de água etc.)
   private isPlacingWaterPoint = false;
   private pendingWaterType: WaterPointType = 'nascente';
 
-  private events: MapEvents;
+  private currentReferenceDate = '2026-11-09';
+  private lastTalhoes: Talhao[] = [];
+  private expandedTalhaoIds: Set<string> = new Set();
+  private talhaoMarkers: Marker[] = [];
+  private waterMarkers: Marker[] = [];
+  private previewMarkers: Marker[] = [];
+  private carMarkers: Marker[] = [];
+  private hoverId: number | null = null;
+  private popup: Popup | null = null;
+
+  private base: BaseId = 'esri';
+  private nasaDate = nasaDefaultDate();
+  private labelsOn = true;
+  private nasaDateBox: HTMLElement | null = null;
 
   constructor(containerId: string, events: MapEvents) {
     this.events = events;
+    const RIO_VERDE_RURAL: LatLng = [-17.805, -51.085];
 
-    // Rio Verde, Goiás rural cropland coordinates (west of the city, pure grain fields)
-    const RIO_VERDE_RURAL_LAT = -17.8050;
-    const RIO_VERDE_RURAL_LNG = -51.0850;
-
-    this.map = L.map(containerId, {
-      center: [RIO_VERDE_RURAL_LAT, RIO_VERDE_RURAL_LNG],
-      zoom: 13,
-      zoomControl: false,
-      zoomSnap: 0.1,
-    });
-
-    // Custom Zoom control at bottom right
-    L.control.zoom({ position: 'bottomright' }).addTo(this.map);
-
-    // High Resolution Satellite Tiles (Esri World Imagery)
-    const esriSatellite = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      {
-        maxZoom: 19,
-        attribution: `Tiles &copy; Esri &mdash; ${t('attribSatellite')}`,
-      }
-    );
-
-    // Hybrid Reference Overlay (Roads, boundaries, cities, labels)
-    const esriLabels = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-      {
-        maxZoom: 19,
-        attribution: 'Labels &copy; Esri',
-      }
-    );
-
-    // OpenStreetMap as alternative
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors',
-    });
-
-    // Satélite Híbrido como padrão (Satélite + Estradas e Nomes)
-    esriSatellite.addTo(this.map);
-    esriLabels.addTo(this.map);
-    this.liveTiles = [esriSatellite, esriLabels];
-
-    // Satélite da NASA (VIIRS, imagem diária ~300 m/pixel): opção de mapa base com escolha de data
-    let nasaDate = nasaDefaultDate();
-    const nasaSatellite = L.tileLayer(nasaTrueColorUrl(nasaDate), {
-      maxNativeZoom: NASA_TRUECOLOR.maxNativeZoom,
-      maxZoom: 19,
-      attribution: 'NASA GIBS &mdash; VIIRS NOAA-20',
-    });
-
-    const baseMaps = {
-      [t('layerSatellite')]: esriSatellite,
-      [t('layerNasa')]: nasaSatellite,
-      [t('layerRoads')]: osmLayer,
-    };
-
-    const overlayMaps = {
-      [t('layerLabels')]: esriLabels,
-    };
-
-    L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(this.map);
-
-    // Data da imagem da NASA: aparece só quando essa camada está ativa
-    const NasaDateControl = L.Control.extend({
-      onAdd: () => {
-        const box = L.DomUtil.create('div', 'nasa-date-ctl leaflet-control');
-        box.innerHTML = `<label><span>${t('layerNasaDate')}</span><input type="date" value="${nasaDate}" max="${nasaDefaultDate()}" min="2018-01-01" /></label><p>${t('layerNasaNote')}</p>`;
-        L.DomEvent.disableClickPropagation(box);
-        L.DomEvent.disableScrollPropagation(box);
-        box.querySelector('input')!.addEventListener('change', (e) => {
-          const v = (e.target as HTMLInputElement).value;
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
-          nasaDate = v;
-          nasaSatellite.setUrl(nasaTrueColorUrl(v));
-        });
-        return box;
+    this.map = new maplibregl.Map({
+      container: containerId,
+      center: ll(RIO_VERDE_RURAL),
+      zoom: Z(13),
+      maxZoom: Z(19.5),
+      attributionControl: false,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
+      style: {
+        version: 8,
+        sources: {
+          esri: { type: 'raster', tiles: [ESRI_IMG], tileSize: 256, maxzoom: 19, attribution: `Tiles &copy; Esri &mdash; ${t('attribSatellite')}` },
+          nasa: { type: 'raster', tiles: [nasaTrueColorUrl(this.nasaDate)], tileSize: 256, maxzoom: NASA_TRUECOLOR.maxNativeZoom, attribution: 'NASA GIBS &mdash; VIIRS NOAA-20' },
+          osm: { type: 'raster', tiles: [OSM], tileSize: 256, maxzoom: 19, attribution: '&copy; OpenStreetMap contributors' },
+          labels: { type: 'raster', tiles: [ESRI_LABELS], tileSize: 256, maxzoom: 19, attribution: 'Labels &copy; Esri' },
+        },
+        layers: [
+          { id: 'bg', type: 'background', paint: { 'background-color': '#e8eee9' } },
+          { id: 'base-esri', type: 'raster', source: 'esri' },
+          { id: 'base-nasa', type: 'raster', source: 'nasa', layout: { visibility: 'none' } },
+          { id: 'base-osm', type: 'raster', source: 'osm', layout: { visibility: 'none' } },
+        ],
       },
     });
-    const nasaDateCtl = new NasaDateControl({ position: 'topright' });
-    this.map.on('baselayerchange', (e: L.LayersControlEvent) => {
-      if (e.layer === nasaSatellite) nasaDateCtl.addTo(this.map);
-      else nasaDateCtl.remove();
-    });
+    this.map.getCanvas().setAttribute('aria-label', 'Mapa da propriedade');
+    // só em desenvolvimento: acesso ao mapa pelo console para depuração
+    if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV) (window as unknown as { __saMap?: MLMap }).__saMap = this.map;
 
-    // Escala métrica gráfica no canto inferior esquerdo
-    L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(this.map);
+    this.map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+    this.map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+    this.map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
+    this.addLayerSwitcher();
 
-    this.talhoesLayer = L.layerGroup().addTo(this.map);
-    this.waterPointsLayer = L.layerGroup().addTo(this.map);
-    this.drawingLayer = L.layerGroup().addTo(this.map);
-    this.previewLayer = L.layerGroup().addTo(this.map);
+    this.ready = new Promise((resolve) => this.map.on('load', () => { this.setupLayers(); resolve(); }));
 
-    // Zoom threshold listener: below zoom 15, hide structure labels; below zoom 14, compact talhões
     const updateZoomClass = () => {
-      const container = this.map.getContainer();
-      const currentZoom = this.map.getZoom();
-      if (currentZoom < 15) {
-        container.classList.add('map-zoom-low');
-      } else {
-        container.classList.remove('map-zoom-low');
-      }
-
-      if (currentZoom < 14) {
-        container.classList.add('map-zoom-below-14');
-      } else {
-        container.classList.remove('map-zoom-below-14');
-      }
+      const c = this.map.getContainer(), z = this.map.getZoom();
+      c.classList.toggle('map-zoom-low', z < Z(15));
+      c.classList.toggle('map-zoom-below-14', z < Z(14));
     };
+    let lastZ = this.map.getZoom();
     this.map.on('zoomend', () => {
       updateZoomClass();
-      if (this.lastTalhoes.length > 0) {
-        this.renderTalhoes(this.lastTalhoes);
-      }
+      // os rótulos só mudam de formato quando cruza um limite de zoom
+      const z = this.map.getZoom();
+      if (this.lastTalhoes.length && Math.abs(z - lastZ) > 0.05) this.renderTalhoes(this.lastTalhoes);
+      lastZ = z;
     });
     updateZoomClass();
 
@@ -164,748 +154,538 @@ export class MapManager {
     this.addWandControl();
   }
 
-  private setupMapListeners(): void {
-    this.map.on('click', (e: L.LeafletMouseEvent) => {
-      const { lat, lng } = e.latlng;
+  /** Camadas de dados (na ordem de desenho, de baixo para cima). */
+  private setupLayers(): void {
+    const m = this.map;
+    const src = (id: string) => m.addSource(id, { type: 'geojson', data: EMPTY });
+    // foto fixa da fazenda (gêmeo digital) e satélite ao vivo por baixo dela
+    m.addSource('snapbg', { type: 'raster', tiles: [ESRI_IMG], tileSize: 256, maxzoom: 19 });
+    m.addLayer({ id: 'snapbg', type: 'raster', source: 'snapbg', layout: { visibility: 'none' } });
+    m.addLayer({ id: 'labels', type: 'raster', source: 'labels' });
 
-      if (this.isPlacingWaterPoint) {
-        this.endPlacingWaterPoint();
-        this.events.onWaterPointClick(lat, lng);
-        return;
-      }
+    ['car', 'talhoes', 'leaders', 'draw', 'preview', 'adjust', 'wand'].forEach(src);
+    // CAR: vegetação nativa, reserva legal, APP e limite do imóvel
+    m.addLayer({ id: 'car-fill', type: 'fill', source: 'car', paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': ['get', 'fo'] }, filter: ['==', ['geometry-type'], 'Polygon'] });
+    m.addLayer({ id: 'car-line', type: 'line', source: 'car', paint: { 'line-color': ['get', 'stroke'], 'line-width': ['get', 'w'] }, filter: ['all', ['==', ['geometry-type'], 'Polygon'], ['!=', ['get', 'kind'], 'limite']] });
+    m.addLayer({ id: 'car-limit', type: 'line', source: 'car', paint: { 'line-color': '#f59e0b', 'line-width': 3, 'line-dasharray': [2.5, 2] }, filter: ['==', ['get', 'kind'], 'limite'] });
 
-      if (this.isDrawingTalhao) {
-        this.addDrawingPoint(lat, lng);
-      }
+    // talhões: textura/cor da cultura e fase, contorno branco, realce ao passar o mouse
+    m.addLayer({ id: 'talhoes-fill', type: 'fill', source: 'talhoes', paint: {
+      'fill-pattern': ['get', 'pattern'],
+      'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.85, 0.6],
+    } });
+    m.addLayer({ id: 'talhoes-line', type: 'line', source: 'talhoes', paint: {
+      'line-color': '#ffffff', 'line-opacity': 0.9,
+      'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 3.5, 1.5],
+    } });
+    m.addLayer({ id: 'leaders', type: 'line', source: 'leaders', paint: { 'line-color': ['get', 'color'], 'line-width': 1.5, 'line-dasharray': [1.5, 2], 'line-opacity': 0.85 }, filter: ['==', ['geometry-type'], 'LineString'] });
+    m.addLayer({ id: 'leaders-dot', type: 'circle', source: 'leaders', paint: { 'circle-radius': 3, 'circle-color': '#ffffff', 'circle-stroke-color': ['get', 'color'], 'circle-stroke-width': 1.5 }, filter: ['==', ['geometry-type'], 'Point'] });
+
+    // desenho, prévia digitada, ajuste e varinha
+    const dashed = (id: string, color: string, fillOpacity: number) => {
+      m.addLayer({ id: `${id}-fill`, type: 'fill', source: id, paint: { 'fill-color': color, 'fill-opacity': fillOpacity }, filter: ['==', ['geometry-type'], 'Polygon'] });
+      m.addLayer({ id: `${id}-line`, type: 'line', source: id, paint: { 'line-color': color, 'line-width': 3, 'line-dasharray': [2, 2] }, filter: ['in', ['geometry-type'], ['literal', ['Polygon', 'LineString']]] });
+      m.addLayer({ id: `${id}-pt`, type: 'circle', source: id, paint: {
+        'circle-radius': ['case', ['get', 'first'], 8, 6], 'circle-color': ['case', ['get', 'first'], '#22c55e', '#3b82f6'],
+        'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2,
+      }, filter: ['==', ['geometry-type'], 'Point'] });
+    };
+    dashed('draw', '#22c55e', 0.25);
+    dashed('preview', '#22c55e', 0.28);
+    m.addLayer({ id: 'adjust-line', type: 'line', source: 'adjust', paint: { 'line-color': '#ffd84d', 'line-width': 2, 'line-dasharray': [2, 2] } });
+    m.addLayer({ id: 'wand-fill', type: 'fill', source: 'wand', paint: { 'fill-color': '#ffd84d', 'fill-opacity': 0.25 } });
+    m.addLayer({ id: 'wand-line', type: 'line', source: 'wand', paint: { 'line-color': '#ffd84d', 'line-width': 3, 'line-dasharray': [2, 1.5] } });
+
+    // interação com os talhões
+    m.on('mousemove', 'talhoes-fill', (e) => {
+      const id = e.features?.[0]?.id as number | undefined;
+      if (id === undefined || id === this.hoverId) return;
+      if (this.hoverId !== null) m.setFeatureState({ source: 'talhoes', id: this.hoverId }, { hover: false });
+      this.hoverId = id; m.setFeatureState({ source: 'talhoes', id }, { hover: true });
+      if (!this.isDrawingTalhao && !this.isPlacingWaterPoint && !this.wandOn) m.getCanvas().style.cursor = 'pointer';
+    });
+    m.on('mouseleave', 'talhoes-fill', () => {
+      if (this.hoverId !== null) m.setFeatureState({ source: 'talhoes', id: this.hoverId }, { hover: false });
+      this.hoverId = null; m.getCanvas().style.cursor = '';
+    });
+    m.on('click', 'talhoes-fill', (e) => {
+      if (this.isDrawingTalhao || this.isPlacingWaterPoint || this.wandOn || this.adjusting) return;
+      const idx = e.features?.[0]?.id as number | undefined;
+      const tl = idx !== undefined ? this.lastTalhoes[idx] : undefined;
+      if (!tl) return;
+      this.expandedTalhaoIds.add(tl.id);
+      this.map.getContainer().querySelector(`.talhao-label-badge[data-talhaoid="${tl.id}"]`)?.classList.add('user-expanded');
+      this.openTalhaoPopup(tl, e.lngLat);
     });
 
-    this.map.on('mousemove', (e: L.LeafletMouseEvent) => {
-      if (this.isDrawingTalhao && this.drawingPoints.length > 0) {
-        const lastPoint = this.drawingPoints[this.drawingPoints.length - 1];
-        const currentCoord: [number, number] = [e.latlng.lat, e.latlng.lng];
+    this.layersReady = true;
+    // reaplica o que foi pedido antes de o mapa terminar de carregar
+    if (this.lastTalhoes.length) this.renderTalhoes(this.lastTalhoes);
+  }
 
-        if (!this.tempGuideLine) {
-          this.tempGuideLine = L.polyline([lastPoint, currentCoord], {
-            color: '#22c55e',
-            dashArray: '6, 6',
-            weight: 2,
-          }).addTo(this.drawingLayer);
-        } else {
-          this.tempGuideLine.setLatLngs([lastPoint, currentCoord]);
-        }
+  private setData(id: string, data: FC): void {
+    const s = this.map.getSource(id) as GeoJSONSource | undefined;
+    if (s) s.setData(data);
+  }
+
+  // ==========================================
+  // SELETOR DE MAPA BASE (Esri / NASA / OSM) + RÓTULOS
+  // ==========================================
+  private addLayerSwitcher(): void {
+    const box = document.createElement('div');
+    box.className = 'maplibregl-ctrl ml-layers';
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'ml-layers-btn'; btn.title = t('layerSatellite'); btn.setAttribute('aria-label', 'Camadas'); btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="m2 13 10 5 10-5"/><path d="m2 17.5 10 5 10-5" opacity=".55"/></svg>';
+    const menu = document.createElement('div');
+    menu.className = 'ml-layers-menu'; menu.hidden = true;
+    const opts: [BaseId, string][] = [['esri', t('layerSatellite')], ['nasa', t('layerNasa')], ['osm', t('layerRoads')]];
+    menu.innerHTML = `
+      <fieldset><legend class="sr-only">Mapa base</legend>
+        ${opts.map(([id, name]) => `<label><input type="radio" name="ml-base" value="${id}" ${id === this.base ? 'checked' : ''}/> <span>${name}</span></label>`).join('')}
+      </fieldset>
+      <label class="ml-sep"><input type="checkbox" name="ml-labels" ${this.labelsOn ? 'checked' : ''}/> <span>${t('layerLabels')}</span></label>`;
+    const date = document.createElement('div');
+    date.className = 'nasa-date-ctl'; date.hidden = true;
+    date.innerHTML = `<label><span>${t('layerNasaDate')}</span><input type="date" value="${this.nasaDate}" max="${nasaDefaultDate()}" min="2018-01-01" title="${t('layerNasaNote')}" /></label><p>${t('layerNasaNote')}</p>`;
+    this.nasaDateBox = date;
+    box.append(btn, menu, date);
+    btn.onclick = () => { menu.hidden = !menu.hidden; btn.setAttribute('aria-expanded', String(!menu.hidden)); };
+    document.addEventListener('click', (e) => { if (!box.contains(e.target as Node)) { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); } });
+    menu.querySelectorAll<HTMLInputElement>('input[name="ml-base"]').forEach((r) => r.addEventListener('change', () => this.setBase(r.value as BaseId)));
+    menu.querySelector<HTMLInputElement>('input[name="ml-labels"]')!.addEventListener('change', (e) => {
+      this.labelsOn = (e.target as HTMLInputElement).checked;
+      void this.ready.then(() => this.map.setLayoutProperty('labels', 'visibility', this.labelsOn ? 'visible' : 'none'));
+    });
+    date.querySelector('input')!.addEventListener('change', (e) => {
+      const v = (e.target as HTMLInputElement).value;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+      this.nasaDate = v;
+      (this.map.getSource('nasa') as RasterTileSource | undefined)?.setTiles([nasaTrueColorUrl(v)]);
+    });
+    this.map.addControl(new ElControl(box), 'top-right');
+  }
+
+  private setBase(id: BaseId): void {
+    this.base = id;
+    void this.ready.then(() => {
+      (['esri', 'nasa', 'osm'] as BaseId[]).forEach((b) => this.map.setLayoutProperty(`base-${b}`, 'visibility', b === id ? 'visible' : 'none'));
+      this.applySnapZoom();
+    });
+    if (this.nasaDateBox) this.nasaDateBox.hidden = id !== 'nasa';
+  }
+
+  // ==========================================
+  // CLIQUES NO MAPA
+  // ==========================================
+  private setupMapListeners(): void {
+    this.map.on('click', (e) => {
+      const p: LatLng = [e.lngLat.lat, e.lngLat.lng];
+      if (this.isPlacingWaterPoint) {
+        this.endPlacingWaterPoint();
+        this.events.onWaterPointClick(p[0], p[1]);
+        return;
+      }
+      if (this.wandOn) { this.wandAt(p); return; }
+      if (this.isDrawingTalhao) this.addDrawingPoint(p[0], p[1]);
+    });
+    this.map.on('mousemove', (e) => {
+      if (this.isDrawingTalhao && this.drawingPoints.length > 0) {
+        this.guideTo = [e.lngLat.lat, e.lngLat.lng];
+        this.updateDrawingVisuals(false);
       }
     });
   }
 
   // ==========================================
-  private currentReferenceDate = '2026-11-09';
-  private lastTalhoes: Talhao[] = [];
-  private expandedTalhaoIds: Set<string> = new Set();
-
+  // TALHÕES
   // ==========================================
-  // TALHÕES RENDERING
-  // ==========================================
+  private patterns = new Set<string>();
+  /** Textura da lavoura (linhas de plantio/pontos) como imagem para o 'fill-pattern'. */
+  private ensurePattern(look: TwinLook): string {
+    const id = `twin-${look.kind}-${look.base.slice(1)}`;
+    if (this.patterns.has(id) || this.map.hasImage(id)) { this.patterns.add(id); return id; }
+    const S = 12, c = document.createElement('canvas'); c.width = S; c.height = S;
+    const g = c.getContext('2d')!;
+    g.fillStyle = look.base; g.fillRect(0, 0, S, S);
+    g.fillStyle = look.row; g.globalAlpha = 0.75;
+    if (look.kind === 'rows') { g.fillRect(0, 0, 2, S); g.fillRect(6, 0, 2, S); }
+    if (look.kind === 'dots') { [[2, 2], [8, 6], [4, 9]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 1.1, 0, Math.PI * 2); g.fill(); }); }
+    this.map.addImage(id, g.getImageData(0, 0, S, S));
+    this.patterns.add(id);
+    return id;
+  }
 
   public renderTalhoes(talhoes: Talhao[], referenceDate?: string): void {
-    if (referenceDate) {
-      this.currentReferenceDate = referenceDate;
-    }
+    if (referenceDate) this.currentReferenceDate = referenceDate;
     this.lastTalhoes = talhoes;
-    this.talhoesLayer.clearLayers();
+    this.talhaoMarkers.forEach((mk) => mk.remove());
+    this.talhaoMarkers = [];
+    if (!this.layersReady) return; // o 'load' chama de novo
 
-    const placedScreenCenters: { pt: L.Point; latlng: [number, number] }[] = [];
-    const isBelowZoom14 = this.map.getZoom() < 14 || (talhoes.length > 8 && this.map.getZoom() < 15.3);
+    const z = this.map.getZoom();
+    const isBelowZoom14 = z < Z(14) || (talhoes.length > 8 && z < Z(15.3));
     this.map.getContainer().classList.toggle('map-zoom-below-14', isBelowZoom14);
 
+    const polys: Feature[] = [];
+    const leaders: Feature[] = [];
+    const placed: { x: number; y: number }[] = [];
+
     talhoes.forEach((talhao, index) => {
-      // Color strictly based on crop
+      if (!talhao.coordinates?.length) return;
       const cropColor = getCropColor(talhao.crop);
-      const talhaoColor = talhao.color || cropColor;
-
-      // Polygon
-      // Contorno branco discreto sobre a imagem de satélite
-      const polygon = L.polygon(talhao.coordinates, {
-        color: '#ffffff',
-        weight: 1.5,
-        opacity: 0.9,
-        fillColor: cropColor,
-        fillOpacity: 0.45,
-        className: 'holo-poly',
-      });
-
       const cropStatus = calculateTalhaoCropStatus(talhao, this.currentReferenceDate);
+      let pattern = '';
+      try { pattern = this.ensurePattern(twinLook(talhao.crop, cropStatus.phase.key)); } catch { pattern = ''; }
+      polys.push(polyFeature(talhao.coordinates, { pattern, color: cropColor }, index));
 
-      // True polygon center
-      const trueCenter = calculatePolygonCenter(talhao.coordinates);
-      let badgeCenter: [number, number] = [trueCenter[0], trueCenter[1]];
-
-      // Check collision in screen coordinates to avoid card overlapping
-      let badgeScreenPt = this.map.latLngToLayerPoint(L.latLng(trueCenter[0], trueCenter[1]));
+      // rótulo: centro do talhão, afastado se colidir com outro rótulo
+      const trueCenter = calculatePolygonCenter(talhao.coordinates) as LatLng;
+      let pt = this.map.project(ll(trueCenter));
       const minDistance = isBelowZoom14 ? 40 : 80;
-      let hasOffset = false;
-
-      for (const placed of placedScreenCenters) {
-        const dx = badgeScreenPt.x - placed.pt.x;
-        const dy = badgeScreenPt.y - placed.pt.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
+      let moved = false;
+      for (const q of placed) {
+        const dx = pt.x - q.x, dy = pt.y - q.y, dist = Math.hypot(dx, dy);
         if (dist < minDistance) {
-          hasOffset = true;
-          // Offset towards free side
-          const angle = dist > 0.001 ? Math.atan2(dy, dx) : (Math.PI / 2);
-          const pushDistance = minDistance - dist + 24;
-          const newScreenX = badgeScreenPt.x + Math.cos(angle) * pushDistance;
-          const newScreenY = badgeScreenPt.y + Math.sin(angle) * pushDistance;
-          badgeScreenPt = L.point(newScreenX, newScreenY);
-          const newLatLng = this.map.layerPointToLatLng(badgeScreenPt);
-          badgeCenter = [newLatLng.lat, newLatLng.lng];
+          moved = true;
+          const angle = dist > 0.001 ? Math.atan2(dy, dx) : Math.PI / 2;
+          const push = minDistance - dist + 24;
+          pt = new maplibregl.Point(pt.x + Math.cos(angle) * push, pt.y + Math.sin(angle) * push);
         }
       }
-
-      placedScreenCenters.push({ pt: badgeScreenPt, latlng: badgeCenter });
-
-      // If card was moved due to collision, draw a thin leader line connecting back to the talhão center
-      if (hasOffset) {
-        L.polyline([trueCenter, badgeCenter], {
-          color: cropColor,
-          weight: 1.5,
-          dashArray: '3, 4',
-          opacity: 0.85,
-          interactive: false,
-        }).addTo(this.talhoesLayer);
-
-        L.circleMarker(trueCenter, {
-          radius: 3,
-          color: cropColor,
-          fillColor: '#ffffff',
-          fillOpacity: 1,
-          weight: 1.5,
-          interactive: false,
-        }).addTo(this.talhoesLayer);
+      placed.push({ x: pt.x, y: pt.y });
+      const lngLat = this.map.unproject(pt);
+      const badgeCenter: LatLng = [lngLat.lat, lngLat.lng];
+      if (moved) {
+        leaders.push(lineFeature([trueCenter, badgeCenter], { color: cropColor }));
+        leaders.push(pointFeature(trueCenter, { color: cropColor }));
       }
 
       const isExpanded = this.expandedTalhaoIds.has(talhao.id);
-
-      // Strict short label format: "T" + 2-digit order of talhão in list (T01, T02, T03...)
       const shortName = `T${String(index + 1).padStart(2, '0')}`;
       const displayName = isBelowZoom14 && !isExpanded ? shortName : talhao.name;
-      const cropLabel = translateCropName(talhao.crop);
-      const phaseLabel = translateCropPhase(cropStatus.phase.key);
-
-      const badgeIcon = L.divIcon({
-        className: 'custom-talhao-label-container',
-        html: `
-          <div class="talhao-label-badge ${isExpanded ? 'user-expanded' : ''}" data-talhaoid="${talhao.id}" style="border-left: 4px solid ${cropColor}">
-            <div class="talhao-label-header">
-              <span class="talhao-crop-dot" style="background-color: ${cropColor}; color: ${cropColor}"></span>
-              <span class="talhao-label-name">${displayName}</span>
-              ${talhao.isExample && (!isBelowZoom14 || isExpanded) ? `<span class="badge-exemplo">${t('badgeExample')}</span>` : ''}
-            </div>
-            <div class="talhao-badge-details">
-              <div class="talhao-label-ha">${formatHectares(talhao.areaHectares)} • ${cropLabel}</div>
-              <div class="talhao-label-phase" style="color: ${cropStatus.phase.badgeColor}">
-                ${cropStatus.phase.icon} ${phaseLabel} (${cropStatus.daysPassed}d • ${cropStatus.progressPercent}%)
-              </div>
+      const el = document.createElement('div');
+      el.className = 'custom-talhao-label-container';
+      el.innerHTML = `
+        <div class="talhao-label-badge ${isExpanded ? 'user-expanded' : ''}" data-talhaoid="${talhao.id}" style="border-left: 4px solid ${cropColor}">
+          <div class="talhao-label-header">
+            <span class="talhao-crop-dot" style="background-color: ${cropColor}; color: ${cropColor}"></span>
+            <span class="talhao-label-name">${displayName}</span>
+          </div>
+          <div class="talhao-badge-details">
+            <div class="talhao-label-ha">${formatHectares(talhao.areaHectares)} • ${translateCropName(talhao.crop)}</div>
+            <div class="talhao-label-phase" style="color: ${cropStatus.phase.badgeColor}">
+              ${cropStatus.phase.icon} ${translateCropPhase(cropStatus.phase.key)} (${cropStatus.daysPassed}d • ${cropStatus.progressPercent}%)
             </div>
           </div>
-        `,
-        iconSize: isBelowZoom14 && !isExpanded ? [64, 26] : [170, 56],
-        iconAnchor: isBelowZoom14 && !isExpanded ? [32, 13] : [85, 28],
-      });
-
-      const labelMarker = L.marker(badgeCenter, {
-        icon: badgeIcon,
-        interactive: true,
-        zIndexOffset: 1000,
-      });
-
-
-      // Tapping badge or polygon toggles expansion / details below zoom 14
-      labelMarker.on('click', (e: L.LeafletMouseEvent) => {
-        L.DomEvent.stopPropagation(e);
-        if (this.expandedTalhaoIds.has(talhao.id)) {
-          this.expandedTalhaoIds.delete(talhao.id);
-        } else {
-          this.expandedTalhaoIds.add(talhao.id);
-        }
+        </div>`;
+      el.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (this.expandedTalhaoIds.has(talhao.id)) this.expandedTalhaoIds.delete(talhao.id);
+        else this.expandedTalhaoIds.add(talhao.id);
         this.renderTalhoes(this.lastTalhoes);
       });
-
-      polygon.on('click', () => {
-        this.expandedTalhaoIds.add(talhao.id);
-        const container = this.map.getContainer();
-        const badgeEl = container.querySelector(`.talhao-label-badge[data-talhaoid="${talhao.id}"]`);
-        if (badgeEl) {
-          badgeEl.classList.add('user-expanded');
-        }
-      });
-
-      // Popup with talhão info
-      const popupContent = document.createElement('div');
-      popupContent.className = 'talhao-popup';
-      popupContent.innerHTML = `
-        <div class="popup-header" style="border-bottom: 3px solid ${talhao.color}">
-          <span class="color-dot" style="background-color: ${talhao.color}"></span>
-          <div>
-            <h3 class="popup-title">${talhao.name}</h3>
-            ${talhao.isExample ? `<span class="badge-exemplo">${t('badgeExample')}</span>` : ''}
-          </div>
-        </div>
-        <div class="popup-body">
-          <div class="popup-row">
-            <span class="popup-label">${t('sheetAreaLabel')}</span>
-            <span class="popup-value highlight">${formatHectares(talhao.areaHectares)}</span>
-          </div>
-          <div class="popup-row">
-            <span class="popup-label">${t('sheetPerimeterLabel')}</span>
-            <span class="popup-value">${formatNumber(talhao.perimeterKm, 2)} km</span>
-          </div>
-          ${
-            talhao.crop
-              ? `
-          <div class="popup-row">
-            <span class="popup-label">${t('lblCrop')}:</span>
-            <span class="popup-value crop-badge">${cropLabel} ${talhao.cultivar ? `(${talhao.cultivar})` : ''}</span>
-          </div>`
-              : ''
-          }
-          <div class="popup-row">
-            <span class="popup-label">${t('legendCropsTitle')}:</span>
-            <span class="popup-value" style="color: ${cropStatus.phase.badgeColor}; font-weight: 700;">
-              ${cropStatus.phase.icon} ${phaseLabel}
-            </span>
-          </div>
-          ${
-            talhao.plantingDate
-              ? `
-          <div class="popup-row">
-            <span class="popup-label">${t('lblPlantingDate')} / ${t('lblExpectedHarvest')}:</span>
-            <span class="popup-value" style="font-size: 12px;">
-              ${formatDateI18n(talhao.plantingDate)} • ${cropStatus.expectedHarvest ? formatDateI18n(cropStatus.expectedHarvest) : ''} (${talhao.cycleDays || ''}d)
-            </span>
-          </div>`
-              : ''
-          }
-          ${
-            talhao.nextCropPlan
-              ? `
-          <div class="popup-row">
-            <span class="popup-label">${t('drawerNextCrop')}:</span>
-            <span class="popup-value" style="font-size: 12px; color: #2f6690;">
-              ${translateCropName(talhao.nextCropPlan.crop)} (${talhao.nextCropPlan.plannedPlanting})
-            </span>
-          </div>`
-              : ''
-          }
-          ${
-            talhao.notes
-              ? `
-          <div class="popup-row notes">
-            <span class="popup-label">${t('lblNotes')}:</span>
-            <p class="popup-notes-text">${talhao.notes}</p>
-          </div>`
-              : ''
-          }
-        </div>
-        <div class="popup-actions">
-          <button class="popup-btn edit-btn" id="edit-talhao-${talhao.id}">
-            ${t('btnEdit')}
-          </button>
-          <button class="popup-btn delete-btn" id="delete-talhao-${talhao.id}">
-            ${t('btnDelete')}
-          </button>
-        </div>
-      `;
-
-      polygon.bindPopup(popupContent, { maxWidth: 300 });
-
-      polygon.on('popupopen', () => {
-        const editBtn = document.getElementById(`edit-talhao-${talhao.id}`);
-        const deleteBtn = document.getElementById(`delete-talhao-${talhao.id}`);
-
-        if (editBtn) {
-          editBtn.onclick = (e) => {
-            e.stopPropagation();
-            this.map.closePopup();
-            this.events.onTalhaoEdit(talhao);
-          };
-        }
-
-        if (deleteBtn) {
-          deleteBtn.onclick = (e) => {
-            e.stopPropagation();
-            this.map.closePopup();
-            this.events.onTalhaoDelete(talhao.id);
-          };
-        }
-      });
-
-      // Hover highlights
-      polygon.on('mouseover', () => {
-        polygon.setStyle({
-          weight: 4,
-          fillOpacity: 0.78,
-        });
-      });
-
-      polygon.on('mouseout', () => {
-        polygon.setStyle({
-          weight: 2.5,
-          fillOpacity: 0.6,
-        });
-      });
-
-      this.talhoesLayer.addLayer(polygon);
-      // cor/textura realista conforme cultura e fase da safra (soja escura, milho claro, pasto, solo exposto...)
-      try {
-        const svg = (polygon as unknown as { _path?: SVGElement })._path?.ownerSVGElement ?? null;
-        polygon.setStyle({ fillColor: ensurePattern(svg, twinLook(talhao.crop, cropStatus.phase.key)) });
-      } catch { /* mantém a cor simples */ }
-      this.talhoesLayer.addLayer(labelMarker);
+      this.talhaoMarkers.push(new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(ll(badgeCenter)).addTo(this.map));
     });
+
+    this.setData('talhoes', fc(polys));
+    this.setData('leaders', fc(leaders));
   }
 
-  // ==========================================
-  // WATER POINTS RENDERING
-  // ==========================================
+  private openTalhaoPopup(talhao: Talhao, at: maplibregl.LngLat): void {
+    const cropStatus = calculateTalhaoCropStatus(talhao, this.currentReferenceDate);
+    const cropLabel = translateCropName(talhao.crop);
+    const phaseLabel = translateCropPhase(cropStatus.phase.key);
+    const el = document.createElement('div');
+    el.className = 'talhao-popup';
+    el.innerHTML = `
+      <div class="popup-header" style="border-bottom: 3px solid ${talhao.color}">
+        <span class="color-dot" style="background-color: ${talhao.color}"></span>
+        <div><h3 class="popup-title">${talhao.name}</h3></div>
+      </div>
+      <div class="popup-body">
+        <div class="popup-row"><span class="popup-label">${t('sheetAreaLabel')}</span><span class="popup-value highlight">${formatHectares(talhao.areaHectares)}</span></div>
+        <div class="popup-row"><span class="popup-label">${t('sheetPerimeterLabel')}</span><span class="popup-value">${formatNumber(talhao.perimeterKm, 2)} km</span></div>
+        ${talhao.crop ? `<div class="popup-row"><span class="popup-label">${t('lblCrop')}:</span><span class="popup-value crop-badge">${cropLabel} ${talhao.cultivar ? `(${talhao.cultivar})` : ''}</span></div>` : ''}
+        <div class="popup-row"><span class="popup-label">${t('legendCropsTitle')}:</span><span class="popup-value" style="color: ${cropStatus.phase.badgeColor}; font-weight: 700;">${cropStatus.phase.icon} ${phaseLabel}</span></div>
+        ${talhao.plantingDate ? `<div class="popup-row"><span class="popup-label">${t('lblPlantingDate')} / ${t('lblExpectedHarvest')}:</span><span class="popup-value" style="font-size: 12px;">${formatDateI18n(talhao.plantingDate)} • ${cropStatus.expectedHarvest ? formatDateI18n(cropStatus.expectedHarvest) : ''} (${talhao.cycleDays || ''}d)</span></div>` : ''}
+        ${talhao.nextCropPlan ? `<div class="popup-row"><span class="popup-label">${t('drawerNextCrop')}:</span><span class="popup-value" style="font-size: 12px; color: #2f6690;">${translateCropName(talhao.nextCropPlan.crop)} (${talhao.nextCropPlan.plannedPlanting})</span></div>` : ''}
+        ${talhao.notes ? `<div class="popup-row notes"><span class="popup-label">${t('lblNotes')}:</span><p class="popup-notes-text">${talhao.notes}</p></div>` : ''}
+      </div>
+      <div class="popup-actions">
+        <button class="popup-btn edit-btn" type="button">${t('btnEdit')}</button>
+        <button class="popup-btn delete-btn" type="button">${t('btnDelete')}</button>
+      </div>`;
+    el.querySelector<HTMLButtonElement>('.edit-btn')!.onclick = (e) => { e.stopPropagation(); this.closePopup(); this.events.onTalhaoEdit(talhao); };
+    el.querySelector<HTMLButtonElement>('.delete-btn')!.onclick = (e) => { e.stopPropagation(); this.closePopup(); this.events.onTalhaoDelete(talhao.id); };
+    this.showPopup(el, at, 300);
+  }
 
+  private showPopup(el: HTMLElement, at: maplibregl.LngLatLike, maxWidth: number): void {
+    this.closePopup();
+    this.popup = new maplibregl.Popup({ maxWidth: `${maxWidth}px`, offset: 12, className: 'sa-popup' }).setLngLat(at).setDOMContent(el).addTo(this.map);
+  }
+  private closePopup(): void { this.popup?.remove(); this.popup = null; }
+
+  // ==========================================
+  // ESTRUTURAS E PONTOS DE ÁGUA
+  // ==========================================
   public renderWaterPoints(waterPoints: WaterPoint[]): void {
-    this.waterPointsLayer.clearLayers();
-
+    this.waterMarkers.forEach((mk) => mk.remove());
+    this.waterMarkers = [];
     waterPoints.forEach((wp) => {
       const meta = WATER_POINT_META[wp.type];
-
-      const icon = L.divIcon({
-        className: 'water-point-container',
-        html: `
-          <div class="water-point-pin" style="background-color: ${meta.color}; box-shadow: 0 8px 24px rgba(24, 43, 37, 0.12)" title="${wp.name}">
-            <span class="water-point-emoji">${meta.icon}</span>
-          </div>
-          <div class="water-point-tag water-point-hover-tag">${wp.name}</div>
-        `,
-        iconSize: [36, 36],
-        iconAnchor: [18, 18],
-      });
-
-      const marker = L.marker(wp.coordinates, { icon, zIndexOffset: 100 });
-      marker.setZIndexOffset(100);
-      marker.bindTooltip(`${meta.icon} ${wp.name}`, {
-        direction: 'top',
-        offset: [0, -18],
-        className: 'element-hover-tooltip',
-      });
-
-      const popupContent = document.createElement('div');
-      popupContent.className = 'water-popup';
-      popupContent.innerHTML = `
-        <div class="popup-header" style="border-bottom: 3px solid ${meta.color}">
-          <span class="water-icon">${meta.icon}</span>
-          <div>
-            <h3 class="popup-title">${wp.name}</h3>
-            ${wp.isExample ? `<span class="badge-exemplo">${t('badgeExample')}</span>` : ''}
-            <span class="water-type-pill" style="background-color: ${meta.badgeBg}; color: ${meta.color}">${translateStructureType(wp.type)}</span>
-          </div>
+      const el = document.createElement('div');
+      el.className = 'water-point-container';
+      el.innerHTML = `
+        <div class="water-point-pin" style="background-color: ${meta.color}; box-shadow: 0 8px 24px rgba(24, 43, 37, 0.12)" title="${wp.name}">
+          <span class="water-point-emoji">${meta.icon}</span>
         </div>
-        <div class="popup-body">
-          <div class="popup-row">
-            <span class="popup-label">${t('thLat')} / ${t('thLng')}:</span>
-            <span class="popup-value coords">${formatNumber(wp.coordinates[0], 5)}, ${formatNumber(wp.coordinates[1], 5)}</span>
+        <div class="water-point-tag water-point-hover-tag">${wp.name}</div>`;
+      el.setAttribute('role', 'button'); el.setAttribute('aria-label', wp.name); el.tabIndex = 0;
+      const open = (ev: Event) => {
+        ev.stopPropagation();
+        if (this.isDrawingTalhao || this.isPlacingWaterPoint) return;
+        const box = document.createElement('div');
+        box.className = 'water-popup';
+        box.innerHTML = `
+          <div class="popup-header" style="border-bottom: 3px solid ${meta.color}">
+            <span class="water-icon">${meta.icon}</span>
+            <div>
+              <h3 class="popup-title">${wp.name}</h3>
+              <span class="water-type-pill" style="background-color: ${meta.badgeBg}; color: ${meta.color}">${translateStructureType(wp.type)}</span>
+            </div>
           </div>
-          ${
-            wp.notes
-              ? `
-          <div class="popup-row notes">
-            <span class="popup-label">${t('lblNotes')}:</span>
-            <p class="popup-notes-text">${wp.notes}</p>
-          </div>`
-              : ''
-          }
-        </div>
-        <div class="popup-actions">
-          <button class="popup-btn delete-btn" id="delete-water-${wp.id}">
-            ${t('btnDelete')}
-          </button>
-        </div>
-      `;
-
-      marker.bindPopup(popupContent, { maxWidth: 280 });
-
-      marker.on('popupopen', () => {
-        const deleteBtn = document.getElementById(`delete-water-${wp.id}`);
-        if (deleteBtn) {
-          deleteBtn.onclick = (e) => {
-            e.stopPropagation();
-            this.map.closePopup();
-            this.events.onWaterPointDelete(wp.id);
-          };
-        }
-      });
-
-      this.waterPointsLayer.addLayer(marker);
+          <div class="popup-body">
+            <div class="popup-row"><span class="popup-label">${t('thLat')} / ${t('thLng')}:</span><span class="popup-value coords">${formatNumber(wp.coordinates[0], 5)}, ${formatNumber(wp.coordinates[1], 5)}</span></div>
+            ${wp.notes ? `<div class="popup-row notes"><span class="popup-label">${t('lblNotes')}:</span><p class="popup-notes-text">${wp.notes}</p></div>` : ''}
+          </div>
+          <div class="popup-actions"><button class="popup-btn delete-btn" type="button">${t('btnDelete')}</button></div>`;
+        box.querySelector<HTMLButtonElement>('.delete-btn')!.onclick = (e) => { e.stopPropagation(); this.closePopup(); this.events.onWaterPointDelete(wp.id); };
+        this.showPopup(box, ll(wp.coordinates as LatLng), 280);
+      };
+      el.addEventListener('click', open);
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') open(e); });
+      this.waterMarkers.push(new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(ll(wp.coordinates as LatLng)).addTo(this.map));
     });
   }
 
   // ==========================================
-  // DRAWING TALHÃO MODE
+  // DESENHO DE TALHÃO
   // ==========================================
-
   public startDrawingTalhao(): void {
     this.cancelDrawing();
     this.endPlacingWaterPoint();
-
     this.isDrawingTalhao = true;
     this.map.getContainer().classList.add('drawing-mode-active');
+    this.map.getCanvas().style.cursor = 'crosshair';
     this.events.onDrawingProgress(0, 0);
   }
 
   private addDrawingPoint(lat: number, lng: number): void {
-    const coord: [number, number] = [lat, lng];
-
-    // If clicking close to the first point with at least 3 points, auto-finish!
+    // perto do primeiro ponto (com 3+ pontos): fecha o talhão
     if (this.drawingPoints.length >= 3) {
       const first = this.drawingPoints[0];
-      const dist = this.map.distance(L.latLng(lat, lng), L.latLng(first[0], first[1]));
-      if (dist < 30) {
-        // Less than 30 meters from start point, close polygon!
-        this.finishDrawingTalhao();
-        return;
-      }
+      const px = this.map.project(ll(first)), q = this.map.project([lng, lat]);
+      if (distM([lat, lng], first) < 30 || Math.hypot(px.x - q.x, px.y - q.y) < 14) { this.finishDrawingTalhao(); return; }
     }
-
-    this.drawingPoints.push(coord);
-
-    // Marker for this vertex
-    const isFirstPoint = this.drawingPoints.length === 1;
-    const vertexMarker = L.circleMarker(coord, {
-      radius: isFirstPoint ? 8 : 6,
-      color: '#ffffff',
-      weight: 2,
-      fillColor: isFirstPoint ? '#22c55e' : '#3b82f6',
-      fillOpacity: 1,
-    });
-
-    if (isFirstPoint) {
-      vertexMarker.bindTooltip(t('tipCloseTalhao'), {
-        permanent: false,
-        direction: 'top',
-        className: 'first-vertex-tooltip',
-      });
-      vertexMarker.on('click', (e) => {
-        L.DomEvent.stopPropagation(e);
-        if (this.drawingPoints.length >= 3) {
-          this.finishDrawingTalhao();
-        }
-      });
-    }
-
-    vertexMarker.addTo(this.drawingLayer);
-    this.tempMarkers.push(vertexMarker);
-
+    this.drawingPoints.push([lat, lng]);
     this.updateDrawingVisuals();
   }
 
-  private updateDrawingVisuals(): void {
-    if (this.tempPolygon) {
-      this.drawingLayer.removeLayer(this.tempPolygon);
-      this.tempPolygon = null;
-    }
-
-    if (this.drawingPoints.length >= 2) {
-      this.tempPolygon = L.polygon(this.drawingPoints, {
-        color: '#22c55e',
-        weight: 3,
-        dashArray: '6, 6',
-        fillColor: '#22c55e',
-        fillOpacity: 0.25,
-      }).addTo(this.drawingLayer);
-    }
-
-    const areaHa = this.drawingPoints.length >= 3
-      ? calculatePolygonAreaHectares(this.drawingPoints)
-      : 0;
-
-    this.events.onDrawingProgress(this.drawingPoints.length, areaHa);
+  private updateDrawingVisuals(notify = true): void {
+    const pts = this.drawingPoints;
+    const f: Feature[] = [];
+    if (pts.length >= 3) f.push(polyFeature(pts));
+    else if (pts.length === 2) f.push(lineFeature(pts));
+    if (this.guideTo && pts.length) f.push(lineFeature([pts[pts.length - 1], this.guideTo]));
+    pts.forEach((p, i) => f.push(pointFeature(p, { first: i === 0 })));
+    this.setData('draw', fc(f));
+    if (notify) this.events.onDrawingProgress(pts.length, pts.length >= 3 ? calculatePolygonAreaHectares(pts) : 0);
   }
 
   public undoLastDrawingPoint(): void {
     if (!this.isDrawingTalhao || this.drawingPoints.length === 0) return;
-
     this.drawingPoints.pop();
-    const lastMarker = this.tempMarkers.pop();
-    if (lastMarker) {
-      this.drawingLayer.removeLayer(lastMarker);
-    }
-
-    if (this.tempGuideLine) {
-      if (this.drawingPoints.length > 0) {
-        // Leave guide line to follow next mouse move
-      } else {
-        this.drawingLayer.removeLayer(this.tempGuideLine);
-        this.tempGuideLine = null;
-      }
-    }
-
+    if (!this.drawingPoints.length) this.guideTo = null;
     this.updateDrawingVisuals();
   }
 
   public finishDrawingTalhao(): void {
     if (this.drawingPoints.length < 3) return;
-
     const coords = [...this.drawingPoints];
-    const areaHa = calculatePolygonAreaHectares(coords);
-    const perimeterKm = calculatePerimeterKm(coords);
-
     this.cancelDrawing();
-    this.events.onDrawingComplete(coords, areaHa, perimeterKm);
+    this.events.onDrawingComplete(coords, calculatePolygonAreaHectares(coords), calculatePerimeterKm(coords));
   }
 
   public cancelDrawing(): void {
     this.isDrawingTalhao = false;
     this.drawingPoints = [];
-    this.drawingLayer.clearLayers();
-    this.tempMarkers = [];
-    this.tempPolygon = null;
-    this.tempGuideLine = null;
+    this.guideTo = null;
+    this.setData('draw', EMPTY);
     this.map.getContainer().classList.remove('drawing-mode-active');
+    this.map.getCanvas().style.cursor = '';
   }
-
-  // ==========================================
-  // WATER POINT PLACEMENT
-  // ==========================================
 
   public startPlacingWaterPoint(type: WaterPointType): void {
     this.cancelDrawing();
     this.isPlacingWaterPoint = true;
     this.pendingWaterType = type;
     this.map.getContainer().classList.add('water-placing-active');
+    this.map.getCanvas().style.cursor = 'crosshair';
   }
 
   public endPlacingWaterPoint(): void {
     this.isPlacingWaterPoint = false;
     this.map.getContainer().classList.remove('water-placing-active');
+    if (!this.isDrawingTalhao) this.map.getCanvas().style.cursor = '';
   }
 
   // ==========================================
-  // CAMERA HELPERS
+  // CÂMERA
   // ==========================================
-
   public fitBoundsToTalhao(talhao: Talhao): void {
-    if (talhao.coordinates.length === 0) return;
-    const bounds = L.latLngBounds(talhao.coordinates.map((c) => L.latLng(c[0], c[1])));
-    this.map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 });
+    if (!talhao.coordinates.length) return;
+    this.map.fitBounds(boundsOf(talhao.coordinates as LatLng[]), { padding: 60, maxZoom: Z(16) });
   }
 
   public fitBoundsToFarm(talhoes: Talhao[], waterPoints: WaterPoint[]): void {
-    const allCoords: L.LatLng[] = [];
-
-    talhoes.forEach((t) => {
-      t.coordinates.forEach((c) => allCoords.push(L.latLng(c[0], c[1])));
-    });
-
-    waterPoints.forEach((wp) => {
-      allCoords.push(L.latLng(wp.coordinates[0], wp.coordinates[1]));
-    });
-
-    if (allCoords.length > 0) {
-      const bounds = L.latLngBounds(allCoords);
-      this.map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
-    } else {
-      // Return to rural Rio Verde default (west grain belt)
-      this.map.setView([-17.8050, -51.0850], 13);
-    }
+    const all: LatLng[] = [];
+    talhoes.forEach((tl) => tl.coordinates.forEach((c) => all.push(c as LatLng)));
+    waterPoints.forEach((wp) => all.push(wp.coordinates as LatLng));
+    if (all.length) this.map.fitBounds(boundsOf(all), { padding: 50, maxZoom: Z(16) });
+    else this.map.jumpTo({ center: ll([-17.805, -51.085]), zoom: Z(13) });
   }
 
   public panTo(lat: number, lng: number, zoom = 15): void {
-    this.map.setView([lat, lng], zoom);
+    this.map.jumpTo({ center: [lng, lat], zoom: Z(zoom) });
   }
 
   // ==========================================
-  // TYPED COORDINATES LIVE PREVIEW
+  // PRÉVIA DE COORDENADAS DIGITADAS
   // ==========================================
-
   public previewTypedCoordinates(coords: [number, number][]): void {
-    this.previewLayer.clearLayers();
-
-    if (coords.length === 0) return;
-
-    // Draw vertex markers with point indices
-    coords.forEach(([lat, lng], index) => {
-      const isFirst = index === 0;
-      const marker = L.circleMarker([lat, lng], {
-        radius: isFirst ? 9 : 7,
-        color: '#ffffff',
-        weight: 2,
-        fillColor: isFirst ? '#16a34a' : '#0284c7',
-        fillOpacity: 1,
-      });
-
-      marker.bindTooltip(`Ponto ${index + 1}: ${lat.toFixed(4)}, ${lng.toFixed(4)}`, {
-        permanent: false,
-        direction: 'top',
-        className: 'preview-vertex-tooltip',
-      });
-
-      this.previewLayer.addLayer(marker);
-    });
-
-    // If 2 points: draw line
-    if (coords.length === 2) {
-      const line = L.polyline(coords, {
-        color: '#22c55e',
-        weight: 3,
-        dashArray: '6, 6',
-      });
-      this.previewLayer.addLayer(line);
-    }
-
-    // If 3 or more points: draw closed polygon with area badge!
+    this.clearTypedPreview();
+    if (!coords.length) return;
+    const f: Feature[] = [];
+    if (coords.length >= 3) f.push(polyFeature(coords));
+    else if (coords.length === 2) f.push(lineFeature(coords));
+    coords.forEach((c, i) => f.push(pointFeature(c, { first: i === 0 })));
+    this.setData('preview', fc(f));
     if (coords.length >= 3) {
-      const polygon = L.polygon(coords, {
-        color: '#22c55e',
-        weight: 3,
-        dashArray: '6, 6',
-        fillColor: '#22c55e',
-        fillOpacity: 0.28,
-      });
-      this.previewLayer.addLayer(polygon);
-
-      const areaHa = calculatePolygonAreaHectares(coords);
-      const center = calculatePolygonCenter(coords);
-
-      const badgeIcon = L.divIcon({
-        className: 'custom-talhao-label-container',
-        html: `
-          <div class="talhao-label-badge" style="border-left: 5px solid #245b43; border-style: dashed;">
-            <div class="talhao-label-name">Prévia do Talhão</div>
-            <div class="talhao-label-ha">${formatHectares(areaHa)}</div>
-          </div>
-        `,
-        iconSize: [140, 40],
-        iconAnchor: [70, 20],
-      });
-
-      const labelMarker = L.marker(center, { icon: badgeIcon, interactive: false });
-      this.previewLayer.addLayer(labelMarker);
+      const el = document.createElement('div');
+      el.className = 'custom-talhao-label-container';
+      el.innerHTML = `<div class="talhao-label-badge" style="border-left: 5px solid #245b43; border-style: dashed;"><div class="talhao-label-name">Prévia do Talhão</div><div class="talhao-label-ha">${formatHectares(calculatePolygonAreaHectares(coords))}</div></div>`;
+      el.style.pointerEvents = 'none';
+      this.previewMarkers.push(new maplibregl.Marker({ element: el }).setLngLat(ll(calculatePolygonCenter(coords) as LatLng)).addTo(this.map));
     }
-
-    // Pan map to fit all preview points
-    const bounds = L.latLngBounds(coords.map((c) => L.latLng(c[0], c[1])));
-    this.map.fitBounds(bounds, { padding: [80, 80], maxZoom: 16 });
+    this.map.fitBounds(boundsOf(coords), { padding: 80, maxZoom: Z(16) });
   }
 
   public clearTypedPreview(): void {
-    this.previewLayer.clearLayers();
+    this.setData('preview', EMPTY);
+    this.previewMarkers.forEach((mk) => mk.remove());
+    this.previewMarkers = [];
   }
 
   public previewTypedWaterPoint(lat: number, lng: number, type: WaterPointType): void {
-    this.previewLayer.clearLayers();
-
+    this.clearTypedPreview();
     const meta = WATER_POINT_META[type];
-    const icon = L.divIcon({
-      className: 'water-point-container',
-      html: `
-        <div class="water-point-pin" style="background-color: ${meta.color}; box-shadow: 0 8px 24px rgba(24, 43, 37, 0.12)">
-          <span class="water-point-emoji">${meta.icon}</span>
-        </div>
-        <div class="water-point-tag">Prévia: ${meta.label}</div>
-      `,
-      iconSize: [40, 48],
-      iconAnchor: [20, 24],
-    });
-
-    const marker = L.marker([lat, lng], { icon });
-    this.previewLayer.addLayer(marker);
-    this.map.setView([lat, lng], 15);
+    const el = document.createElement('div');
+    el.className = 'water-point-container';
+    el.innerHTML = `<div class="water-point-pin" style="background-color: ${meta.color}; box-shadow: 0 8px 24px rgba(24, 43, 37, 0.12)"><span class="water-point-emoji">${meta.icon}</span></div><div class="water-point-tag">Prévia: ${meta.label}</div>`;
+    this.previewMarkers.push(new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(this.map));
+    this.map.jumpTo({ center: [lng, lat], zoom: Z(15) });
   }
 
-  private liveTiles: L.TileLayer[] = [];
-  private snapZoomFn: (() => void) | null = null;
-  private snapLayer: L.ImageOverlay | null = null;
-  private snapLB: L.LatLngBounds | null = null;
-  private snapResizeHooked = false;
-  private bgTiles: L.TileLayer | null = null;
+  // ==========================================
+  // GÊMEO DIGITAL: foto fixa da fazenda como fundo (offline após a 1ª vez)
+  // ==========================================
+  private snapUrl = '';
+  private snapBounds: [[number, number], [number, number]] | null = null;
+  private snapData: ImageData | null = null;
+  private snapOn = false;
+  private snapCtl: HTMLElement | null = null;
 
-  /**
-   * Limites de zoom e de arraste conforme o fundo disponível (recalculado quando o mapa muda de tamanho).
-   * Com internet, o satélite ao vivo preenche o entorno da foto, então dá para afastar e ver a fazenda inteira em telas largas.
-   * Sem internet, o menor zoom é aquele em que a foto ainda cobre o mapa todo (sem bordas vazias).
-   */
-  private applySnapMinZoom(): void {
-    if (!this.snapLB) return;
-    const cover = this.map.getBoundsZoom(this.snapLB, true);
-    const bg = !!this.bgTiles && navigator.onLine;
-    const z = bg ? Math.max(3, cover - 3) : cover;
-    this.map.setMinZoom(z);
-    this.map.setMaxBounds(bg ? this.snapLB.pad(1.5) : this.snapLB);
-    if (this.map.getZoom() < z) this.map.setZoom(z, { animate: false });
+  /** Em zoom alto e com internet, a imagem ao vivo (mais nítida) aparece por cima da foto fixa. */
+  private applySnapZoom(): void {
+    if (!this.snapOn || !this.map.getLayer('snapshot')) return;
+    const esri = this.base === 'esri';
+    const hi = this.map.getZoom() >= Z(15) && navigator.onLine;
+    // foto fixa e satélite ao vivo por baixo dela só valem com a base de alta resolução; com NASA/OSM somem
+    this.map.setPaintProperty('snapshot', 'raster-opacity', hi || !esri ? 0 : 1);
+    this.map.setLayoutProperty('snapbg', 'visibility', esri && navigator.onLine ? 'visible' : 'none');
   }
 
-  /** Depois que o contêiner muda de tamanho (ex.: mapa maximizado): recalcula o tamanho, o zoom mínimo e enquadra a fazenda. */
+  /** Limites de zoom e de arraste conforme o fundo disponível. */
+  private applySnapLimits(): void {
+    if (!this.snapBounds) return;
+    const [[s, w], [n, e]] = this.snapBounds;
+    const b: LngLatBoundsLike = [[w, s], [e, n]];
+    const cover = this.map.cameraForBounds(b)?.zoom ?? Z(13);
+    const online = navigator.onLine;
+    const minZ = online ? Math.max(Z(3), cover - 3) : cover;
+    this.map.setMinZoom(minZ);
+    const padLat = (n - s) * 1.5, padLng = (e - w) * 1.5;
+    this.map.setMaxBounds(online ? [[w - padLng, s - padLat], [e + padLng, n + padLat]] : b);
+  }
+
   public refitAfterResize(talhoes: Talhao[], waterPoints: WaterPoint[]): void {
-    this.map.invalidateSize({ animate: false });
-    this.applySnapMinZoom();
+    this.map.resize();
+    this.applySnapLimits();
     this.fitBoundsToFarm(talhoes, waterPoints);
   }
-  private snapCtl: HTMLElement | null = null;
-  private snapUrl = '';
 
-  /** Gêmeo digital: foto de satélite fixa da fazenda como fundo (offline após a 1ª vez), vista travada na fazenda. */
   public async useFarmSnapshot(talhoes: Talhao[], waterPoints: WaterPoint[], force = false): Promise<void> {
-    const pts: [number, number][] = [];
+    await this.ready;
+    const pts: LatLng[] = [];
     talhoes.forEach((tl) => tl.coordinates.forEach((c) => pts.push([c[0], c[1]])));
     waterPoints.forEach((w) => pts.push([w.coordinates[0], w.coordinates[1]]));
-    // fazenda de exemplo (real, do CAR): fundo de satélite bem mais largo que a fazenda, para o mapa preencher a tela
     const demo = talhoes.length > 0 && talhoes.every((tl) => tl.isExample);
     const b = demo ? CAR_VIEW : farmBounds(pts);
     if (!b) return;
-    let snap: Snap | null = null;
-    snap = await ensureSnapshot(b, force);
-    if (!snap) return; // sem foto e sem internet: mantém fundo escuro/ladrilhos ao vivo
-    if (!this.map.getPane('snapshot')) { const pn = this.map.createPane('snapshot'); pn.style.zIndex = '250'; }
+    const snap: Snap | null = await ensureSnapshot(b, force);
+    if (!snap) return;
     if (this.snapUrl) URL.revokeObjectURL(this.snapUrl);
     this.snapUrl = URL.createObjectURL(snap.blob);
     this.snapBounds = snap.bounds as [[number, number], [number, number]];
     this.snapData = null;
     void this.loadSnapData();
-    this.snapLayer?.remove();
-    const lb = L.latLngBounds(snap.bounds as [[number, number], [number, number]]);
-    this.snapLayer = L.imageOverlay(this.snapUrl, lb, { pane: 'snapshot', interactive: false }).addTo(this.map);
-    this.liveTiles.forEach((tl) => tl.remove());
-    // em zoom alto, com internet, usa a imagem ao vivo (mais nítida) no lugar da foto fixa
-    if (this.snapZoomFn) this.map.off('zoomend', this.snapZoomFn);
-    this.snapZoomFn = () => { const hi = this.map.getZoom() >= 15 && navigator.onLine; this.liveTiles.forEach((tl) => (hi ? tl.addTo(this.map) : tl.remove())); this.snapLayer?.setOpacity(hi ? 0 : 1); };
-    this.map.on('zoomend', this.snapZoomFn);
-    // o menor zoom é aquele em que a imagem ainda preenche toda a tela: sem margens pretas
-    this.snapLB = lb;
-    // satélite ao vivo por baixo da foto: preenche o que fica fora dela
-    if (!this.bgTiles) {
-      if (!this.map.getPane('snapBg')) { const pb = this.map.createPane('snapBg'); pb.style.zIndex = '240'; }
-      this.bgTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { pane: 'snapBg', maxZoom: 19, attribution: 'Tiles &copy; Esri' });
+    const [[s, w], [n, e]] = this.snapBounds;
+    const corners: [[number, number], [number, number], [number, number], [number, number]] = [[w, n], [e, n], [e, s], [w, s]];
+    const m = this.map;
+    const existing = m.getSource('snapshot') as maplibregl.ImageSource | undefined;
+    if (existing) existing.updateImage({ url: this.snapUrl, coordinates: corners });
+    else {
+      m.addSource('snapshot', { type: 'image', url: this.snapUrl, coordinates: corners });
+      m.addLayer({ id: 'snapshot', type: 'raster', source: 'snapshot', paint: { 'raster-fade-duration': 0 } }, 'labels');
     }
-    if (navigator.onLine) this.bgTiles.addTo(this.map);
-    this.map.setMaxZoom(17.5);
-    this.applySnapMinZoom();
-    if (!this.snapResizeHooked) { this.snapResizeHooked = true; this.map.on('resize', () => this.applySnapMinZoom()); }
-    (this.map.options as { maxBoundsViscosity?: number }).maxBoundsViscosity = 1;
-    this.applySnapMinZoom();
-    if (demo) this.drawCarLayers(); else this.carLayer?.remove();
+    this.snapOn = true;
+    m.setLayoutProperty('snapbg', 'visibility', navigator.onLine ? 'visible' : 'none');
+    m.setMaxZoom(Z(17.5));
+    this.applySnapLimits();
+    m.on('zoomend', () => this.applySnapZoom());
+    m.on('resize', () => this.applySnapLimits());
+    if (demo) this.drawCarLayers(); else { this.setData('car', EMPTY); this.carMarkers.forEach((mk) => mk.remove()); this.carMarkers = []; }
+
     if (!this.snapCtl) {
-      const Ctl = L.Control.extend({ onAdd: () => { const d = L.DomUtil.create('div', 'snap-ctl'); L.DomEvent.disableClickPropagation(d); this.snapCtl = d; return d; } });
-      new Ctl({ position: 'bottomleft' }).addTo(this.map);
+      const d = document.createElement('div');
+      d.className = 'maplibregl-ctrl snap-ctl';
+      this.snapCtl = d;
+      m.addControl(new ElControl(d), 'bottom-left');
     }
-    if (this.snapCtl) {
-      const dt = new Date(snap.date).toLocaleDateString(document.documentElement.lang || undefined);
-      this.snapCtl.innerHTML = `${dt} <button type="button" title="↻">↻</button>`;
-      const rb = this.snapCtl.querySelector('button') as HTMLButtonElement | null;
-      if (rb) rb.onclick = () => { this.snapCtl!.textContent = '…'; void this.useFarmSnapshot(talhoes, waterPoints, true); };
-    }
-    this.map.invalidateSize();
-    if (demo) { this.map.fitBounds(L.latLngBounds(CAR_FIT), { padding: [24, 24] }); }
-    else this.map.fitBounds(L.latLngBounds(pts.map((p) => L.latLng(p[0], p[1]))), { padding: [60, 60], maxZoom: 16 });
+    const dt = new Date(snap.date).toLocaleDateString(document.documentElement.lang || undefined);
+    this.snapCtl.innerHTML = `${dt} <button type="button" title="↻" aria-label="Atualizar foto da fazenda">↻</button>`;
+    const rb = this.snapCtl.querySelector('button');
+    if (rb) rb.onclick = () => { this.snapCtl!.textContent = '…'; void this.useFarmSnapshot(talhoes, waterPoints, true); };
+
+    m.resize();
+    if (demo) m.fitBounds(boundsOf(CAR_FIT as LatLng[]), { padding: 24, animate: false });
+    else m.fitBounds(boundsOf(pts), { padding: 60, maxZoom: Z(16), animate: false });
+    this.applySnapZoom();
   }
 
-  // ---- Fazenda real de exemplo: limite do imóvel, Reserva Legal (mata nativa) e APP, do CAR ----
-  private carLayer: L.LayerGroup | null = null;
+  // ---- Fazenda de exemplo: limite do imóvel, Reserva Legal e APP (do CAR) ----
   private static CARTXT: Record<string, [string, string, string]> = {
     pt: ['Reserva Legal', 'APP (área de preservação)', 'Limite do imóvel'],
     en: ['Legal Reserve', 'APP (protected area)', 'Property boundary'],
@@ -915,28 +695,30 @@ export class MapManager {
     fr: ['Réserve légale', 'APP (zone protégée)', 'Limite de la propriété'],
   };
   private drawCarLayers(): void {
-    this.carLayer?.remove();
-    if (!this.map.getPane('car')) { const pn = this.map.createPane('car'); pn.style.zIndex = '380'; pn.style.pointerEvents = 'none'; }
     const l = (document.documentElement.lang || 'pt').slice(0, 2), tx = MapManager.CARTXT[l] || MapManager.CARTXT.pt;
-    const g = L.layerGroup();
-    CAR_NATIVA.forEach((r) => L.polygon(r, { pane: 'car', interactive: false, color: '#4d7c0f', weight: 0.8, fillColor: '#84cc16', fillOpacity: 0.22 }).addTo(g));
-    CAR_RESERVA.forEach((r) => L.polygon(r, { pane: 'car', interactive: false, color: '#14532d', weight: 1.4, fillColor: '#15803d', fillOpacity: 0.42 }).addTo(g));
-    CAR_APP.forEach((r) => L.polygon(r, { pane: 'car', interactive: false, color: '#1d4ed8', weight: 1, fillColor: '#3b82f6', fillOpacity: 0.4 }).addTo(g));
-    L.polygon(CAR_PROPERTY, { pane: 'car', interactive: false, color: '#f59e0b', weight: 3, dashArray: '8 6', fill: false }).addTo(g);
+    const f: Feature[] = [];
+    CAR_NATIVA.forEach((r) => f.push(polyFeature(r as LatLng[], { kind: 'nativa', fill: '#84cc16', fo: 0.22, stroke: '#4d7c0f', w: 0.8 })));
+    CAR_RESERVA.forEach((r) => f.push(polyFeature(r as LatLng[], { kind: 'reserva', fill: '#15803d', fo: 0.42, stroke: '#14532d', w: 1.4 })));
+    CAR_APP.forEach((r) => f.push(polyFeature(r as LatLng[], { kind: 'app', fill: '#3b82f6', fo: 0.4, stroke: '#1d4ed8', w: 1 })));
+    f.push(polyFeature(CAR_PROPERTY as LatLng[], { kind: 'limite', fill: '#000000', fo: 0, stroke: '#f59e0b', w: 3 }));
+    this.setData('car', fc(f));
     // rótulos "Reserva Legal" nas maiores matas
-    const box = (r: [number, number][]) => { const b = L.latLngBounds(r.map((c) => L.latLng(c[0], c[1]))); return { b, a: (b.getNorth() - b.getSouth()) * (b.getEast() - b.getWest()) }; };
-    CAR_RESERVA.map((r) => ({ r, ...box(r) })).sort((x, y) => y.a - x.a).slice(0, 6).forEach(({ r }) => {
+    this.carMarkers.forEach((mk) => mk.remove());
+    this.carMarkers = [];
+    const area = (r: LatLng[]) => { const b = boundsOf(r); return (b.getNorth() - b.getSouth()) * (b.getEast() - b.getWest()); };
+    (CAR_RESERVA as LatLng[][]).map((r) => ({ r, a: area(r) })).sort((x, y) => y.a - x.a).slice(0, 6).forEach(({ r }) => {
       let sy = 0, sx = 0; r.forEach((c) => { sy += c[0]; sx += c[1]; });
-      L.marker([sy / r.length, sx / r.length], { pane: 'car', interactive: false, keyboard: false, icon: L.divIcon({ className: 'car-label', html: `<span>${tx[0]}</span>`, iconSize: [0, 0] }) }).addTo(g);
+      const el = document.createElement('div'); el.className = 'car-label'; el.innerHTML = `<span>${tx[0]}</span>`; el.style.pointerEvents = 'none';
+      this.carMarkers.push(new maplibregl.Marker({ element: el }).setLngLat([sx / r.length, sy / r.length]).addTo(this.map));
     });
-    g.addTo(this.map);
-    this.carLayer = g;
   }
 
-  // ---- Ajustar talhões: arrastar os cantos até a borda da lavoura na imagem ----
-  private adjustLayer: L.LayerGroup | null = null;
+  // ==========================================
+  // AJUSTAR TALHÕES: arrastar os cantos até a borda da lavoura
+  // ==========================================
   private adjusting = false;
   private adjustBtn: HTMLButtonElement | null = null;
+  private adjustMarkers: Marker[] = [];
   private static ADJ: Record<string, [string, string, string]> = {
     pt: ['Ajustar talhões', 'Concluir ajuste', 'Arraste os cantos até a borda da lavoura'],
     en: ['Adjust fields', 'Done adjusting', 'Drag the corners to the field edge'],
@@ -947,22 +729,63 @@ export class MapManager {
   };
   private adjText(i: number): string { const l = (document.documentElement.lang || 'pt').slice(0, 2); return (MapManager.ADJ[l] || MapManager.ADJ.pt)[i]; }
 
-  public addAdjustControl(): void {
-    const self = this;
-    const Ctl = L.Control.extend({ onAdd() { const b = L.DomUtil.create('button', 'adjust-btn') as HTMLButtonElement; b.type = 'button'; L.DomEvent.disableClickPropagation(b); b.onclick = () => self.setAdjustMode(!self.adjusting); self.adjustBtn = b; b.textContent = self.adjText(0); return b; } });
-    new Ctl({ position: 'topleft' }).addTo(this.map);
+  private topLeftBox: HTMLElement | null = null;
+  /** Coluna de botões do canto superior esquerdo (ajustar, marcar lavoura, saúde por satélite…). */
+  public topLeft(): HTMLElement {
+    if (!this.topLeftBox) {
+      const d = document.createElement('div');
+      d.className = 'maplibregl-ctrl map-tools';
+      this.topLeftBox = d;
+      this.map.addControl(new ElControl(d), 'top-left');
+    }
+    return this.topLeftBox;
   }
 
-  // ---- Marcar lavoura por cor (varinha mágica) ----
-  private snapBounds: [[number, number], [number, number]] | null = null;
-  private snapData: ImageData | null = null;
+  public addAdjustControl(): void {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'adjust-btn'; b.textContent = this.adjText(0);
+    b.onclick = (e) => { e.stopPropagation(); this.setAdjustMode(!this.adjusting); };
+    this.adjustBtn = b;
+    this.topLeft().appendChild(b);
+  }
+
+  public setAdjustMode(on: boolean): void {
+    this.adjusting = on;
+    this.adjustMarkers.forEach((mk) => mk.remove());
+    this.adjustMarkers = [];
+    this.setData('adjust', EMPTY);
+    if (this.adjustBtn) { this.adjustBtn.textContent = this.adjText(on ? 1 : 0); this.adjustBtn.classList.toggle('on', on); }
+    this.map.getContainer().classList.toggle('adjusting', on);
+    if (!on) return;
+    if (this.wandOn) this.setWandMode(false);
+    const outline = () => this.setData('adjust', fc(this.lastTalhoes.filter((tl) => tl.coordinates.length).map((tl) => polyFeature(tl.coordinates as LatLng[]))));
+    outline();
+    this.lastTalhoes.forEach((tl) => {
+      tl.coordinates.forEach((c, i) => {
+        const el = document.createElement('div'); el.className = 'adj-handle-wrap'; el.innerHTML = '<div class="adj-handle"></div>';
+        const mk = new maplibregl.Marker({ element: el, draggable: true }).setLngLat(ll(c as LatLng)).addTo(this.map);
+        mk.on('drag', () => { const p = mk.getLngLat(); tl.coordinates[i] = [p.lat, p.lng]; outline(); });
+        mk.on('dragend', () => {
+          tl.areaHectares = calculatePolygonAreaHectares(tl.coordinates);
+          tl.perimeterKm = calculatePerimeterKm(tl.coordinates);
+          this.events.onTalhaoGeometry?.(tl);
+          const keep = this.adjusting; this.renderTalhoes(this.lastTalhoes); if (keep) this.setAdjustMode(true);
+        });
+        this.adjustMarkers.push(mk);
+      });
+    });
+    this.map.getContainer().setAttribute('data-adjust-tip', this.adjText(2));
+  }
+
+  // ==========================================
+  // MARCAR LAVOURA POR COR (varinha mágica) sobre a foto da fazenda
+  // ==========================================
   private wandOn = false;
   private wandBtn: HTMLButtonElement | null = null;
   private wandPanel: HTMLElement | null = null;
-  private wandLayer: L.LayerGroup | null = null;
-  private wandSeed: L.LatLng | null = null;
+  private wandSeed: LatLng | null = null;
   private wandTol = 20;
-  private wandCoords: [number, number][] | null = null;
+  private wandCoords: LatLng[] | null = null;
   private static WAND: Record<string, string[]> = {
     pt: ['Marcar lavoura (toque)', 'Cancelar marcação', 'Toque dentro de uma lavoura na imagem', 'Mais área', 'Menos área', 'Usar este talhão', 'Não consegui identificar. Toque em outro ponto.'],
     en: ['Mark field (tap)', 'Cancel marking', 'Tap inside a field on the image', 'More area', 'Less area', 'Use this field', 'Could not detect it. Tap another spot.'],
@@ -985,108 +808,93 @@ export class MapManager {
   private static R = 6378137;
   private mx(lng: number) { return (lng * Math.PI * MapManager.R) / 180; }
   private my(lat: number) { return Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360)) * MapManager.R; }
-  private toPx(ll: L.LatLng): [number, number] | null {
+  private toPx(p: LatLng): [number, number] | null {
     if (!this.snapBounds || !this.snapData) return null;
     const [[s, w], [n, e]] = this.snapBounds, W = this.snapData.width, H = this.snapData.height;
-    const x = ((this.mx(ll.lng) - this.mx(w)) / (this.mx(e) - this.mx(w))) * W, y = ((this.my(n) - this.my(ll.lat)) / (this.my(n) - this.my(s))) * H;
+    const x = ((this.mx(p[1]) - this.mx(w)) / (this.mx(e) - this.mx(w))) * W, y = ((this.my(n) - this.my(p[0])) / (this.my(n) - this.my(s))) * H;
     return x < 0 || y < 0 || x >= W || y >= H ? null : [x, y];
   }
-  private toLatLng(x: number, y: number): [number, number] {
+  private toLatLng(x: number, y: number): LatLng {
     const [[s, w], [n, e]] = this.snapBounds!, W = this.snapData!.width, H = this.snapData!.height;
     const X = this.mx(w) + (x / W) * (this.mx(e) - this.mx(w)), Y = this.my(n) - (y / H) * (this.my(n) - this.my(s));
     return [((2 * Math.atan(Math.exp(Y / MapManager.R)) - Math.PI / 2) * 180) / Math.PI, (X * 180) / (Math.PI * MapManager.R)];
   }
 
   public addWandControl(): void {
-    const self = this;
-    const Ctl = L.Control.extend({ onAdd() {
-      const box = L.DomUtil.create('div', 'wand-box'); L.DomEvent.disableClickPropagation(box);
-      const b = L.DomUtil.create('button', 'adjust-btn wand-btn', box) as HTMLButtonElement; b.type = 'button'; b.textContent = self.wt(0); b.onclick = () => self.setWandMode(!self.wandOn); self.wandBtn = b;
-      const pn = L.DomUtil.create('div', 'wand-panel', box); pn.style.display = 'none'; self.wandPanel = pn; return box; } });
-    new Ctl({ position: 'topleft' }).addTo(this.map);
-    this.map.on('click', (e: L.LeafletMouseEvent) => { if (this.wandOn) this.wandAt(e.latlng); });
+    const box = document.createElement('div'); box.className = 'wand-box';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'adjust-btn wand-btn'; b.textContent = this.wt(0);
+    b.onclick = (e) => { e.stopPropagation(); this.setWandMode(!this.wandOn); };
+    this.wandBtn = b;
+    const pn = document.createElement('div'); pn.className = 'wand-panel'; pn.style.display = 'none'; this.wandPanel = pn;
+    pn.addEventListener('click', (e) => e.stopPropagation());
+    box.append(b, pn);
+    this.topLeft().appendChild(box);
   }
 
   public setWandMode(on: boolean): void {
-    this.wandOn = on; this.wandLayer?.remove(); this.wandLayer = null; this.wandCoords = null; this.wandSeed = null;
-    if (on) { this.setAdjustMode(false); this.wandLayer = L.layerGroup().addTo(this.map); }
+    this.wandOn = on; this.wandCoords = null; this.wandSeed = null;
+    this.setData('wand', EMPTY);
+    if (on) this.setAdjustMode(false);
     if (this.wandBtn) { this.wandBtn.textContent = this.wt(on ? 1 : 0); this.wandBtn.classList.toggle('on', on); }
     if (this.wandPanel) { this.wandPanel.style.display = on ? 'block' : 'none'; this.wandPanel.textContent = on ? this.wt(2) : ''; }
     this.map.getContainer().classList.toggle('wand-active', on);
+    this.map.getCanvas().style.cursor = on ? 'crosshair' : '';
   }
 
-  private wandAt(ll: L.LatLng, tol?: number): void {
+  private wandAt(p: LatLng, tol?: number): void {
     if (tol !== undefined) this.wandTol = tol;
-    const pt = this.toPx(ll);
+    const pt = this.toPx(p);
     if (!pt || !this.snapData) { if (this.wandPanel) this.wandPanel.textContent = this.wt(6); return; }
-    this.wandSeed = ll;
+    this.wandSeed = p;
     const seg = segmentField(this.snapData, pt[0], pt[1], this.wandTol);
-    this.wandLayer?.clearLayers();
-    if (!seg || seg.areaFrac > 0.7) { this.wandCoords = null; if (this.wandPanel) this.wandPanel.textContent = this.wt(6); return; }
+    if (!seg || seg.areaFrac > 0.7) { this.wandCoords = null; this.setData('wand', EMPTY); if (this.wandPanel) this.wandPanel.textContent = this.wt(6); return; }
     const coords = seg.poly.map(([x, y]) => this.toLatLng(x, y));
     this.wandCoords = coords;
-    L.polygon(coords, { color: '#ffd84d', weight: 3, fillColor: '#ffd84d', fillOpacity: 0.25, dashArray: '6 4', interactive: false }).addTo(this.wandLayer!);
-    const ha = calculatePolygonAreaHectares(coords);
+    this.setData('wand', fc([polyFeature(coords)]));
     const pn = this.wandPanel!; pn.innerHTML = '';
-    const info = document.createElement('div'); info.textContent = `${formatHectares(ha)}`; info.style.fontWeight = '700'; pn.appendChild(info);
-    const mk = (txt: string, fn: () => void, cls = '') => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.className = 'wand-mini ' + cls; b.onclick = fn; pn.appendChild(b); };
-    mk('' + this.wt(4), () => this.wandAt(this.wandSeed!, Math.max(8, this.wandTol - 8)));
-    mk('' + this.wt(3), () => this.wandAt(this.wandSeed!, Math.min(90, this.wandTol + 8)));
+    const info = document.createElement('div'); info.textContent = formatHectares(calculatePolygonAreaHectares(coords)); info.style.fontWeight = '700'; pn.appendChild(info);
+    const mk = (txt: string, fn: () => void, cls = '') => { const bt = document.createElement('button'); bt.type = 'button'; bt.textContent = txt; bt.className = 'wand-mini ' + cls; bt.onclick = fn; pn.appendChild(bt); };
+    mk(this.wt(4), () => this.wandAt(this.wandSeed!, Math.max(8, this.wandTol - 8)));
+    mk(this.wt(3), () => this.wandAt(this.wandSeed!, Math.min(90, this.wandTol + 8)));
     mk(this.wt(5), () => { const c = this.wandCoords!; this.setWandMode(false); this.events.onDrawingComplete(c, calculatePolygonAreaHectares(c), calculatePerimeterKm(c)); }, 'ok');
   }
 
-  public setAdjustMode(on: boolean): void {
-    this.adjusting = on;
-    this.adjustLayer?.remove(); this.adjustLayer = null;
-    if (this.adjustBtn) { this.adjustBtn.textContent = this.adjText(on ? 1 : 0); this.adjustBtn.classList.toggle('on', on); }
-    this.map.getContainer().classList.toggle('adjusting', on);
-    if (!on) return;
-    this.adjustLayer = L.layerGroup().addTo(this.map);
-    this.lastTalhoes.forEach((tl) => {
-      const temp = L.polygon(tl.coordinates, { color: '#ffd84d', weight: 2, fill: false, dashArray: '4 4', interactive: false }).addTo(this.adjustLayer!);
-      tl.coordinates.forEach((c, i) => {
-        const m = L.marker(c, { draggable: true, zIndexOffset: 2000, icon: L.divIcon({ className: 'adj-handle-wrap', html: '<div class="adj-handle"></div>', iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(this.adjustLayer!);
-        m.on('drag', () => { const ll = m.getLatLng(); tl.coordinates[i] = [ll.lat, ll.lng]; temp.setLatLngs(tl.coordinates); });
-        m.on('dragend', () => {
-          tl.areaHectares = calculatePolygonAreaHectares(tl.coordinates);
-          tl.perimeterKm = calculatePerimeterKm(tl.coordinates);
-          this.events.onTalhaoGeometry?.(tl);
-          const keep = this.adjusting; this.renderTalhoes(this.lastTalhoes); if (keep) this.setAdjustMode(true);
-        });
+  // ==========================================
+  // CAMADAS DA NASA (GIBS) SOBRE O MAPA
+  // ==========================================
+  private nasaOn = new Set<NasaLayerId>();
+  private nasaStatus = new Map<NasaLayerId, { ok: number; err: number }>();
+  public nasaLayerOn(id: NasaLayerId): boolean { return this.nasaOn.has(id); }
+  public nasaLayerFailed(id: NasaLayerId): boolean { const s = this.nasaStatus.get(id); return !!s && s.err > 0 && s.ok === 0; }
+
+  public setNasaLayer(id: NasaLayerId, on: boolean, tryIdx = 0): void {
+    void this.ready.then(() => {
+      const m = this.map, sid = `nasa-${id}`;
+      if (m.getLayer(sid)) m.removeLayer(sid);
+      if (m.getSource(sid)) m.removeSource(sid);
+      if (!on) { this.nasaOn.delete(id); return; }
+      const d = NASA_LAYERS.find((x) => x.id === id);
+      const matrix = d?.matrices[tryIdx];
+      if (!d || !matrix) return;
+      const st = { ok: 0, err: 0 }; this.nasaStatus.set(id, st);
+      m.addSource(sid, { type: 'raster', tiles: [nasaTileUrl(d, matrix)], tileSize: 256, maxzoom: matrixZoom(matrix), attribution: 'NASA GIBS' });
+      m.addLayer({ id: sid, type: 'raster', source: sid, paint: { 'raster-opacity': 0.7 } }, 'car-fill');
+      this.nasaOn.add(id);
+      const onData = (e: maplibregl.MapSourceDataEvent) => { if (e.sourceId === sid && e.tile) st.ok++; };
+      const onErr = (e: maplibregl.ErrorEvent & { sourceId?: string }) => { if (e.sourceId === sid) st.err++; };
+      m.on('sourcedata', onData);
+      m.on('error', onErr);
+      // terminou de carregar sem nenhum tile: tenta o próximo conjunto de matriz da camada
+      m.once('idle', () => {
+        m.off('sourcedata', onData); m.off('error', onErr);
+        if (st.ok === 0 && st.err > 0 && this.nasaOn.has(id) && tryIdx + 1 < d.matrices.length) this.setNasaLayer(id, true, tryIdx + 1);
       });
     });
-    const tip = this.adjText(2); const c = this.map.getContainer(); c.setAttribute('data-adjust-tip', tip);
   }
 
-  /* ---------- camadas de satélite da NASA (GIBS) ---------- */
-  private nasaLayers = new Map<NasaLayerId, L.TileLayer>();
-  private nasaStatus = new Map<NasaLayerId, { ok: number; err: number }>();
-  public nasaLayerOn(id: NasaLayerId): boolean { return this.nasaLayers.has(id); }
-  public nasaLayerFailed(id: NasaLayerId): boolean { const s = this.nasaStatus.get(id); return !!s && s.err > 0 && s.ok === 0; }
-  public setNasaLayer(id: NasaLayerId, on: boolean, tryIdx = 0): void {
-    const cur = this.nasaLayers.get(id);
-    if (!on) { cur?.remove(); this.nasaLayers.delete(id); return; }
-    if (cur && tryIdx === 0) return;
-    cur?.remove(); this.nasaLayers.delete(id);
-    const d = NASA_LAYERS.find((x) => x.id === id);
-    const matrix = d?.matrices[tryIdx];
-    if (!d || !matrix) return;
-    if (!this.map.getPane('nasa')) { const pn = this.map.createPane('nasa'); pn.style.zIndex = '270'; pn.style.pointerEvents = 'none'; }
-    const st = { ok: 0, err: 0 }; this.nasaStatus.set(id, st);
-    const tl = L.tileLayer(nasaTileUrl(d, matrix), { pane: 'nasa', opacity: 0.7, maxNativeZoom: matrixZoom(matrix), maxZoom: 19, attribution: 'NASA GIBS' });
-    tl.on('tileload', () => { st.ok++; });
-    tl.on('tileerror', () => { st.err++; });
-    // terminou de carregar sem nenhum tile: tenta o próximo conjunto de matriz da camada
-    tl.on('load', () => {
-      if (st.ok === 0 && st.err > 0 && this.nasaLayers.get(id) === tl && tryIdx + 1 < d.matrices.length) window.setTimeout(() => { if (this.nasaLayers.get(id) === tl) this.setNasaLayer(id, true, tryIdx + 1); }, 0);
-    });
-    tl.addTo(this.map);
-    this.nasaLayers.set(id, tl);
-  }
-
-  public getMap(): L.Map { return this.map; }
+  public getMap(): MLMap { return this.map; }
 
   public invalidateSize(): void {
-    this.map.invalidateSize();
+    this.map.resize();
   }
 }

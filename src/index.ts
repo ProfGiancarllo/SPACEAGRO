@@ -169,7 +169,7 @@ class AgroApp {
     void this.mapManager.useFarmSnapshot(this.farmData.talhoes, this.farmData.waterPoints);
     this.fireAlert = new FireAlert({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap() });
     this.fireAlert.start();
-    this.satHealth = new SatelliteHealth({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap() });
+    this.satHealth = new SatelliteHealth({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap(), getTools: () => this.mapManager.topLeft() });
     this.satHealth.start();
     enableDraggableWindows();
   }
