@@ -4291,10 +4291,8 @@ body.estela-docked .estela-panel { left: 0; bottom: auto; width: 100%; max-width
 .estela-send { display: none; }
 .estela-form.has-text .estela-send { display: flex; }
 .estela-form.has-text .estela-mic { display: none; }
-/* Moldura de celular na coluna lateral do computador */
-body.estela-docked .estela-panel { border: 7px solid #1b2622; border-radius: 30px; overflow: hidden; box-shadow: 0 6px 18px rgba(24, 43, 37, 0.25); }
-body.estela-docked .estela-panel::before { content: ''; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); width: 64px; height: 6px; border-radius: 4px; background: #1b2622; z-index: 2; opacity: 0.9; }
-body.estela-docked .estela-head { padding-top: 16px; }
+/* Sem moldura de celular: só o formato de conversa */
+body.estela-docked .estela-panel { border: 0; border-radius: 0; box-shadow: none; }
 /* Celular: conversa em tela cheia */
 @media (max-width: 640px) {
   .estela-panel { left: 0; bottom: 0; top: 0; width: 100vw; height: 100dvh; border-radius: 0; }
