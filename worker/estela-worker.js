@@ -191,7 +191,13 @@ async function tts(req, env, cors, key) {
       response_format: 'mp3',
     }),
   });
-  if (!r.ok) return new Response('', { status: 502, headers: cors });
+  if (!r.ok) {
+    // Motivo da OpenAI (ex.: invalid_api_key, insufficient_quota, model_not_found), sem expor a chave
+    let code = '';
+    try { const e = (await r.json())?.error || {}; code = e.code || e.type || ''; } catch { /* ignora */ }
+    console.error(`[estela/tts] OpenAI recusou: HTTP ${r.status} ${code}`);
+    return new Response(`voz indisponível: ${r.status} ${code}`.trim(), { status: 502, headers: cors });
+  }
   return new Response(r.body, { headers: { ...cors, 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store' } });
 }
 
