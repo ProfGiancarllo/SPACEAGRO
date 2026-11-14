@@ -7,7 +7,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 
 const KEY = process.env.FRED_API_KEY || '';
-const UA = { 'user-agent': 'Mozilla/5.0 (compatible; myroca-build)' };
+const UA = { 'user-agent': 'Mozilla/5.0 (compatible; spaceagro-build)' };
 const since = new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 4).toISOString().slice(0, 10);
 const round = (v, n = 2) => Math.round(v * 10 ** n) / 10 ** n;
 const ym = (d) => d.slice(0, 7);

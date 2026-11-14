@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MyRoça — saúde da lavoura por satélite (Landsat 8/9 Collection 2 Nível-2, NASA/USGS, via Microsoft Planetary Computer, leitura aberta).
+"""SpaceAgro — saúde da lavoura por satélite (Landsat 8/9 Collection 2 Nível-2, NASA/USGS, via Microsoft Planetary Computer, leitura aberta).
 Gera public/data/saude-talhoes.json com alertas de triagem (não é diagnóstico) para os talhões da fazenda de demonstração.
 Uso: python scripts/saude_satelite.py   (a cada 2 dias roda sozinho em .github/workflows/saude-satelite.yml)"""
 import json, os, sys, datetime as dt

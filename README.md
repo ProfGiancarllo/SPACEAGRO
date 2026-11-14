@@ -1,8 +1,8 @@
-# MyRoça
+# SpaceAgro
 
 Aplicação web aberta que ajuda o produtor rural a decidir **o que plantar, quando plantar e como rotacionar culturas**, cruzando dados de satélite e clima da NASA com o mapa dos talhões da fazenda, o zoneamento de risco climático e o diário de safra.
 
-Projeto da equipe MyRoça para o **NASA Space Apps Challenge 2026**, desafio *Adapting Farms with NASA Data*, evento local de Rio Verde (GO). Não é um produto comercial: o código é aberto e livre para qualquer pessoa usar.
+Projeto da equipe SpaceAgro para o **NASA Space Apps Challenge 2026**, desafio *Adapting Farms with NASA Data*, evento local de Rio Verde (GO). Não é um produto comercial: o código é aberto e livre para qualquer pessoa usar.
 
 - Site publicado: https://profgiancarllo.github.io/myroca/
 - Documentação técnica: [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md)
@@ -61,4 +61,4 @@ Conforme o FAQ do Space Apps, descrevemos aqui como usamos ferramentas de SI:
 
 ## Equipe
 
-Equipe MyRoça — Rio Verde (GO), Brasil.
+Equipe SpaceAgro — Rio Verde (GO), Brasil.

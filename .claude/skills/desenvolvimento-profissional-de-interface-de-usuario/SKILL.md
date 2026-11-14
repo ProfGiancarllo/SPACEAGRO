@@ -1,6 +1,6 @@
 ---
 name: desenvolvimento-profissional-de-interface-de-usuario
-description: Regras obrigatórias de design profissional sem aparência de IA. Use SEMPRE antes de criar, gerar código ou modificar qualquer tela, componente, página, dashboard, formulário, menu ou estilo visual do MyRoça (sites, dashboards, CRMs, ERPs, sistemas administrativos, SaaS e aplicativos). Lista 20 padrões proibidos (gradiente roxo/azul, neon, glassmorphism, emojis, chips coloridos, KPIs com ícones, rosca decorativa, "Bem-vindo de volta", filtros falsos etc.) e um checklist de entrega.
+description: Regras obrigatórias de design profissional sem aparência de IA. Use SEMPRE antes de criar, gerar código ou modificar qualquer tela, componente, página, dashboard, formulário, menu ou estilo visual do SpaceAgro (sites, dashboards, CRMs, ERPs, sistemas administrativos, SaaS e aplicativos). Lista 20 padrões proibidos (gradiente roxo/azul, neon, glassmorphism, emojis, chips coloridos, KPIs com ícones, rosca decorativa, "Bem-vindo de volta", filtros falsos etc.) e um checklist de entrega.
 ---
 
 # Design profissional sem aparência de IA
@@ -43,7 +43,7 @@ Aplique esta skill **antes** de gerar código, criar uma tela ou modificar o vis
 - Evite componentes grandes demais.
 - Crie hierarquia visual com tamanho, peso tipográfico e posicionamento — não com cor e efeito.
 - Cores neutras + uma cor principal de identidade.
-- Respeite a identidade visual existente do projeto (no MyRoça: o verde da marca, a paleta e os componentes já usados em `src/`). Leia os estilos atuais antes de introduzir novos.
+- Respeite a identidade visual existente do projeto (no SpaceAgro: o verde da marca, a paleta e os componentes já usados em `src/`). Leia os estilos atuais antes de introduzir novos.
 - Layout responsivo para computador, tablet e celular.
 - Nenhum elemento decorativo sem função.
 - Densidade de informação equilibrada.

@@ -1,4 +1,4 @@
-# MyRoça — documento técnico para desenvolvedores
+# SpaceAgro — documento técnico para desenvolvedores
 
 Estado do código em 13/11/2026 (ramo `main`). Objetivo: permitir que outra pessoa continue o desenvolvimento sem depender de quem escreveu.
 
@@ -14,7 +14,7 @@ Site publicado: https://profgiancarllo.github.io/myroca/ (GitHub Pages, ramo `gh
 - Mapa: Leaflet. Cena 2.5D "Minha fazenda": `three` + `xrblocks` (`src/components/FarmGameView.ts`), hoje escondida da interface.
 - Persistência: `localStorage` (dados da fazenda e da conta, por usuário) e IndexedDB (imagem de satélite em cache). Não há banco de dados nem servidor.
 - Dependências de IA/voz: reconhecimento de fala (microfone) pela Web Speech API do navegador; perguntas livres e a voz natural da assistente passam por um Cloudflare Worker (`worker/`), que chama a API da Anthropic (respostas) e a da OpenAI (voz, rota `/tts`).
-- `package.json` ainda tem o nome `xrblocks-example` e dependências herdadas de um template (`@google/genai`, `openai`, `rapier3d`, `mediapipe`, `uikit`...). Boa parte não é usada pelo MyRoça; vale auditar e remover.
+- `package.json` ainda tem o nome `xrblocks-example` e dependências herdadas de um template (`@google/genai`, `openai`, `rapier3d`, `mediapipe`, `uikit`...). Boa parte não é usada pelo SpaceAgro; vale auditar e remover.
 
 ## 3. Rodar, validar, publicar
 

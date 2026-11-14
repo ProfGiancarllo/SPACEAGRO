@@ -1879,14 +1879,14 @@ ${isSuperAdmin() ? `<div class="menu-head">Sistema</div>
     // Export Actions
     document.getElementById('btn-export-geojson')?.addEventListener('click', () => {
       const geojson = exportToGeoJSON(this.farmData);
-      this.downloadFile(geojson, 'myroca_fazenda_rio_verde.geojson', 'application/geo+json');
+      this.downloadFile(geojson, 'spaceagro_fazenda_rio_verde.geojson', 'application/geo+json');
       this.showToast(t('toastExportGeoJSON'));
       this.closeModals();
     });
 
     document.getElementById('btn-export-kml')?.addEventListener('click', () => {
       const kml = exportToKML(this.farmData);
-      this.downloadFile(kml, 'myroca_fazenda_rio_verde.kml', 'application/vnd.google-earth.kml+xml');
+      this.downloadFile(kml, 'spaceagro_fazenda_rio_verde.kml', 'application/vnd.google-earth.kml+xml');
       this.showToast(t('toastExportKML'));
       this.closeModals();
     });

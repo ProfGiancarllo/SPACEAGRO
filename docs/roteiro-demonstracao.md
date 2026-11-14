@@ -1,4 +1,4 @@
-# Roteiro de demonstração MyRoça (≈3 min)
+# Roteiro de demonstração SpaceAgro (≈3 min)
 
 **Abertura:** vídeo de ~12 s toca ao abrir o app (satélite → dados → fazenda → gêmeo digital → produtor + "Olhando de cima, a gente te ajuda."). Botão Pular/Entrar. Para desligar em testes: adicionar `?intro=0` ao endereço.
 

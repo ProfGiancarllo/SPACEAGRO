@@ -1,4 +1,4 @@
-# Publica o MyRoça no GitHub Pages (ramo "gh-pages") a cada atualização.
+# Publica o SpaceAgro no GitHub Pages (ramo "gh-pages") a cada atualização.
 name: Publicar site
 on:
   push:
