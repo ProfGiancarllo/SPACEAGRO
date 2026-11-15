@@ -85,6 +85,22 @@ const html = (t: LandingDict, lang: LandingLang) => `
     </div>
   </section>
 
+  <section class="lp-sec lp-dark lp-video-sec" id="lp-video">
+    <div class="lp-wrap">
+      <div class="lp-video-head">
+        <h2>${t.vidTitle}</h2>
+        <p class="lp-body">${t.vidBody}</p>
+      </div>
+      <figure class="lp-video">
+        <video controls playsinline preload="metadata" poster="${IMG}spaceagro-30s-capa.jpg" width="1920" height="1080" aria-label="${t.vidAria}">
+          <source src="${IMG}spaceagro-30s.mp4" type="video/mp4" />
+          <p>${t.vidFallback} <a href="${IMG}spaceagro-30s.mp4" download>${t.vidDownload}</a></p>
+        </video>
+        <figcaption>${t.vidNote}</figcaption>
+      </figure>
+    </div>
+  </section>
+
   <section class="lp-sec" id="lp-problema">
     <div class="lp-wrap lp-split">
       <div>
@@ -463,6 +479,7 @@ export function showLanding(): Promise<LandingChoice> {
         b.addEventListener('click', () => {
           io?.disconnect();
           globe?.destroy();
+          root.querySelector('video')?.pause();
           root.remove();
           document.title = prevTitle;
           resolve(b.dataset.go as LandingChoice);

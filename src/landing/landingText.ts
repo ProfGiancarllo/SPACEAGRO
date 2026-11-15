@@ -2,6 +2,7 @@
 export type LandingLang = 'pt' | 'en' | 'es';
 
 const pt = {
+  vidTitle: 'O SpaceAgro em 30 segundos.', vidBody: 'Do problema da data de plantio à recomendação no celular do produtor.', vidAria: 'Vídeo de apresentação do SpaceAgro', vidNote: 'Vídeo em inglês, com som.', vidFallback: 'Seu navegador não toca este vídeo.', vidDownload: 'Baixar o vídeo',
   tStep: 'Talhão {i} de {n}', tCrop: 'Cultura', tArea: 'Área', tPhase: 'Fase hoje', tHarvest: 'Colheita prevista', tWater: 'Água na fazenda', tStruct: 'Estrutura',
   tFireTitle: 'Foco de calor a {d} km', tFireBody: 'Detectado pelo satélite VIIRS (NOAA-20) nas últimas 24 h. Nenhum foco a até {r} km da fazenda.',
   stTour: 'Conhecendo a fazenda de demonstração: talhões, água e focos de calor.', stPaused: 'Tour pausado. Arraste o mapa para explorar.',
@@ -125,6 +126,7 @@ const pt = {
 type Dict = typeof pt;
 
 const en: Dict = {
+  vidTitle: 'SpaceAgro in 30 seconds.', vidBody: 'From the planting-date problem to a recommendation on the farmer’s phone.', vidAria: 'SpaceAgro presentation video', vidNote: 'Video with sound.', vidFallback: 'Your browser cannot play this video.', vidDownload: 'Download the video',
   tStep: 'Field {i} of {n}', tCrop: 'Crop', tArea: 'Area', tPhase: 'Stage today', tHarvest: 'Expected harvest', tWater: 'Water on the farm', tStruct: 'Structure',
   tFireTitle: 'Active fire {d} km away', tFireBody: 'Detected by the VIIRS satellite (NOAA-20) in the last 24 h. No fires within {r} km of the farm.',
   stTour: 'Touring the demo farm: fields, water and active fires.', stPaused: 'Tour paused. Drag the map to explore.',
@@ -246,6 +248,7 @@ const en: Dict = {
 };
 
 const es: Dict = {
+  vidTitle: 'SpaceAgro en 30 segundos.', vidBody: 'Del problema de la fecha de siembra a la recomendación en el celular del productor.', vidAria: 'Video de presentación de SpaceAgro', vidNote: 'Video en inglés, con sonido.', vidFallback: 'Su navegador no puede reproducir este video.', vidDownload: 'Descargar el video',
   tStep: 'Lote {i} de {n}', tCrop: 'Cultivo', tArea: 'Área', tPhase: 'Etapa hoy', tHarvest: 'Cosecha prevista', tWater: 'Agua en la finca', tStruct: 'Estructura',
   tFireTitle: 'Foco de calor a {d} km', tFireBody: 'Detectado por el satélite VIIRS (NOAA-20) en las últimas 24 h. Ningún foco a menos de {r} km de la finca.',
   stTour: 'Recorriendo la finca de demostración: lotes, agua y focos de calor.', stPaused: 'Recorrido en pausa. Arrastre el mapa para explorar.',

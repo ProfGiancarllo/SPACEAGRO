@@ -406,3 +406,18 @@
 }
 .lp-gm-far .lp-gm { visibility: hidden; }
 .lp-gm-edge[hidden] { display: none; }
+
+/* Vídeo de apresentação */
+.lp-video-sec { padding-top: 72px; }
+.lp-video-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 32px; margin-bottom: 28px; }
+#landing .lp-video-head h2 { margin-bottom: 0; }
+.lp-video-head .lp-body { max-width: 46ch; }
+.lp-video { margin: 0; }
+.lp-video video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 14px; border: 1px solid var(--lp-space-line); background: #000; box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4); }
+.lp-video video:focus-visible { outline: 2px solid var(--lp-lime); outline-offset: 3px; }
+.lp-video figcaption { margin-top: 12px; font-size: 13px; color: var(--lp-on-dark-2); }
+.lp-video a { color: var(--lp-lime); }
+@media (max-width: 640px) {
+  .lp-video-sec { padding-top: 48px; }
+  .lp-video video { border-radius: 10px; }
+}
