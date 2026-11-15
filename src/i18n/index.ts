@@ -16,17 +16,12 @@ function detectInitialLanguage(): LanguageCode {
       return saved as LanguageCode;
     }
 
-    const browserLang = (navigator.language || (navigator as { userLanguage?: string }).userLanguage || '').toLowerCase();
-    if (browserLang.startsWith('pt')) return 'pt';
-    if (browserLang.startsWith('es')) return 'es';
-    if (browserLang.startsWith('de')) return 'de';
-    if (browserLang.startsWith('fr')) return 'fr';
-    if (browserLang.startsWith('en')) return 'en';
   } catch {
     // ignore localStorage errors in sandboxed iframes
   }
 
-  return 'pt'; // Default: Português (pt-BR)
+  // Idioma oficial: inglês. Só muda se a pessoa escolher outro no seletor (fica salvo).
+  return 'en';
 }
 
 let currentLanguage: LanguageCode = detectInitialLanguage();
