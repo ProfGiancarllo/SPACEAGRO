@@ -6,6 +6,7 @@
  */
 import { DiaryWeather } from '../types';
 import { addDaysIso, fetchNasaSeries } from './nasaPower';
+import { omFetch, omPoint } from './openMeteo';
 
 type Day = { rain: number | null; tmax: number | null; tmin: number | null };
 const mem = new Map<string, Record<string, DiaryWeather>>();
@@ -18,16 +19,13 @@ async function openMeteoDays(lat: number, lng: number, start: string, end: strin
   const today = new Date().toISOString().slice(0, 10);
   const recent = diffDaysIso(start, today) <= 90;
   const base = recent ? 'https://api.open-meteo.com/v1/forecast' : 'https://archive-api.open-meteo.com/v1/archive';
+  const pt = omPoint(lat, lng);
   const url = recent
-    ? `${base}?latitude=${lat.toFixed(2)}&longitude=${lng.toFixed(2)}&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&timezone=auto&past_days=${Math.min(92, diffDaysIso(start, today) + 1)}&forecast_days=1`
-    : `${base}?latitude=${lat.toFixed(2)}&longitude=${lng.toFixed(2)}&start_date=${start}&end_date=${end}&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&timezone=auto`;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 15000);
+    ? `${base}?latitude=${pt.lat}&longitude=${pt.lng}&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&timezone=auto&past_days=${Math.min(92, diffDaysIso(start, today) + 1)}&forecast_days=1`
+    : `${base}?latitude=${pt.lat}&longitude=${pt.lng}&start_date=${start}&end_date=${end}&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&timezone=auto`;
   try {
-    const res = await fetch(url, { signal: ctrl.signal });
-    if (!res.ok) return {};
-    const j = await res.json();
-    const d = j?.daily;
+    const got = await omFetch(url, recent ? 6 * 3600_000 : 30 * 86400_000, 15000);
+    const d = got?.data?.daily;
     const out: Record<string, Day> = {};
     (d?.time || []).forEach((t: string, i: number) => {
       out[t] = { rain: num(d.precipitation_sum?.[i]), tmax: num(d.temperature_2m_max?.[i]), tmin: num(d.temperature_2m_min?.[i]) };
@@ -35,8 +33,6 @@ async function openMeteoDays(lat: number, lng: number, start: string, end: strin
     return out;
   } catch {
     return {};
-  } finally {
-    clearTimeout(timer);
   }
 }
 

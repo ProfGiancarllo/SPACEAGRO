@@ -44,6 +44,7 @@ const SYSTEM =
   'linha 1 = a resposta à pergunta, com sua opinião e o motivo em uma frase (cite o dado, ex.: "dados da NASA: 33 mm em 14 dias"); ' +
   'linha 2 (só se houver pendência ou problema no diário) = começa com "Atenção:" e traz SÓ o item mais importante, com o talhão; ' +
   'linha 3 = começa com "Próximo passo:" e diz UMA ação e onde clicar. Um assunto por linha; não junte vários talhões e temas na mesma frase. ' +
+  'Se "tempoNaFazenda" disser que a previsão está indisponível, diga isso em uma frase, NÃO dê opinião sobre pulverizar ou plantar com base no tempo, e mande ver o cartão "Clima na fazenda" na tela inicial mais tarde (nunca "Dados NASA" para previsão). ' +
   'TEMPO: para perguntas de clima, chuva, previsão ou hora de pulverizar, use "tempoNaFazenda" (agora, hoje, amanhã e "janelaPulverizacao24h"): diga a temperatura e a condição de agora, quando deve chover (horário e chance), máxima e mínima, e a janela de pulverização; cite "Open-Meteo". Para os próximos 7 dias use "previsaoTempo7d" do talhão. ' +
   'DADOS REAIS DE CADA TALHÃO (em "fields"); use sempre os do talhão perguntado e cite a fonte e a data: ' +
   '"climaObservadoNasa" = chuva, dias secos, temperatura e sol medidos (NASA POWER) no "periodo" indicado; diga "dados da NASA". ' +
@@ -62,7 +63,7 @@ const SYSTEM =
   'Se algo estiver em "dadosFaltando", diga o que falta em vez de inventar. Junte as fontes quando concordarem (ex.: pouca chuva da NASA + esi baixo = falta de água confirmada) e aponte quando discordarem. ' +
   'COMO VOCÊ AGE: (1) SEMPRE dê a sua opinião, clara e direta ("Eu faria assim", "Eu não faria isso agora"), com o motivo em uma frase, usando os dados da fazenda; ' +
   'não fique em cima do muro. (2) SEMPRE ajude o produtor a usar o aplicativo: diga onde clicar. Mapa do app: menu "Safra" > "Safra atual" (planejamento da lavoura em curso), "Trocar de safra" (comparar culturas e preços), ' +
-  '"Diário de safra" (registrar plantio, adubação, aplicações, chuva, colheita), "Dados NASA" (mapas de satélite e risco hídrico); menu "Talhões" (criar/editar talhões); "Estruturas e água"; "Fazenda" (importar/exportar). ' +
+  '"Diário de safra" (registrar plantio, adubação, aplicações, chuva, colheita), "Dados NASA" (mapas de satélite e risco hídrico); tela inicial: cartão "Clima na fazenda" (tempo agora, previsão por hora, janela de pulverização; "Ver previsão completa" abre 48 h); menu "Talhões" (criar/editar talhões); "Estruturas e água"; "Fazenda" (importar/exportar). ' +
   '(3) Seja INTERVENTORA: use "pendencias" e "problemasDoDiario" do contexto. Se houver itens, cobre o mais importante na linha "Atenção:", nomeando o talhão e o que refazer (ex.: "Atenção: no Talhão 2 a colheita de 380 sc/ha está fora do normal; corrija em Safra > Diário de safra."). Os demais ficam para as próximas respostas. ' +
   'Códigos de problema: data_futura=data depois de hoje; sem_quantidade=falta dose/quantidade; valor_improvavel=número fora do normal; sem_produto=falta produto ou cultivar; duplicado=registro repetido; plantio_fora_do_diario=plantio sem registro no diário. ' +
   'Tipos de pendência: crop=falta a cultura; planting=falta data de plantio; harvest=ciclo terminou e falta registrar a colheita; cultivar=falta a cultivar; diary=sem registros recentes. ' +
@@ -99,6 +100,7 @@ export default {
     }
     if (path.endsWith('/fires')) return fires(req, env, cors, ip + day + ':fi');
     if (path.endsWith('/forecast')) return forecast(req, env, cors, ip + day + ':fc');
+    if (path.endsWith('/om')) return openMeteo(req, cors, ip + day + ':om');
     if (path.endsWith('/tts')) return tts(req, env, cors, ip + day + ':tts');
     return ask(req, env, cors, ip + day);
   },
@@ -297,6 +299,32 @@ function contextoComPrevisoes(raw) {
     s = JSON.stringify(c);
   }
   return s.length > MAX_CTX ? s.slice(0, MAX_CTX) : s;
+}
+
+
+// ---------------- Plano B do Open-Meteo: quando o app bate no limite diário do Open-Meteo, o servidor busca por ele
+// Só domínios do Open-Meteo, só HTTPS; cache em memória (e na borda da Cloudflare) por 30 min para dividir entre usuários.
+const OM_HOSTS = new Set(['api.open-meteo.com', 'seasonal-api.open-meteo.com', 'archive-api.open-meteo.com']);
+const omCache = new Map();
+async function openMeteo(req, cors, key) {
+  const n = (hits.get(key) || 0) + 1; hits.set(key, n);
+  if (n > 500) return json({ error: 'limite_diario' }, cors, 429);
+  let body; try { body = await req.json(); } catch { return json({ error: 'json_invalido' }, cors, 400); }
+  let u; try { u = new URL(String(body.url || '')); } catch { return json({ error: 'url_invalida' }, cors, 400); }
+  if (u.protocol !== 'https:' || !OM_HOSTS.has(u.hostname) || u.username || u.password || u.port) return json({ error: 'url_nao_permitida' }, cors, 400);
+  const k = u.toString();
+  const hit = omCache.get(k);
+  if (hit && Date.now() - hit.t < 30 * 60_000) return json(hit.data, cors);
+  try {
+    const r = await fetch(k, { cf: { cacheTtl: 1800, cacheEverything: true } });
+    if (!r.ok) return json({ error: 'open_meteo_' + r.status }, cors, 502);
+    const data = await r.json();
+    omCache.set(k, { t: Date.now(), data });
+    if (omCache.size > 300) omCache.delete(omCache.keys().next().value);
+    return json(data, cors);
+  } catch {
+    return json({ error: 'open_meteo_fora' }, cors, 502);
+  }
 }
 
 

@@ -19,6 +19,7 @@ import { cropKey, currentForecast, yieldSeries } from '../utils/forecast';
 import { cropMarket, loadMarket, slotMargin } from '../utils/market';
 import type { CropKey } from '../utils/rotation';
 import { fetchFarmForecast, sprayWindow } from '../utils/hourlyForecast';
+import { omFetch, omPoint, omLimited } from '../utils/openMeteo';
 
 /** Tamanho máximo do contexto enviado (o servidor aceita até 40 mil caracteres). */
 export const MAX_CONTEXT_CHARS = 38000;
@@ -100,11 +101,10 @@ function forecast7d(lat: number, lng: number): Promise<DayFc[] | null> {
   const hit = fcCache.get(k);
   if (hit && Date.now() - hit.t < 3 * 3600_000) return hit.p;
   const p = (async () => {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lng.toFixed(2)}&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min&forecast_days=16&timezone=auto`;
-    const r = await fetch(url);
-    if (!r.ok) return null;
-    const j = await r.json();
-    const d = j?.daily;
+    const pt = omPoint(lat, lng);
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${pt.lat}&longitude=${pt.lng}&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min&forecast_days=16&timezone=auto`;
+    const got = await omFetch(url, 3 * 3600_000);
+    const d = got?.data?.daily;
     if (!d?.time?.length) return null;
     return (d.time as string[]).map((data, i) => ({
       data, chuvaMm: r1(d.precipitation_sum?.[i]), chanceChuvaPct: r0(d.precipitation_probability_max?.[i]),
@@ -125,10 +125,9 @@ function seasonal(lat: number, lng: number): Promise<MonthOutlook[] | null> {
   const hit = seasCache.get(k);
   if (hit && Date.now() - hit.t < 12 * 3600_000) return hit.p;
   const p = (async () => {
-    const url = `https://seasonal-api.open-meteo.com/v1/seasonal?latitude=${lat.toFixed(2)}&longitude=${lng.toFixed(2)}&monthly=temperature_2m_anomaly,precipitation_anomaly&timezone=auto`;
-    const r = await fetch(url);
-    if (!r.ok) return null;
-    const m = (await r.json())?.monthly;
+    const url = `https://seasonal-api.open-meteo.com/v1/seasonal?latitude=${(Math.round(lat * 2) / 2).toFixed(1)}&longitude=${(Math.round(lng * 2) / 2).toFixed(1)}&monthly=temperature_2m_anomaly,precipitation_anomaly&timezone=auto`;
+    const got = await omFetch(url, 12 * 3600_000);
+    const m = got?.data?.monthly;
     if (!m?.time?.length) return null;
     // a primeira data pode ser o mês corrente já parcial; mantém até 5 meses
     return (m.time as string[]).slice(0, 5).map((t, i) => ({
@@ -299,7 +298,7 @@ export async function buildFarmContext(farm: FarmData, o: FieldCtxOpts, extra: R
   const fields = await Promise.all(list.map((tl, i) => fieldData(tl, o, health, stress, i < MAX_FIELDS_WITH_DATA)));
   const ctx: Record<string, any> = {
     ...extra,
-    tempoNaFazenda: tempo ?? 'previsão por hora indisponível agora',
+    tempoNaFazenda: tempo ?? (omLimited() ? 'previsão indisponível agora: o serviço de previsão (Open-Meteo) atingiu o limite de consultas; volta sozinho em até 1 hora' : 'previsão por hora indisponível agora'),
     fontesSatelite: {
       landsat: health ? { fonte: health.fonte, geradoEm: health.gerado_em, aviso: health.aviso } : 'indisponível agora',
       ecostress: stress ? { fonte: stress.fonte, geradoEm: stress.gerado_em, limiteEsi: stress.limite_esi } : 'indisponível agora',

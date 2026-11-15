@@ -3,6 +3,7 @@
  * Também calcula a janela de pulverização a partir da previsão (regras de boa prática de aplicação).
  */
 import { Condition, fromWmo } from './weather';
+import { omFetch, omPoint } from './openMeteo';
 
 export interface HourPoint {
   time: string;          // 'AAAA-MM-DDTHH:00' no fuso da fazenda
@@ -24,28 +25,22 @@ export interface FarmForecast {
   days: DayPoint[];
 }
 
-const CACHE = 'myroca_hourly_cache_v1';
 const TTL = 30 * 60 * 1000;
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
 export async function fetchFarmForecast(lat: number, lng: number): Promise<FarmForecast | null> {
-  const key = `${CACHE}_${lat.toFixed(2)}_${lng.toFixed(2)}`;
-  let cached: FarmForecast | null = null;
-  try { cached = JSON.parse(localStorage.getItem(key) || 'null'); } catch { cached = null; }
-  if (cached && Date.now() - cached.at < TTL) return cached;
+  const pt = omPoint(lat, lng);
   const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}` +
+    `https://api.open-meteo.com/v1/forecast?latitude=${pt.lat}&longitude=${pt.lng}` +
     `&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,cloud_cover,wind_speed_10m,is_day` +
     `&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,cloud_cover,is_day,wind_speed_10m,relative_humidity_2m` +
     `&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&forecast_days=3&timezone=auto`;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 10000);
   try {
-    const res = await fetch(url, { signal: ctrl.signal });
-    if (!res.ok) return cached;
-    const j = await res.json();
+    const got = await omFetch(url, TTL, 10000);
+    if (!got) return null;
+    const j = got.data;
     const c = j?.current, h = j?.hourly, d = j?.daily;
-    if (!c || !h || !Array.isArray(h.time)) return cached;
+    if (!c || !h || !Array.isArray(h.time)) return null;
     const nowHour = String(c.time).slice(0, 13);
     const hours: HourPoint[] = [];
     let nowPop: number | null = null;
@@ -68,7 +63,7 @@ export async function fetchFarmForecast(lat: number, lng: number): Promise<FarmF
       sunrise: d.sunrise?.[i] ? String(d.sunrise[i]) : null, sunset: d.sunset?.[i] ? String(d.sunset[i]) : null,
     }));
     const out: FarmForecast = {
-      at: Date.now(),
+      at: got.at,
       now: {
         time: String(c.time), pop: nowPop, temp: num(c.temperature_2m), feels: num(c.apparent_temperature), hum: num(c.relative_humidity_2m),
         wind: num(c.wind_speed_10m), precip: num(c.precipitation),
@@ -76,12 +71,9 @@ export async function fetchFarmForecast(lat: number, lng: number): Promise<FarmF
       },
       hours, days,
     };
-    try { localStorage.setItem(key, JSON.stringify(out)); } catch { /* ignora */ }
     return out;
   } catch {
-    return cached;
-  } finally {
-    clearTimeout(timer);
+    return null;
   }
 }
 

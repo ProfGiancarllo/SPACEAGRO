@@ -3,6 +3,7 @@
  * e umidade do solo estimada pelo ERA5-Land (via Open-Meteo, reanálise com assimilação de satélite).
  */
 import { fetchNasaSeries } from './nasaPower';
+import { omFetch, omPoint } from './openMeteo';
 
 export type WaterLevel = 'low' | 'medium' | 'high';
 export interface WaterInfo {
@@ -24,13 +25,12 @@ export function classifyWater(balance: number, soil: number | null): WaterLevel 
 }
 
 async function load(lat: number, lng: number): Promise<WaterInfo | null> {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lng.toFixed(2)}&daily=precipitation_sum,et0_fao_evapotranspiration&hourly=soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm&past_days=30&forecast_days=4&timezone=auto`;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 15000);
+  const pt = omPoint(lat, lng);
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${pt.lat}&longitude=${pt.lng}&daily=precipitation_sum,et0_fao_evapotranspiration&hourly=soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm&past_days=30&forecast_days=4&timezone=auto`;
   try {
-    const res = await fetch(url, { signal: ctrl.signal });
-    if (!res.ok) return null;
-    const j = await res.json();
+    const got = await omFetch(url, 3 * 3600_000, 15000);
+    if (!got) return null;
+    const j = got.data;
     const times: string[] = j?.daily?.time || [];
     if (!times.length) return null;
     const today = new Date().toISOString().slice(0, 10);
@@ -57,7 +57,7 @@ async function load(lat: number, lng: number): Promise<WaterInfo | null> {
     } catch { /* sem NASA POWER: fica a chuva do Open-Meteo */ }
     const balance = rainFinal - et0;
     return { rain30: rainFinal, et0, balance, soil, rainNext3: sum(next.map(rain)), level: classifyWater(balance, soil), src: 'Open-Meteo (ERA5-Land)', rainSrc };
-  } catch { return null; } finally { clearTimeout(timer); }
+  } catch { return null; }
 }
 
 /** Resultado em cache por quadrícula de 0,1° (talhões vizinhos repetem o pedido). */
