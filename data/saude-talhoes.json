@@ -1,0 +1,1076 @@
+{
+ "gerado_em": "2026-11-15",
+ "fonte": "Landsat 8/9 Collection 2 Nível-2 (NASA/USGS) via Microsoft Planetary Computer",
+ "aviso": "Alerta de triagem; não é diagnóstico. Curva esperada aproximada.",
+ "talhoes": [
+  {
+   "id": "talhao_demo_01",
+   "nome": "Talhão 01 [Exemplo]",
+   "cultura": "soja",
+   "plantio_informado": "2026-10-10",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI bem acima do esperado para a fase (0.57 contra 0.25). Confira se a data de plantio informada está certa."
+   ],
+   "nivel": "ok",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.568,
+    "ndmi": -0.016,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 9,
+   "fase_informada": "emergência",
+   "ndvi_esperado": 0.248,
+   "desvio_vs_esperado": 0.32,
+   "ndvi_mediana_pares": 0.537,
+   "zona_fraca_pct": 8.1,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.321,
+     "ndmi": -0.215
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.306,
+     "ndmi": -0.211
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.295,
+     "ndmi": -0.208
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.314,
+     "ndmi": -0.234
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.355,
+     "ndmi": -0.196
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.568,
+     "ndmi": -0.016
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_02",
+   "nome": "Talhão 02 [Exemplo]",
+   "cultura": "soja",
+   "plantio_informado": "2026-09-20",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI bem acima do esperado para a fase (0.70 contra 0.49). Confira se a data de plantio informada está certa."
+   ],
+   "nivel": "ok",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.7,
+    "ndmi": 0.118,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 29,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.485,
+   "desvio_vs_esperado": 0.215,
+   "ndvi_mediana_pares": 0.439,
+   "zona_fraca_pct": 6.5,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.348,
+     "ndmi": -0.219
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.331,
+     "ndmi": -0.22
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.316,
+     "ndmi": -0.219
+    },
+    {
+     "data": "2026-09-01",
+     "ndvi": 0.331,
+     "ndmi": -0.156
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.322,
+     "ndmi": -0.242
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.398,
+     "ndmi": -0.174
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.7,
+     "ndmi": 0.118
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_04",
+   "nome": "Talhão 4",
+   "cultura": "soja",
+   "plantio_informado": "2026-10-12",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI bem acima do esperado para a fase (0.66 contra 0.24). Confira se a data de plantio informada está certa."
+   ],
+   "nivel": "ok",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.665,
+    "ndmi": 0.095,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 7,
+   "fase_informada": "emergência",
+   "ndvi_esperado": 0.237,
+   "desvio_vs_esperado": 0.427,
+   "ndvi_mediana_pares": 0.511,
+   "zona_fraca_pct": 3.4,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.35,
+     "ndmi": -0.128
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.329,
+     "ndmi": -0.125
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.319,
+     "ndmi": -0.126
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.473,
+     "ndmi": -0.064
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.506,
+     "ndmi": -0.048
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.665,
+     "ndmi": 0.095
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_05",
+   "nome": "Talhão 5",
+   "cultura": "milho",
+   "plantio_informado": "2026-07-12",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "Vigor abaixo do esperado para enchimento de grãos nas duas últimas imagens (NDVI 0.56 contra 0.80 esperado)."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.555,
+    "ndmi": -0.035,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 99,
+   "fase_informada": "enchimento de grãos",
+   "ndvi_esperado": 0.804,
+   "desvio_vs_esperado": -0.249,
+   "ndvi_mediana_pares": 0.254,
+   "zona_fraca_pct": 14.8,
+   "serie": [
+    {
+     "data": "2026-06-29",
+     "ndvi": 0.443,
+     "ndmi": -0.134
+    },
+    {
+     "data": "2026-07-07",
+     "ndvi": 0.415,
+     "ndmi": -0.146
+    },
+    {
+     "data": "2026-07-15",
+     "ndvi": 0.404,
+     "ndmi": -0.156
+    },
+    {
+     "data": "2026-07-23",
+     "ndvi": 0.377,
+     "ndmi": -0.127
+    },
+    {
+     "data": "2026-07-31",
+     "ndvi": 0.371,
+     "ndmi": -0.156
+    },
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.348,
+     "ndmi": -0.154
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.328,
+     "ndmi": -0.15
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.313,
+     "ndmi": -0.149
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.358,
+     "ndmi": -0.183
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.386,
+     "ndmi": -0.157
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.555,
+     "ndmi": -0.035
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_06",
+   "nome": "Talhão 6",
+   "cultura": "soja",
+   "plantio_informado": "2026-10-05",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI bem acima do esperado para a fase (0.63 contra 0.27). Confira se a data de plantio informada está certa."
+   ],
+   "nivel": "ok",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.628,
+    "ndmi": 0.033,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 14,
+   "fase_informada": "emergência",
+   "ndvi_esperado": 0.275,
+   "desvio_vs_esperado": 0.353,
+   "ndvi_mediana_pares": 0.537,
+   "zona_fraca_pct": 2.8,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.33,
+     "ndmi": -0.216
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.317,
+     "ndmi": -0.21
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.308,
+     "ndmi": -0.208
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.38,
+     "ndmi": -0.199
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.432,
+     "ndmi": -0.16
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.628,
+     "ndmi": 0.033
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_07",
+   "nome": "Talhão 7",
+   "cultura": "milho",
+   "plantio_informado": "2026-10-02",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI bem acima do esperado para a fase (0.61 contra 0.33). Confira se a data de plantio informada está certa."
+   ],
+   "nivel": "ok",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.61,
+    "ndmi": 0.033,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 17,
+   "fase_informada": "emergência",
+   "ndvi_esperado": 0.328,
+   "desvio_vs_esperado": 0.283,
+   "ndvi_mediana_pares": 0.645,
+   "zona_fraca_pct": 2.6,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.358,
+     "ndmi": -0.129
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.343,
+     "ndmi": -0.13
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.333,
+     "ndmi": -0.134
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.434,
+     "ndmi": -0.118
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.454,
+     "ndmi": -0.11
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.61,
+     "ndmi": 0.033
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_08",
+   "nome": "Talhão 8",
+   "cultura": "soja",
+   "plantio_informado": "2026-10-18",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI bem acima do esperado para a fase (0.60 contra 0.21). Confira se a data de plantio informada está certa.",
+    "Zona fraca em 26% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.598,
+    "ndmi": 0.013,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 1,
+   "fase_informada": "emergência",
+   "ndvi_esperado": 0.205,
+   "desvio_vs_esperado": 0.393,
+   "ndvi_mediana_pares": 0.511,
+   "zona_fraca_pct": 25.9,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.34,
+     "ndmi": -0.168
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.322,
+     "ndmi": -0.166
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.312,
+     "ndmi": -0.167
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.473,
+     "ndmi": -0.072
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.472,
+     "ndmi": -0.097
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.598,
+     "ndmi": 0.013
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_10",
+   "nome": "Talhão 10",
+   "cultura": "soja",
+   "plantio_informado": "2026-09-28",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI 0.44 abaixo da mediana dos talhões parecidos (0.57).",
+    "Zona fraca em 44% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.439,
+    "ndmi": -0.119,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 21,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.368,
+   "desvio_vs_esperado": 0.071,
+   "ndvi_mediana_pares": 0.565,
+   "zona_fraca_pct": 44.0,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.34,
+     "ndmi": -0.144
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.317,
+     "ndmi": -0.137
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.302,
+     "ndmi": -0.136
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.299,
+     "ndmi": -0.197
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.311,
+     "ndmi": -0.186
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.439,
+     "ndmi": -0.119
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_11",
+   "nome": "Talhão 11",
+   "cultura": "milho",
+   "plantio_informado": "2026-07-20",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "Vigor abaixo do esperado para enchimento de grãos nas duas últimas imagens (NDVI 0.63 contra 0.84 esperado)."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.629,
+    "ndmi": 0.052,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 91,
+   "fase_informada": "enchimento de grãos",
+   "ndvi_esperado": 0.836,
+   "desvio_vs_esperado": -0.207,
+   "ndvi_mediana_pares": 0.254,
+   "zona_fraca_pct": 0.1,
+   "serie": [
+    {
+     "data": "2026-07-07",
+     "ndvi": 0.368,
+     "ndmi": -0.196
+    },
+    {
+     "data": "2026-07-15",
+     "ndvi": 0.358,
+     "ndmi": -0.208
+    },
+    {
+     "data": "2026-07-23",
+     "ndvi": 0.344,
+     "ndmi": -0.189
+    },
+    {
+     "data": "2026-07-31",
+     "ndvi": 0.341,
+     "ndmi": -0.216
+    },
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.323,
+     "ndmi": -0.218
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.309,
+     "ndmi": -0.213
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.3,
+     "ndmi": -0.208
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.354,
+     "ndmi": -0.206
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.406,
+     "ndmi": -0.142
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.629,
+     "ndmi": 0.052
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_12",
+   "nome": "Talhão 12",
+   "cultura": "soja",
+   "plantio_informado": "2026-10-12",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI bem acima do esperado para a fase (0.51 contra 0.24). Confira se a data de plantio informada está certa.",
+    "Zona fraca em 32% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.511,
+    "ndmi": -0.045,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 7,
+   "fase_informada": "emergência",
+   "ndvi_esperado": 0.237,
+   "desvio_vs_esperado": 0.273,
+   "ndvi_mediana_pares": 0.563,
+   "zona_fraca_pct": 31.7,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.297,
+     "ndmi": -0.209
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.284,
+     "ndmi": -0.205
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.279,
+     "ndmi": -0.203
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.305,
+     "ndmi": -0.215
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.326,
+     "ndmi": -0.2
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.511,
+     "ndmi": -0.045
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_13",
+   "nome": "Talhão 13",
+   "cultura": "milho",
+   "plantio_informado": "2026-07-12",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "Vigor abaixo do esperado para enchimento de grãos nas duas últimas imagens (NDVI 0.25 contra 0.80 esperado).",
+    "NDVI 0.25 abaixo da mediana dos talhões parecidos (0.56)."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.254,
+    "ndmi": -0.198,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 99,
+   "fase_informada": "enchimento de grãos",
+   "ndvi_esperado": 0.804,
+   "desvio_vs_esperado": -0.55,
+   "ndvi_mediana_pares": 0.555,
+   "zona_fraca_pct": 0.0,
+   "serie": [
+    {
+     "data": "2026-06-29",
+     "ndvi": 0.539,
+     "ndmi": -0.02
+    },
+    {
+     "data": "2026-07-07",
+     "ndvi": 0.478,
+     "ndmi": -0.063
+    },
+    {
+     "data": "2026-07-15",
+     "ndvi": 0.428,
+     "ndmi": -0.101
+    },
+    {
+     "data": "2026-07-23",
+     "ndvi": 0.368,
+     "ndmi": -0.107
+    },
+    {
+     "data": "2026-07-31",
+     "ndvi": 0.359,
+     "ndmi": -0.137
+    },
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.322,
+     "ndmi": -0.146
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.303,
+     "ndmi": -0.14
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.289,
+     "ndmi": -0.138
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.311,
+     "ndmi": -0.183
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.361,
+     "ndmi": -0.147
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.254,
+     "ndmi": -0.198
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_14",
+   "nome": "Talhão 14",
+   "cultura": "soja",
+   "plantio_informado": "2026-10-05",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI 0.24 abaixo da mediana dos talhões parecidos (0.57).",
+    "Teor de água na folha em queda (NDMI -0.22 contra -0.10 nas imagens anteriores). Pode indicar estresse hídrico: confira chuva e umidade."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.241,
+    "ndmi": -0.22,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 14,
+   "fase_informada": "emergência",
+   "ndvi_esperado": 0.275,
+   "desvio_vs_esperado": -0.033,
+   "ndvi_mediana_pares": 0.565,
+   "zona_fraca_pct": 0.0,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.334,
+     "ndmi": -0.134
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.315,
+     "ndmi": -0.134
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.309,
+     "ndmi": -0.124
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.433,
+     "ndmi": -0.104
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.457,
+     "ndmi": -0.069
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.241,
+     "ndmi": -0.22
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_15",
+   "nome": "Talhão 15",
+   "cultura": "milho",
+   "plantio_informado": "2026-10-02",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI bem acima do esperado para a fase (0.64 contra 0.33). Confira se a data de plantio informada está certa."
+   ],
+   "nivel": "ok",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.645,
+    "ndmi": 0.101,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 17,
+   "fase_informada": "emergência",
+   "ndvi_esperado": 0.328,
+   "desvio_vs_esperado": 0.317,
+   "ndvi_mediana_pares": 0.61,
+   "zona_fraca_pct": 9.2,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.352,
+     "ndmi": -0.16
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.33,
+     "ndmi": -0.161
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.314,
+     "ndmi": -0.157
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.36,
+     "ndmi": -0.158
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.45,
+     "ndmi": -0.087
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.645,
+     "ndmi": 0.101
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_16",
+   "nome": "Talhão 16",
+   "cultura": "soja",
+   "plantio_informado": "2026-10-18",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI bem acima do esperado para a fase (0.56 contra 0.21). Confira se a data de plantio informada está certa.",
+    "Zona fraca em 15% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.563,
+    "ndmi": -0.03,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 1,
+   "fase_informada": "emergência",
+   "ndvi_esperado": 0.205,
+   "desvio_vs_esperado": 0.357,
+   "ndvi_mediana_pares": 0.511,
+   "zona_fraca_pct": 15.1,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.36,
+     "ndmi": -0.191
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.339,
+     "ndmi": -0.195
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.322,
+     "ndmi": -0.195
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.341,
+     "ndmi": -0.235
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.401,
+     "ndmi": -0.18
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.563,
+     "ndmi": -0.03
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_18",
+   "nome": "Talhão 18",
+   "cultura": "soja",
+   "plantio_informado": "2026-09-28",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI 0.27 abaixo da mediana dos talhões parecidos (0.57)."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.272,
+    "ndmi": -0.223,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 21,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.368,
+   "desvio_vs_esperado": -0.096,
+   "ndvi_mediana_pares": 0.565,
+   "zona_fraca_pct": 0.2,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.436,
+     "ndmi": -0.101
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.366,
+     "ndmi": -0.138
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.324,
+     "ndmi": -0.153
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.328,
+     "ndmi": -0.2
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.394,
+     "ndmi": -0.151
+    },
+    {
+     "data": "2026-10-03",
+     "ndvi": 0.549,
+     "ndmi": 0.0
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.272,
+     "ndmi": -0.223
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_19",
+   "nome": "Talhão 19",
+   "cultura": "milho",
+   "plantio_informado": "2026-07-20",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "Vigor abaixo do esperado para enchimento de grãos nas duas últimas imagens (NDVI 0.25 contra 0.84 esperado).",
+    "NDVI 0.25 abaixo da mediana dos talhões parecidos (0.56)."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.249,
+    "ndmi": -0.191,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 91,
+   "fase_informada": "enchimento de grãos",
+   "ndvi_esperado": 0.836,
+   "desvio_vs_esperado": -0.587,
+   "ndvi_mediana_pares": 0.555,
+   "zona_fraca_pct": 0.0,
+   "serie": [
+    {
+     "data": "2026-07-07",
+     "ndvi": 0.352,
+     "ndmi": -0.222
+    },
+    {
+     "data": "2026-07-15",
+     "ndvi": 0.356,
+     "ndmi": -0.223
+    },
+    {
+     "data": "2026-07-23",
+     "ndvi": 0.292,
+     "ndmi": -0.055
+    },
+    {
+     "data": "2026-07-31",
+     "ndvi": 0.285,
+     "ndmi": -0.115
+    },
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.282,
+     "ndmi": -0.12
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.251,
+     "ndmi": -0.097
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.249,
+     "ndmi": -0.094
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.252,
+     "ndmi": -0.22
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.265,
+     "ndmi": -0.216
+    },
+    {
+     "data": "2026-10-03",
+     "ndvi": 0.397,
+     "ndmi": -0.123
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.249,
+     "ndmi": -0.191
+    }
+   ]
+  },
+  {
+   "id": "talhao_demo_20",
+   "nome": "Talhão 20",
+   "cultura": "soja",
+   "plantio_informado": "2026-10-12",
+   "alertas": [
+    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
+    "NDVI 0.28 abaixo da mediana dos talhões parecidos (0.56)."
+   ],
+   "nivel": "atencao",
+   "ultima_imagem": {
+    "data": "2026-10-19",
+    "dias_atras": 27,
+    "ndvi": 0.282,
+    "ndmi": -0.159,
+    "pct_valido": 1.0
+   },
+   "dap_na_imagem": 7,
+   "fase_informada": "emergência",
+   "ndvi_esperado": 0.237,
+   "desvio_vs_esperado": 0.045,
+   "ndvi_mediana_pares": 0.563,
+   "zona_fraca_pct": 1.1,
+   "serie": [
+    {
+     "data": "2026-08-08",
+     "ndvi": 0.304,
+     "ndmi": -0.114
+    },
+    {
+     "data": "2026-08-16",
+     "ndvi": 0.265,
+     "ndmi": -0.098
+    },
+    {
+     "data": "2026-08-24",
+     "ndvi": 0.261,
+     "ndmi": -0.093
+    },
+    {
+     "data": "2026-09-17",
+     "ndvi": 0.285,
+     "ndmi": -0.202
+    },
+    {
+     "data": "2026-09-25",
+     "ndvi": 0.296,
+     "ndmi": -0.196
+    },
+    {
+     "data": "2026-10-03",
+     "ndvi": 0.456,
+     "ndmi": -0.046
+    },
+    {
+     "data": "2026-10-19",
+     "ndvi": 0.282,
+     "ndmi": -0.159
+    }
+   ]
+  }
+ ]
+}
