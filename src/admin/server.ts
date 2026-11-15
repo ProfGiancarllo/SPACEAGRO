@@ -43,6 +43,8 @@ export interface ServerStatus {
   kv?: boolean;
   claude?: { configured: boolean; from: string; hint: string };
   voice?: { configured: boolean; from: string; hint: string };
+  eleven?: { configured: boolean; from: string; hint: string; voiceId: string; model: string; ready: boolean };
+  elevenModels?: string[];
   model?: string;
   voiceName?: string;
   models?: string[];
@@ -86,6 +88,9 @@ export function errorText(code?: string): string {
     chave_openai_invalida: 'A chave da OpenAI parece inválida. Ela começa com sk-.',
     modelo_invalido: 'Modelo não permitido.',
     voz_invalida: 'Voz não permitida.',
+    chave_eleven_invalida: 'A chave do ElevenLabs parece inválida. Copie de elevenlabs.io → Developers → API keys.',
+    voz_eleven_invalida: 'ID de voz inválido. Copie o Voice ID da voz em elevenlabs.io → Voices (só letras e números).',
+    modelo_eleven_invalido: 'Modelo do ElevenLabs não permitido.',
     claude_nao_configurado: 'Cadastre a chave do Claude antes de testar.',
     authentication_error: 'O Claude recusou a chave: confira se ela está correta e ativa.',
     permission_error: 'A chave não tem permissão para esse modelo.',

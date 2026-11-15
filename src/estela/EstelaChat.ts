@@ -458,7 +458,7 @@ export class EstelaChat {
   }
 
   /**
-   * Voz natural da Estrela: o texto vai para a rota /tts do Worker (voz de IA da OpenAI) e volta como áudio.
+   * Voz natural da Estrela: o texto vai para a rota /tts do Worker (ElevenLabs; OpenAI como reserva) e volta como áudio.
    * Sem Worker configurado não há voz (o narrador robótico do navegador foi removido).
    * As falas tocam em fila, na ordem em que aparecem no chat.
    */

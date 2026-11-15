@@ -39,14 +39,26 @@ A Estrela usa esforço baixo (respostas curtas de conversa). Com Opus e Sonnet, 
 a própria API refaz a pergunta num modelo de reserva (recurso `fallbacks`). O Worker limita 40 perguntas por pessoa por dia.
 
 ## 4) Voz natural da Estrela (opcional)
-1. Em https://platform.openai.com, coloque crédito, ative um **limite de gasto** e crie uma chave em **API keys** (começa com `sk-`).
-2. No painel, em **Voz natural da Estrela — OpenAI**, cole a chave, escolha a voz e clique **Salvar**. Use **Ouvir amostra** para testar.
+A Estrela fala com o **ElevenLabs** (voz principal). Se ele não estiver configurado, falhar ou ficar sem cota,
+usa a **OpenAI** como reserva. Sem nenhum dos dois, a Estrela só escreve.
 
-Custo aproximado: US$ 0,015 por minuto de fala. O Worker limita 200 falas por pessoa por dia.
+**ElevenLabs (principal)**
+1. Em https://elevenlabs.io, escolha um plano que permita uso comercial e crie uma chave em **Developers → API keys**,
+   com a permissão **Text to Speech**.
+2. Em **Voices**, escolha (ou crie) a voz da Estrela e copie o **Voice ID**.
+3. No painel, em **Voz da Estrela — ElevenLabs**, cole a chave e o Voice ID, escolha o modelo e clique **Salvar**.
+   Use **Ouvir amostra** para testar.
+   - *Multilingual v2*: mais natural (padrão). *Flash v2.5*: mais rápido e gasta menos créditos.
+
+**OpenAI (reserva)**
+1. Em https://platform.openai.com, coloque crédito, ative um **limite de gasto** e crie uma chave em **API keys** (começa com `sk-`).
+2. No painel, em **Voz de reserva — OpenAI**, cole a chave, escolha a voz e clique **Salvar**.
+
+O Worker limita 200 falas por pessoa por dia. Cada fala tem no máximo 600 caracteres.
 
 ## Segurança
 - As chaves vão do painel direto para o servidor, que guarda no KV da Cloudflare e **nunca devolve**: o painel mostra só os 4 últimos caracteres.
 - Toda ação do painel exige a senha `ADMIN_PASSWORD`, conferida pelo servidor. Após 10 senhas erradas no dia, o IP fica bloqueado até o dia seguinte.
 - A conta de super admin do app só libera a tela neste aparelho; quem protege as chaves é o servidor.
 - O app envia ao Claude só dados da lavoura (talhões, culturas, datas), nunca nome, telefone ou e-mail.
-- Alternativa sem painel: cadastre `ANTHROPIC_API_KEY` e `OPENAI_API_KEY` como Secrets direto no Worker. O painel mostra "cadastrada direto na Cloudflare".
+- Alternativa sem painel: cadastre `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY` (e `ELEVENLABS_VOICE_ID`) e `OPENAI_API_KEY` como Secrets direto no Worker. O painel mostra "cadastrada direto na Cloudflare".

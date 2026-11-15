@@ -6,7 +6,9 @@
 //
 // Variáveis de ambiente
 //   ANTHROPIC_API_KEY   chave da API do Claude (Estrela)
-//   OPENAI_API_KEY      chave da OpenAI para a voz da Estrela (opcional)
+//   ELEVENLABS_API_KEY  chave do ElevenLabs, voz principal da Estrela (opcional)
+//   ELEVENLABS_VOICE_ID ID da voz no ElevenLabs; ELEVENLABS_MODEL modelo (opcionais)
+//   OPENAI_API_KEY      chave da OpenAI, voz de reserva da Estrela (opcional)
 //   ADMIN_PASSWORD      senha do painel de super admin (opcional; sem ela o painel fica desligado)
 //   ALLOWED_ORIGIN      ex.: https://spaceagro.pro
 //   MODEL / TTS_VOICE   padrões (opcionais)
@@ -53,6 +55,9 @@ const clean = (v) => String(v || '').trim().replace(/^["']|["']$/g, '').trim();
 const env = {
   ANTHROPIC_API_KEY: clean(process.env.ANTHROPIC_API_KEY),
   OPENAI_API_KEY: clean(process.env.OPENAI_API_KEY),
+  ELEVENLABS_API_KEY: clean(process.env.ELEVENLABS_API_KEY),
+  ELEVENLABS_VOICE_ID: clean(process.env.ELEVENLABS_VOICE_ID),
+  ELEVENLABS_MODEL: clean(process.env.ELEVENLABS_MODEL),
   ADMIN_PASSWORD: clean(process.env.ADMIN_PASSWORD),
   ALLOWED_ORIGIN: process.env.ALLOWED_ORIGIN || '*',
   MODEL: process.env.MODEL || '',
@@ -153,6 +158,6 @@ http
   })
   .listen(PORT, () => {
     console.log(`SpaceAgro na porta ${PORT}`);
-    console.log(`Estrela: Claude ${env.ANTHROPIC_API_KEY ? 'configurado pela env' : 'sem chave na env'}, voz ${env.OPENAI_API_KEY ? 'ligada' : 'desligada'}, painel admin ${env.ADMIN_PASSWORD ? 'ligado' : 'desligado'}, dados em ${kvOk ? DATA_DIR : '(sem volume gravável)'}`);
+    console.log(`Estrela: Claude ${env.ANTHROPIC_API_KEY ? 'configurado pela env' : 'sem chave na env'}, voz ${env.ELEVENLABS_API_KEY ? 'ElevenLabs' : env.OPENAI_API_KEY ? 'OpenAI' : 'desligada'}, painel admin ${env.ADMIN_PASSWORD ? 'ligado' : 'desligado'}, dados em ${kvOk ? DATA_DIR : '(sem volume gravável)'}`);
     console.log(`Contas: ${accounts.enabled ? 'PostgreSQL' : 'modo local (sem banco configurado)'}`);
   });

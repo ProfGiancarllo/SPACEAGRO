@@ -2,7 +2,7 @@
 //
 // Rotas
 //   POST /               pergunta para a Estrela (API do Claude, Anthropic)
-//   POST /tts            voz natural da Estrela (OpenAI)
+//   POST /tts            voz natural da Estrela (ElevenLabs; OpenAI como reserva)
 //   POST /admin/status   situação da configuração           (exige senha de administração)
 //   POST /admin/config   grava chaves, modelo e voz          (exige senha de administração)
 //   POST /admin/test     faz uma pergunta de teste ao Claude (exige senha de administração)
@@ -13,6 +13,8 @@
 //   ALLOWED_ORIGIN                                          ex.: https://seusite.com
 //   ANTHROPIC_API_KEY (segredo, opcional)                   alternativa a cadastrar a chave pelo painel
 //   OPENAI_API_KEY    (segredo, opcional)                   alternativa a cadastrar a chave pelo painel
+//   ELEVENLABS_API_KEY (segredo, opcional)                  voz principal da Estrela (ElevenLabs); alternativa ao painel
+//   ELEVENLABS_VOICE_ID / ELEVENLABS_MODEL (opcionais)      voz e modelo padrão do ElevenLabs
 //   MODEL / TTS_VOICE (opcionais)                           valores padrão se o painel não definir
 //
 // Chamamos a API por HTTP direto (fetch) porque o Worker é colado no editor da Cloudflare, sem etapa de build
@@ -26,6 +28,9 @@ const hits = new Map(); // limites simples por IP (reiniciam quando o worker rei
 const MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'];
 const DEFAULT_MODEL = 'claude-opus-5-5';
 const VOICES = ['coral', 'nova', 'shimmer', 'sage', 'alloy', 'ash', 'ballad', 'echo', 'verse'];
+const ELEVEN_MODELS = ['eleven_multilingual_v2', 'eleven_flash_v2_5', 'eleven_turbo_v2_5'];
+const ELEVEN_DEFAULT_MODEL = 'eleven_multilingual_v2';
+const ELEVEN_ID = /^[A-Za-z0-9]{10,40}$/; // formato dos IDs de voz do ElevenLabs
 
 // >>> ZARC (gerado por scripts/zarc_rioverde.py; não editar à mão)
 const ZARC_RIO_VERDE = "ZARC Rio Verde-GO, safra 2026/2027 (MAPA). Risco climático de perda: 20%=menor, 30%, 40%=maior. Decêndio = 10 dias.\n- Algodão Herbáceo (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan; 1º dec dez a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec jan a 3º dec fev\n- Amendoim (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan a 2º dec jan; 3º dec out a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 3º dec jan a 1º dec fev; 1º dec out a 2º dec out\n- Arroz (sequeiro): risco 20% em todos os solos e ciclos: 3º dec out a 1º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec jan a 3º dec jan; 1º dec out a 2º dec out; 2º dec dez a 3º dec dez\n- Cevada Cervejeira (irrigado): risco 20% em todos os solos e ciclos: 1º dec mai a 1º dec jun\n- Cevada Grãos (irrigado): risco 20% em todos os solos e ciclos: 2º dec abr a 1º dec jun\n- Cevada Grãos (sequeiro): risco 20% em todos os solos e ciclos: nenhum. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec mar a 3º dec abr\n- Feijão (irrigado): risco 20% em todos os solos e ciclos: 1º dec jan a 1º dec jul; 3º dec set a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec jul a 2º dec set\n- Feijão (sequeiro): risco 20% em todos os solos e ciclos: nenhum. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec out a 3º dec dez\n- Feijão 2ª Safra (sequeiro): risco 20% em todos os solos e ciclos: nenhum. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec jan a 2º dec mar\n- Feijão Caupi (sequeiro): risco 20% em todos os solos e ciclos: nenhum. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec jan a 2º dec mar\n- Girassol (sequeiro): risco 20% em todos os solos e ciclos: 2º dec jan. Só em alguns solos/ciclos ou com risco maior (30-40%): 3º dec jan a 2º dec mar; 2º dec out a 3º dec out\n- Mamona (sequeiro): risco 20% em todos os solos e ciclos: nenhum. Só em alguns solos/ciclos ou com risco maior (30-40%): 3º dec jan a 2º dec mar\n- Milho 1ª Safra (sequeiro): risco 20% em todos os solos e ciclos: 1º dec nov a 2º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec out a 3º dec out; 3º dec dez\n- Milho 1ª Safra consorciado com Braquiária (sequeiro): risco 20% em todos os solos e ciclos: 1º dec nov a 2º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec out a 3º dec out; 3º dec dez\n- Milho 2ª Safra (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec jan a 3º dec fev\n- Milho 2ª Safra consorciado com Braquiária (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan. Só em alguns solos/ciclos ou com risco maior (30-40%): 2º dec jan a 3º dec fev\n- Soja (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan; 3º dec out a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 3º dec set a 2º dec out\n- Sorgo Forrageiro (sequeiro): risco 20% em todos os solos e ciclos: 3º dec out a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec out a 2º dec out\n- Sorgo Forrageiro 2ª Safra (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan a 2º dec jan. Só em alguns solos/ciclos ou com risco maior (30-40%): 3º dec jan a 1º dec abr\n- Sorgo Granífero (sequeiro): risco 20% em todos os solos e ciclos: 2º dec out a 3º dec dez. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec out\n- Sorgo Granífero 2ª Safra (sequeiro): risco 20% em todos os solos e ciclos: 1º dec jan a 3º dec jan. Só em alguns solos/ciclos ou com risco maior (30-40%): 1º dec fev a 3º dec mar";
@@ -119,6 +124,10 @@ async function readConfig(env) {
     openaiFrom: saved.openaiKey ? 'painel' : env.OPENAI_API_KEY ? 'cloudflare' : '',
     model: MODELS.includes(saved.model) ? saved.model : MODELS.includes(env.MODEL) ? env.MODEL : DEFAULT_MODEL,
     voice: VOICES.includes(saved.voice) ? saved.voice : VOICES.includes(env.TTS_VOICE) ? env.TTS_VOICE : 'coral',
+    elevenKey: saved.elevenKey || env.ELEVENLABS_API_KEY || '',
+    elevenFrom: saved.elevenKey ? 'painel' : env.ELEVENLABS_API_KEY ? 'cloudflare' : '',
+    elevenVoice: ELEVEN_ID.test(saved.elevenVoice || '') ? saved.elevenVoice : ELEVEN_ID.test(env.ELEVENLABS_VOICE_ID || '') ? env.ELEVENLABS_VOICE_ID : '',
+    elevenModel: ELEVEN_MODELS.includes(saved.elevenModel) ? saved.elevenModel : ELEVEN_MODELS.includes(env.ELEVENLABS_MODEL) ? env.ELEVENLABS_MODEL : ELEVEN_DEFAULT_MODEL,
     updatedAt: saved.updatedAt || null,
     raw: saved,
   };
@@ -389,10 +398,11 @@ async function callClaude(cfg, userText, extraSystem = '') {
   return { ok: !!text, ms, model: j.model, text, error: text ? '' : 'resposta_vazia' };
 }
 
-// ---------------- Voz natural (OpenAI)
+// ---------------- Voz natural: ElevenLabs (principal) e OpenAI (reserva)
 async function tts(req, env, cors, key) {
   const cfg = await readConfig(env);
-  if (!cfg.openaiKey) return new Response('voz não configurada', { status: 501, headers: cors });
+  const hasEleven = !!(cfg.elevenKey && cfg.elevenVoice), hasOpenai = !!cfg.openaiKey;
+  if (!hasEleven && !hasOpenai) return new Response('voz não configurada', { status: 501, headers: cors });
   const n = (hits.get(key) || 0) + 1;
   hits.set(key, n);
   if (n > MAX_TTS_PER_IP_PER_DAY) return new Response('limite diário de voz atingido', { status: 429, headers: cors });
@@ -400,27 +410,84 @@ async function tts(req, env, cors, key) {
   try { body = await req.json(); } catch { return new Response('', { status: 400, headers: cors }); }
   const text = String(body.text || '').replace(/\s+/g, ' ').trim().slice(0, 600);
   const lang = String(body.lang || 'pt-BR');
-  const voice = VOICES.includes(body.voice) ? body.voice : cfg.voice;
   if (!text) return new Response('', { status: 400, headers: cors });
-  const r = await fetch('https://api.openai.com/v1/audio/speech', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.openaiKey}` },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini-tts',
-      voice,
-      input: text,
-      instructions: `Fale no idioma ${lang}, com sotaque natural desse idioma (em português, sotaque brasileiro). Tom caloroso, calmo e confiante, como uma agrônoma conversando com um produtor rural. Ritmo de conversa, sem soar como locução.`,
-      response_format: 'mp3',
-    }),
-  });
+  // body.provider ('elevenlabs' | 'openai') força um provedor; usado pela amostra do painel
+  const want = body.provider === 'openai' || body.provider === 'elevenlabs' ? body.provider : '';
+  const order = want ? [want] : ['elevenlabs', 'openai'];
+  const errors = [];
+  for (const p of order) {
+    if (p === 'elevenlabs' && hasEleven) {
+      const voiceId = ELEVEN_ID.test(body.elevenVoice || '') ? body.elevenVoice : cfg.elevenVoice;
+      const out = await ttsEleven(cfg, text, lang, voiceId);
+      if (out.ok) return new Response(out.body, { headers: { ...cors, 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store', 'X-Voice-Provider': 'elevenlabs' } });
+      errors.push(`elevenlabs ${out.status} ${out.code}`.trim());
+    }
+    if (p === 'openai' && hasOpenai) {
+      const voice = VOICES.includes(body.voice) ? body.voice : cfg.voice;
+      const out = await ttsOpenai(cfg, text, lang, voice);
+      if (out.ok) return new Response(out.body, { headers: { ...cors, 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store', 'X-Voice-Provider': 'openai' } });
+      errors.push(`openai ${out.status} ${out.code}`.trim());
+    }
+  }
+  if (!errors.length) return new Response('voz não configurada', { status: 501, headers: cors });
+  return new Response(`voz indisponível: ${errors.join(' | ')}`, { status: 502, headers: cors });
+}
+
+/** ElevenLabs: POST /v1/text-to-speech/{voice_id}, devolve MP3. */
+async function ttsEleven(cfg, text, lang, voiceId) {
+  const payload = {
+    text,
+    model_id: cfg.elevenModel,
+    voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.15, use_speaker_boost: true },
+  };
+  // Só os modelos v2.5 aceitam forçar o idioma
+  if (/v2_5$/.test(cfg.elevenModel)) payload.language_code = lang.slice(0, 2).toLowerCase();
+  let r;
+  try {
+    r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'audio/mpeg', 'xi-api-key': cfg.elevenKey },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    return { ok: false, status: 0, code: 'sem_conexao' };
+  }
+  if (!r.ok) {
+    // Motivo do ElevenLabs (ex.: invalid_api_key, quota_exceeded, voice_not_found), sem expor a chave
+    let code = '';
+    try { const d = (await r.json())?.detail; code = (d && (d.status || d.code)) || (typeof d === 'string' ? d.slice(0, 60) : ''); } catch { /* ignora */ }
+    console.error(`[estela/tts] ElevenLabs recusou: HTTP ${r.status} ${code}`);
+    return { ok: false, status: r.status, code };
+  }
+  return { ok: true, body: r.body };
+}
+
+/** OpenAI: gpt-4o-mini-tts, devolve MP3. */
+async function ttsOpenai(cfg, text, lang, voice) {
+  let r;
+  try {
+    r = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.openaiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini-tts',
+        voice,
+        input: text,
+        instructions: `Fale no idioma ${lang}, com sotaque natural desse idioma (em português, sotaque brasileiro). Tom caloroso, calmo e confiante, como uma agrônoma conversando com um produtor rural. Ritmo de conversa, sem soar como locução.`,
+        response_format: 'mp3',
+      }),
+    });
+  } catch {
+    return { ok: false, status: 0, code: 'sem_conexao' };
+  }
   if (!r.ok) {
     // Motivo da OpenAI (ex.: invalid_api_key, insufficient_quota, model_not_found), sem expor a chave
     let code = '';
     try { const e = (await r.json())?.error || {}; code = e.code || e.type || ''; } catch { /* ignora */ }
     console.error(`[estela/tts] OpenAI recusou: HTTP ${r.status} ${code}`);
-    return new Response(`voz indisponível: ${r.status} ${code}`.trim(), { status: 502, headers: cors });
+    return { ok: false, status: r.status, code };
   }
-  return new Response(r.body, { headers: { ...cors, 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store' } });
+  return { ok: true, body: r.body };
 }
 
 // ---------------- Painel de super admin
@@ -462,6 +529,21 @@ async function admin(path, req, env, cors, key) {
     next.openaiKey = k;
   }
   if (body.clearOpenai) delete next.openaiKey;
+  if (typeof body.elevenKey === 'string' && body.elevenKey.trim()) {
+    const k = body.elevenKey.trim();
+    if (!/^[A-Za-z0-9_-]{24,}$/.test(k)) return json({ ok: false, error: 'chave_eleven_invalida' }, cors, 400);
+    next.elevenKey = k;
+  }
+  if (body.clearEleven) delete next.elevenKey;
+  if (body.elevenVoice !== undefined) {
+    const v = String(body.elevenVoice || '').trim();
+    if (v && !ELEVEN_ID.test(v)) return json({ ok: false, error: 'voz_eleven_invalida' }, cors, 400);
+    if (v) next.elevenVoice = v; else delete next.elevenVoice;
+  }
+  if (body.elevenModel !== undefined) {
+    if (!ELEVEN_MODELS.includes(body.elevenModel)) return json({ ok: false, error: 'modelo_eleven_invalido' }, cors, 400);
+    next.elevenModel = body.elevenModel;
+  }
   if (body.model !== undefined) {
     if (!MODELS.includes(body.model)) return json({ ok: false, error: 'modelo_invalido' }, cors, 400);
     next.model = body.model;
@@ -482,6 +564,8 @@ function publicStatus(env, cfg) {
     kv: !!env.CONFIG,
     claude: { configured: !!cfg.anthropicKey, from: cfg.anthropicFrom, hint: tail(cfg.anthropicKey) },
     voice: { configured: !!cfg.openaiKey, from: cfg.openaiFrom, hint: tail(cfg.openaiKey) },
+    eleven: { configured: !!cfg.elevenKey, from: cfg.elevenFrom, hint: tail(cfg.elevenKey), voiceId: cfg.elevenVoice, model: cfg.elevenModel, ready: !!(cfg.elevenKey && cfg.elevenVoice) },
+    elevenModels: ELEVEN_MODELS,
     model: cfg.model,
     voiceName: cfg.voice,
     models: MODELS,

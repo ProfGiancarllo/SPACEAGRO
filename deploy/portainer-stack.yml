@@ -6,7 +6,9 @@
 # No Portainer: Stacks → spaceagro → Environment variables:
 #   DB_PASSWORD         senha do banco PostgreSQL (OBRIGATÓRIA; invente uma forte, só letras e números)
 #   ANTHROPIC_API_KEY   chave da API do Claude (Estrela)
-#   OPENAI_API_KEY      chave da OpenAI para a voz da Estrela (opcional)
+#   ELEVENLABS_API_KEY  chave do ElevenLabs, voz principal da Estrela (opcional)
+#   ELEVENLABS_VOICE_ID ID da voz escolhida no ElevenLabs (opcional; também dá para definir no painel)
+#   OPENAI_API_KEY      chave da OpenAI, voz de reserva da Estrela (opcional)
 #   ADMIN_PASSWORD      senha do painel de super admin do app (opcional, recomendado)
 #   FIRMS_MAP_KEY       chave da NASA FIRMS para os alertas de queimadas (opcional,
 #                       grátis em https://firms.modaps.eosdis.nasa.gov/api/map_key/)
@@ -37,6 +39,9 @@ services:
     environment:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      ELEVENLABS_VOICE_ID: ${ELEVENLABS_VOICE_ID:-}
+      ELEVENLABS_MODEL: ${ELEVENLABS_MODEL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       FIRMS_MAP_KEY: ${FIRMS_MAP_KEY:-}
       ALLOWED_ORIGIN: https://spaceagro.pro

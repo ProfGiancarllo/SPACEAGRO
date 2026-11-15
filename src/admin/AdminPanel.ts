@@ -41,6 +41,23 @@ function voiceErrorText(raw: string): string {
   return 'Não foi possível gerar a amostra de voz' + (raw ? ` (${raw.slice(0, 80)})` : '') + '.';
 }
 
+const ELEVEN_MODEL_LABEL: Record<string, string> = {
+  eleven_multilingual_v2: 'Multilingual v2 — mais natural (padrão)',
+  eleven_flash_v2_5: 'Flash v2.5 — mais rápido e econômico',
+  eleven_turbo_v2_5: 'Turbo v2.5 — rápido',
+};
+
+/** Traduz o motivo devolvido pela rota /tts quando o ElevenLabs recusa. */
+function elevenErrorText(raw: string): string {
+  if (/quota_exceeded|insufficient|credits|payment/.test(raw)) return 'A conta do ElevenLabs está sem créditos de caracteres neste mês. Veja o plano em elevenlabs.io → Subscription.';
+  if (/invalid_api_key|elevenlabs 401/.test(raw)) return 'O ElevenLabs recusou a chave (inválida ou revogada). Gere uma nova em elevenlabs.io → Developers → API keys.';
+  if (/voice_not_found|elevenlabs 404|elevenlabs 400/.test(raw)) return 'O ElevenLabs não encontrou essa voz. Confira o Voice ID e se a voz está na sua biblioteca (My Voices).';
+  if (/elevenlabs 403|missing_permissions/.test(raw)) return 'A chave do ElevenLabs não tem permissão de Text to Speech. Libere essa permissão ao criar a chave.';
+  if (/elevenlabs 429|too_many/.test(raw)) return 'O ElevenLabs limitou as chamadas agora. Tente de novo em alguns minutos.';
+  if (/não configurada|501/.test(raw)) return 'Cadastre a chave e o ID da voz do ElevenLabs e salve antes de ouvir.';
+  return 'Não foi possível gerar a amostra do ElevenLabs' + (raw ? ` (${raw.slice(0, 80)})` : '') + '.';
+}
+
 interface AccountRow { email: string; name: string; farmName: string; city: string; role: string; createdAt: string; lastSave: string | null }
 
 // ============================================================ Criação do super admin
@@ -210,11 +227,33 @@ export class AdminPanel {
         ${this.testAnswer ? `<blockquote class="adm-answer">${esc(this.testAnswer.text)}<footer>${esc(this.testAnswer.meta)}</footer></blockquote>` : ''}
       </section>` : '';
 
+    const elevenModels = st?.elevenModels || Object.keys(ELEVEN_MODEL_LABEL);
+    const eleven = st ? `
+      <section class="adm-sec">
+        <h3>Voz da Estrela — ElevenLabs (principal)</h3>
+        <p class="adm-help">Chave do ElevenLabs (elevenlabs.io → Developers → API keys, com permissão de Text to Speech) e o Voice ID da voz escolhida (elevenlabs.io → Voices). Se o ElevenLabs falhar ou acabar a cota, a Estrela usa a voz da OpenAI abaixo, se houver.</p>
+        <p class="adm-state">${pill(!!st.eleven?.ready, 'Ativa', st.eleven?.configured ? 'Falta o ID da voz' : 'Não configurada')} ${st.eleven?.configured ? `<span>chave ${esc(st.eleven.hint)}, ${esc(fromTxt(st.eleven.from))}</span>` : ''}</p>
+        ${n('eleven')}
+        <form class="adm-grid" data-form="eleven">
+          <label><span>${st.eleven?.configured ? 'Trocar a chave (deixe em branco para manter)' : 'Chave da API do ElevenLabs'}</span>
+            <input type="password" id="adm-ekey" autocomplete="off" spellcheck="false" placeholder="sk_…" /></label>
+          <label><span>ID da voz (Voice ID)</span>
+            <input type="text" id="adm-evoice" autocomplete="off" spellcheck="false" value="${esc(st.eleven?.voiceId || '')}" placeholder="ex.: 21m00Tcm4TlvDq8ikWAM" /></label>
+          <label><span>Modelo</span>
+            <select id="adm-emodel">${elevenModels.map((m) => `<option value="${esc(m)}" ${m === st.eleven?.model ? 'selected' : ''}>${esc(ELEVEN_MODEL_LABEL[m] || m)}</option>`).join('')}</select></label>
+          <div class="adm-actions">
+            <button type="submit" class="btn btn-primary" ${this.busy || !st.kv ? 'disabled' : ''}>${this.busy === 'eleven' ? 'Salvando…' : 'Salvar'}</button>
+            <button type="button" class="btn btn-secondary" data-act="sample-eleven" ${this.busy || !st.eleven?.ready ? 'disabled' : ''}>${this.busy === 'sample-eleven' ? 'Gerando…' : 'Ouvir amostra'}</button>
+            ${st.eleven?.configured && st.eleven.from === 'painel' ? `<button type="button" class="btn btn-secondary" data-act="clear-eleven" ${this.busy ? 'disabled' : ''}>Remover chave</button>` : ''}
+          </div>
+        </form>
+      </section>` : '';
+
     const voices = st?.voices || Object.keys(VOICE_LABEL);
     const voice = st ? `
       <section class="adm-sec">
-        <h3>Voz natural da Estrela — OpenAI (opcional)</h3>
-        <p class="adm-help">Chave da OpenAI (platform.openai.com → API keys). Sem ela, a Estrela só escreve.</p>
+        <h3>Voz de reserva — OpenAI (opcional)</h3>
+        <p class="adm-help">Chave da OpenAI (platform.openai.com → API keys). Usada quando o ElevenLabs não está configurado ou falha. Sem nenhuma das duas, a Estrela só escreve.</p>
         <p class="adm-state">${pill(!!st.voice?.configured, 'Configurada', 'Não configurada')} ${st.voice?.configured ? `<span>chave ${esc(st.voice.hint)}, ${esc(fromTxt(st.voice.from))}</span>` : ''}</p>
         ${n('voice')}
         <form class="adm-grid" data-form="voice">
@@ -257,7 +296,7 @@ export class AdminPanel {
             <button type="button" class="adm-x" data-act="close" aria-label="Fechar">&times;</button>
           </div>
         </header>
-        <div class="adm-body">${unlocked ? server + accounts + claude + voice : unlock}</div>
+        <div class="adm-body">${unlocked ? server + accounts + claude + eleven + voice : unlock}</div>
       </div>`;
     this.bind();
   }
@@ -302,6 +341,12 @@ export class AdminPanel {
       const body: Record<string, unknown> = { voice: val('adm-voice') };
       if (key) body.openaiKey = key;
       return this.save('voice', body, key ? 'Chave e voz salvas no servidor.' : 'Voz salva.');
+    }
+    if (form === 'eleven') {
+      const key = val('adm-ekey').trim();
+      const body: Record<string, unknown> = { elevenVoice: val('adm-evoice').trim(), elevenModel: val('adm-emodel') };
+      if (key) body.elevenKey = key;
+      return this.save('eleven', body, key ? 'Chave, voz e modelo do ElevenLabs salvos no servidor.' : 'Voz e modelo do ElevenLabs salvos.');
     }
     if (form === 'test') {
       this.busy = 'test'; this.testAnswer = null; this.render();
@@ -350,8 +395,30 @@ export class AdminPanel {
       return this.save('claude', { clearAnthropic: true }, 'Chave do Claude removida do servidor.');
     }
     if (a === 'clear-voice') {
-      if (!confirm('Remover a chave da OpenAI do servidor? A Estrela deixa de falar.')) return;
+      if (!confirm('Remover a chave da OpenAI do servidor? Sem ElevenLabs configurado, a Estrela deixa de falar.')) return;
       return this.save('voice', { clearOpenai: true }, 'Chave da OpenAI removida do servidor.');
+    }
+    if (a === 'clear-eleven') {
+      if (!confirm('Remover a chave do ElevenLabs do servidor? A Estrela passa a usar a voz da OpenAI, se houver.')) return;
+      return this.save('eleven', { clearEleven: true }, 'Chave do ElevenLabs removida do servidor.');
+    }
+    if (a === 'sample-eleven') {
+      const base = estelaBaseUrl();
+      if (!base) return;
+      this.busy = 'sample-eleven'; this.render();
+      try {
+        const r = await fetch(base + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'Olá! Eu sou a Estrela, a inteligência artificial que ajuda o produtor a tomar decisões.', lang: 'pt-BR', provider: 'elevenlabs' }) });
+        if (!r.ok) throw new Error(await r.text().catch(() => String(r.status)));
+        const url = URL.createObjectURL(await r.blob());
+        const audio = new Audio(url);
+        audio.onended = () => URL.revokeObjectURL(url);
+        await audio.play();
+        this.note('eleven', 'ok', 'Tocando a amostra do ElevenLabs.');
+      } catch (e) {
+        this.note('eleven', 'err', elevenErrorText(e instanceof Error ? e.message : ''));
+      }
+      this.busy = '';
+      return this.render();
     }
     if (a === 'sample') {
       const base = estelaBaseUrl();
@@ -359,7 +426,7 @@ export class AdminPanel {
       this.busy = 'sample'; this.render();
       const voiceSel = this.overlay?.querySelector<HTMLSelectElement>('#adm-voice')?.value;
       try {
-        const r = await fetch(base + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'Olá! Eu sou a Estrela, a inteligência artificial que ajuda o produtor a tomar decisões.', lang: 'pt-BR', voice: voiceSel }) });
+        const r = await fetch(base + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'Olá! Eu sou a Estrela, a inteligência artificial que ajuda o produtor a tomar decisões.', lang: 'pt-BR', voice: voiceSel, provider: 'openai' }) });
         if (!r.ok) throw new Error(await r.text().catch(() => String(r.status)));
         const url = URL.createObjectURL(await r.blob());
         const audio = new Audio(url);
