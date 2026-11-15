@@ -17,6 +17,8 @@ import { Talhao, WaterPoint, WaterPointType, WATER_POINT_META } from '../types';
 import { calculatePolygonAreaHectares, calculatePerimeterKm, calculatePolygonCenter, formatHectares } from '../utils/geo';
 import { calculateTalhaoCropStatus, getCropColor } from '../utils/cropCalendar';
 import { t, translateCropName, translateCropPhase, translateStructureType, formatNumber, formatDateI18n } from '../i18n';
+import { MapToolRail, ICONS } from './MapToolRail';
+import { tt } from '../i18n/toolsText';
 
 export interface MapEvents {
   onDrawingProgress: (pointCount: number, currentAreaHa: number) => void;
@@ -26,6 +28,8 @@ export interface MapEvents {
   onTalhaoDelete: (talhaoId: string) => void;
   onWaterPointDelete: (waterPointId: string) => void;
   onTalhaoGeometry?: (talhao: Talhao) => void;
+  /** outra ferramenta do mapa encerrou o desenho ou a marcação de ponto: a tela esconde os painéis deles */
+  onModesExited?: () => void;
 }
 
 type LatLng = [number, number];
@@ -173,8 +177,27 @@ export class MapManager {
     window.addEventListener('resize', () => this.map.resize());
     window.addEventListener('estela-layout', () => this.map.resize());
     this.setupMapListeners();
+    this.tools = new MapToolRail(this.map.getContainer());
+    this.map.addControl(new ElControl(this.tools.el), 'top-left');
     this.addAdjustControl();
     this.addWandControl();
+    this.addMeasureControl();
+    this.addFindControl();
+  }
+
+  /** Barra de ferramentas do mapa: outros recursos (desenho, satélite, estresse hídrico) põem os seus botões aqui. */
+  public tools: MapToolRail;
+
+  /** Desliga as ferramentas de modo (só uma por vez), menos a indicada. */
+  private exitModes(except: 'adjust' | 'wand' | 'measure' | 'find' | 'draw'): void {
+    let hud = false;
+    if (except !== 'draw' && this.isDrawingTalhao) { this.cancelDrawing(); hud = true; }
+    if (this.isPlacingWaterPoint) { this.endPlacingWaterPoint(); hud = true; }
+    if (hud) this.events.onModesExited?.();
+    if (except !== 'adjust' && this.adjusting) this.setAdjustMode(false);
+    if (except !== 'wand' && this.wandOn) this.setWandMode(false);
+    if (except !== 'measure' && this.measureOn) this.setMeasureMode(false);
+    if (except !== 'find' && this.findOn) this.setFindMode(false);
   }
 
   /** Camadas de dados (na ordem de desenho, de baixo para cima). */
@@ -186,7 +209,7 @@ export class MapManager {
     m.addLayer({ id: 'snapbg', type: 'raster', source: 'snapbg', layout: { visibility: 'none' } });
     m.addLayer({ id: 'labels', type: 'raster', source: 'labels' });
 
-    ['car', 'talhoes', 'talhoes-prev', 'phase-flash', 'leaders', 'draw', 'preview', 'adjust', 'wand'].forEach(src);
+    ['car', 'talhoes', 'talhoes-prev', 'phase-flash', 'leaders', 'draw', 'preview', 'adjust', 'wand', 'measure'].forEach(src);
     // CAR: vegetação nativa, reserva legal, APP e limite do imóvel
     m.addLayer({ id: 'car-fill', type: 'fill', source: 'car', paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': ['get', 'fo'] }, filter: ['==', ['geometry-type'], 'Polygon'] });
     m.addLayer({ id: 'car-line', type: 'line', source: 'car', paint: { 'line-color': ['get', 'stroke'], 'line-width': ['get', 'w'] }, filter: ['all', ['==', ['geometry-type'], 'Polygon'], ['!=', ['get', 'kind'], 'limite']] });
@@ -222,6 +245,12 @@ export class MapManager {
     m.addLayer({ id: 'adjust-line', type: 'line', source: 'adjust', paint: { 'line-color': '#ffd84d', 'line-width': 2, 'line-dasharray': [2, 2] } });
     m.addLayer({ id: 'wand-fill', type: 'fill', source: 'wand', paint: { 'fill-color': '#ffd84d', 'fill-opacity': 0.25 } });
     m.addLayer({ id: 'wand-line', type: 'line', source: 'wand', paint: { 'line-color': '#ffd84d', 'line-width': 3, 'line-dasharray': [2, 1.5] } });
+    // régua: área clara, linha branca com contorno escuro (legível em qualquer imagem) e pontos
+    m.addLayer({ id: 'measure-fill', type: 'fill', source: 'measure', paint: { 'fill-color': '#ffffff', 'fill-opacity': 0.18 }, filter: ['==', ['geometry-type'], 'Polygon'] });
+    m.addLayer({ id: 'measure-casing', type: 'line', source: 'measure', paint: { 'line-color': '#182b25', 'line-width': 5, 'line-opacity': 0.55 }, filter: ['==', ['geometry-type'], 'LineString'] });
+    m.addLayer({ id: 'measure-line', type: 'line', source: 'measure', paint: { 'line-color': '#ffffff', 'line-width': 2.5 }, filter: ['==', ['geometry-type'], 'LineString'] });
+    m.addLayer({ id: 'measure-guide', type: 'line', source: 'measure', paint: { 'line-color': '#ffffff', 'line-width': 2, 'line-dasharray': [1.5, 1.5] }, filter: ['==', ['get', 'guide'], true] });
+    m.addLayer({ id: 'measure-pt', type: 'circle', source: 'measure', paint: { 'circle-radius': 5, 'circle-color': '#ffffff', 'circle-stroke-color': '#182b25', 'circle-stroke-width': 2 }, filter: ['==', ['geometry-type'], 'Point'] });
 
     // interação com os talhões
     m.on('mousemove', 'talhoes-fill', (e) => {
@@ -229,14 +258,15 @@ export class MapManager {
       if (id === undefined || id === this.hoverId) return;
       if (this.hoverId !== null) m.setFeatureState({ source: 'talhoes', id: this.hoverId }, { hover: false });
       this.hoverId = id; m.setFeatureState({ source: 'talhoes', id }, { hover: true });
-      if (!this.isDrawingTalhao && !this.isPlacingWaterPoint && !this.wandOn) m.getCanvas().style.cursor = 'pointer';
+      if (!this.isDrawingTalhao && !this.isPlacingWaterPoint && !this.wandOn && !this.measureOn) m.getCanvas().style.cursor = 'pointer';
     });
     m.on('mouseleave', 'talhoes-fill', () => {
       if (this.hoverId !== null) m.setFeatureState({ source: 'talhoes', id: this.hoverId }, { hover: false });
-      this.hoverId = null; m.getCanvas().style.cursor = '';
+      this.hoverId = null;
+      if (!this.isDrawingTalhao && !this.isPlacingWaterPoint && !this.wandOn && !this.measureOn) m.getCanvas().style.cursor = '';
     });
     m.on('click', 'talhoes-fill', (e) => {
-      if (this.isDrawingTalhao || this.isPlacingWaterPoint || this.wandOn || this.adjusting) return;
+      if (this.isDrawingTalhao || this.isPlacingWaterPoint || this.wandOn || this.adjusting || this.measureOn) return;
       const idx = e.features?.[0]?.id as number | undefined;
       const tl = idx !== undefined ? this.lastTalhoes[idx] : undefined;
       if (!tl) return;
@@ -360,6 +390,7 @@ export class MapManager {
         return;
       }
       if (this.wandOn) { this.wandAt(p); return; }
+      if (this.measureOn) { this.measurePts.push(p); this.paintMeasure(); return; }
       if (this.isDrawingTalhao) this.addDrawingPoint(p[0], p[1]);
     });
     this.map.on('mousemove', (e) => {
@@ -367,6 +398,7 @@ export class MapManager {
         this.guideTo = [e.lngLat.lat, e.lngLat.lng];
         this.updateDrawingVisuals(false);
       }
+      if (this.measureOn && this.measurePts.length > 0) { this.measureGuide = [e.lngLat.lat, e.lngLat.lng]; this.paintMeasure(false); }
     });
   }
 
@@ -632,7 +664,9 @@ export class MapManager {
   public startDrawingTalhao(): void {
     this.cancelDrawing();
     this.endPlacingWaterPoint();
+    this.exitModes('draw');
     this.isDrawingTalhao = true;
+    this.tools.setState('draw', { on: true });
     this.map.getContainer().classList.add('drawing-mode-active');
     this.map.getCanvas().style.cursor = 'crosshair';
     this.events.onDrawingProgress(0, 0);
@@ -674,8 +708,11 @@ export class MapManager {
     this.events.onDrawingComplete(coords, calculatePolygonAreaHectares(coords), calculatePerimeterKm(coords));
   }
 
+  public isDrawing(): boolean { return this.isDrawingTalhao; }
+
   public cancelDrawing(): void {
     this.isDrawingTalhao = false;
+    this.tools?.setState('draw', { on: false });
     this.drawingPoints = [];
     this.guideTo = null;
     this.setData('draw', EMPTY);
@@ -685,6 +722,7 @@ export class MapManager {
 
   public startPlacingWaterPoint(type: WaterPointType): void {
     this.cancelDrawing();
+    this.exitModes('draw');
     this.isPlacingWaterPoint = true;
     this.pendingWaterType = type;
     this.map.getContainer().classList.add('water-placing-active');
@@ -872,7 +910,6 @@ export class MapManager {
   // AJUSTAR TALHÕES: arrastar os cantos até a borda da lavoura
   // ==========================================
   private adjusting = false;
-  private adjustBtn: HTMLButtonElement | null = null;
   private adjustMarkers: Marker[] = [];
   private static ADJ: Record<string, [string, string, string]> = {
     pt: ['Ajustar talhões', 'Concluir ajuste', 'Arraste os cantos até a borda da lavoura'],
@@ -883,43 +920,8 @@ export class MapManager {
   };
   private adjText(i: number): string { const l = (document.documentElement.lang || 'pt').slice(0, 2); return (MapManager.ADJ[l] || MapManager.ADJ.pt)[i]; }
 
-  private topLeftBox: HTMLElement | null = null;
-  private static TOOLS: Record<string, string> = { pt: 'Ferramentas', en: 'Tools', es: 'Herramientas', de: 'Werkzeuge', fr: 'Outils' };
-  /**
-   * Menu "Ferramentas" do canto superior esquerdo: um botão que abre a lista (ajustar, marcar lavoura, saúde por satélite,
-   * estresse hídrico…). Devolve a lista, onde cada recurso põe o seu botão. A ferramenta ligada (classe "on") continua à vista
-   * com o menu fechado, para o produtor ver o que está ativo e poder desligar.
-   */
-  public topLeft(): HTMLElement {
-    if (!this.topLeftBox) {
-      const d = document.createElement('div');
-      d.className = 'maplibregl-ctrl map-tools';
-      const btn = document.createElement('button');
-      btn.type = 'button'; btn.className = 'adjust-btn map-tools-toggle'; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'map-tools-menu');
-      const label = MapManager.TOOLS[(document.documentElement.lang || 'pt').slice(0, 2)] || MapManager.TOOLS.pt;
-      btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>${escapeHtml(label)}</span>`;
-      const menu = document.createElement('div');
-      menu.className = 'map-tools-menu'; menu.id = 'map-tools-menu'; menu.setAttribute('role', 'group'); menu.setAttribute('aria-label', label);
-      const setOpen = (open: boolean) => { d.classList.toggle('open', open); btn.setAttribute('aria-expanded', String(open)); };
-      btn.onclick = (e) => { e.stopPropagation(); setOpen(!d.classList.contains('open')); };
-      // escolher uma ferramenta fecha o menu (os botões param a propagação, por isso a escuta é na captura);
-      // cliques dentro dos painéis das ferramentas (ex.: controle da marcação de lavoura) não fecham
-      menu.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('button.adjust-btn')) window.setTimeout(() => setOpen(false), 0); }, true);
-      document.addEventListener('click', (e) => { if (!d.contains(e.target as Node)) setOpen(false); });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && d.classList.contains('open')) { setOpen(false); btn.focus(); } });
-      d.append(btn, menu);
-      this.topLeftBox = menu;
-      this.map.addControl(new ElControl(d), 'top-left');
-    }
-    return this.topLeftBox;
-  }
-
   public addAdjustControl(): void {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'adjust-btn'; b.textContent = this.adjText(0);
-    b.onclick = (e) => { e.stopPropagation(); this.setAdjustMode(!this.adjusting); };
-    this.adjustBtn = b;
-    this.topLeft().appendChild(b);
+    this.tools.add({ id: 'adjust', group: 'criar', order: 30, icon: ICONS.adjust, label: tt('adjL'), desc: tt('adjD'), key: 'a', onClick: () => this.setAdjustMode(!this.adjusting) });
   }
 
   public setAdjustMode(on: boolean): void {
@@ -927,10 +929,11 @@ export class MapManager {
     this.adjustMarkers.forEach((mk) => mk.remove());
     this.adjustMarkers = [];
     this.setData('adjust', EMPTY);
-    if (this.adjustBtn) { this.adjustBtn.textContent = this.adjText(on ? 1 : 0); this.adjustBtn.classList.toggle('on', on); }
+    this.tools.setState('adjust', { on });
     this.map.getContainer().classList.toggle('adjusting', on);
-    if (!on) return;
-    if (this.wandOn) this.setWandMode(false);
+    if (!on) { this.tools.hideContext('adjust'); return; }
+    this.exitModes('adjust');
+    if (!this.tools.contextBody('adjust')) this.tools.showContext('adjust', tt('adjL'), () => this.setAdjustMode(false)).textContent = this.adjText(2);
     const outline = () => this.setData('adjust', fc(this.lastTalhoes.filter((tl) => tl.coordinates.length).map((tl) => polyFeature(tl.coordinates as LatLng[]))));
     outline();
     this.lastTalhoes.forEach((tl) => {
@@ -947,14 +950,12 @@ export class MapManager {
         this.adjustMarkers.push(mk);
       });
     });
-    this.map.getContainer().setAttribute('data-adjust-tip', this.adjText(2));
   }
 
   // ==========================================
   // MARCAR LAVOURA POR COR (varinha mágica) sobre a foto da fazenda
   // ==========================================
   private wandOn = false;
-  private wandBtn: HTMLButtonElement | null = null;
   private wandPanel: HTMLElement | null = null;
   private wandSeed: LatLng | null = null;
   private wandTol = 20;
@@ -993,22 +994,18 @@ export class MapManager {
   }
 
   public addWandControl(): void {
-    const box = document.createElement('div'); box.className = 'wand-box';
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'adjust-btn wand-btn'; b.textContent = this.wt(0);
-    b.onclick = (e) => { e.stopPropagation(); this.setWandMode(!this.wandOn); };
-    this.wandBtn = b;
-    const pn = document.createElement('div'); pn.className = 'wand-panel'; pn.style.display = 'none'; this.wandPanel = pn;
-    pn.addEventListener('click', (e) => e.stopPropagation());
-    box.append(b, pn);
-    this.topLeft().appendChild(box);
+    this.tools.add({ id: 'wand', group: 'criar', order: 20, icon: ICONS.wand, label: tt('wandL'), desc: tt('wandD'), key: 't', onClick: () => this.setWandMode(!this.wandOn) });
   }
 
   public setWandMode(on: boolean): void {
     this.wandOn = on; this.wandCoords = null; this.wandSeed = null;
     this.setData('wand', EMPTY);
-    if (on) this.setAdjustMode(false);
-    if (this.wandBtn) { this.wandBtn.textContent = this.wt(on ? 1 : 0); this.wandBtn.classList.toggle('on', on); }
-    if (this.wandPanel) { this.wandPanel.style.display = on ? 'block' : 'none'; this.wandPanel.textContent = on ? this.wt(2) : ''; }
+    this.tools.setState('wand', { on });
+    if (on) {
+      this.exitModes('wand');
+      this.wandPanel = this.tools.showContext('wand', tt('wandL'), () => this.setWandMode(false));
+      this.wandPanel.textContent = this.wt(2);
+    } else { this.tools.hideContext('wand'); this.wandPanel = null; }
     this.map.getContainer().classList.toggle('wand-active', on);
     this.map.getCanvas().style.cursor = on ? 'crosshair' : '';
   }
@@ -1023,12 +1020,134 @@ export class MapManager {
     const coords = seg.poly.map(([x, y]) => this.toLatLng(x, y));
     this.wandCoords = coords;
     this.setData('wand', fc([polyFeature(coords)]));
-    const pn = this.wandPanel!; pn.innerHTML = '';
-    const info = document.createElement('div'); info.textContent = formatHectares(calculatePolygonAreaHectares(coords)); info.style.fontWeight = '700'; pn.appendChild(info);
-    const mk = (txt: string, fn: () => void, cls = '') => { const bt = document.createElement('button'); bt.type = 'button'; bt.textContent = txt; bt.className = 'wand-mini ' + cls; bt.onclick = fn; pn.appendChild(bt); };
-    mk(this.wt(4), () => this.wandAt(this.wandSeed!, Math.max(8, this.wandTol - 8)));
-    mk(this.wt(3), () => this.wandAt(this.wandSeed!, Math.min(90, this.wandTol + 8)));
-    mk(this.wt(5), () => { const c = this.wandCoords!; this.setWandMode(false); this.events.onDrawingComplete(c, calculatePolygonAreaHectares(c), calculatePerimeterKm(c)); }, 'ok');
+    const pn = this.wandPanel;
+    if (!pn) return;
+    this.cardRow(pn, [[tt('measArea'), formatHectares(calculatePolygonAreaHectares(coords))]], [
+      [this.wt(4), () => this.wandAt(this.wandSeed!, Math.max(8, this.wandTol - 8))],
+      [this.wt(3), () => this.wandAt(this.wandSeed!, Math.min(90, this.wandTol + 8))],
+      [this.wt(5), () => { const c = this.wandCoords!; this.setWandMode(false); this.events.onDrawingComplete(c, calculatePolygonAreaHectares(c), calculatePerimeterKm(c)); }, true],
+    ]);
+  }
+
+  /** Conteúdo do cartão da ferramenta: valores medidos à esquerda e ações à direita. */
+  private cardRow(box: HTMLElement, vals: [string, string][], acts: [string, () => void, boolean?, boolean?][]): void {
+    box.innerHTML = '';
+    const v = document.createElement('div'); v.className = 'map-tool-vals';
+    vals.forEach(([k, val]) => { const d = document.createElement('div'); d.innerHTML = `<span>${escapeHtml(k)}</span><strong>${escapeHtml(val)}</strong>`; v.appendChild(d); });
+    const a = document.createElement('div'); a.className = 'map-tool-acts';
+    acts.forEach(([txt, fn, primary, disabled]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'map-tool-act' + (primary ? ' primary' : '');
+      b.textContent = txt; b.disabled = !!disabled; b.onclick = fn; a.appendChild(b);
+    });
+    box.append(v, a);
+  }
+
+  // ==========================================
+  // MEDIR DISTÂNCIA E ÁREA (régua)
+  // ==========================================
+  private measureOn = false;
+  private measurePts: LatLng[] = [];
+  private measureGuide: LatLng | null = null;
+
+  private addMeasureControl(): void {
+    this.tools.add({ id: 'measure', group: 'medir', order: 10, icon: ICONS.measure, label: tt('measL'), desc: tt('measD'), key: 'm', onClick: () => this.setMeasureMode(!this.measureOn) });
+  }
+
+  public setMeasureMode(on: boolean): void {
+    this.measureOn = on; this.measurePts = []; this.measureGuide = null;
+    this.setData('measure', EMPTY);
+    this.tools.setState('measure', { on });
+    this.map.getCanvas().style.cursor = on ? 'crosshair' : '';
+    this.map.doubleClickZoom[on ? 'disable' : 'enable']();
+    if (!on) { this.tools.hideContext('measure'); return; }
+    this.exitModes('measure');
+    this.tools.showContext('measure', tt('measL'), () => this.setMeasureMode(false));
+    this.paintMeasure();
+  }
+
+  private static fmtDist(m: number): string {
+    return m < 1000 ? `${formatNumber(Math.round(m), 0)} m` : `${formatNumber(m / 1000, 2)} km`;
+  }
+
+  private paintMeasure(full = true): void {
+    const pts = this.measurePts;
+    const f: Feature[] = [];
+    if (pts.length >= 3) f.push(polyFeature(pts));
+    if (pts.length >= 2) f.push(lineFeature(pts));
+    if (this.measureGuide && pts.length) f.push(lineFeature([pts[pts.length - 1], this.measureGuide], { guide: true }));
+    pts.forEach((p) => f.push(pointFeature(p)));
+    this.setData('measure', fc(f));
+    if (!full) return;
+    const box = this.tools.contextBody('measure');
+    if (!box) return;
+    if (!pts.length) { box.textContent = tt('measHint'); return; }
+    let d = 0;
+    for (let i = 1; i < pts.length; i++) d += distM(pts[i - 1], pts[i]);
+    const vals: [string, string][] = [[tt('measDist'), MapManager.fmtDist(d)]];
+    if (pts.length >= 3) vals.push([tt('measArea'), formatHectares(calculatePolygonAreaHectares(pts))]);
+    this.cardRow(box, vals, [
+      [tt('measUndo'), () => { this.measurePts.pop(); if (!this.measurePts.length) this.measureGuide = null; this.paintMeasure(); }],
+      [tt('measClear'), () => { this.measurePts = []; this.measureGuide = null; this.paintMeasure(); }],
+      [tt('measSave'), () => { const c = [...this.measurePts]; this.setMeasureMode(false); this.events.onDrawingComplete(c, calculatePolygonAreaHectares(c), calculatePerimeterKm(c)); }, true, pts.length < 3],
+    ]);
+  }
+
+  // ==========================================
+  // IR PARA TALHÃO (busca por nome ou cultura)
+  // ==========================================
+  private findOn = false;
+
+  private addFindControl(): void {
+    this.tools.add({ id: 'find', group: 'medir', order: 20, icon: ICONS.find, label: tt('findL'), desc: tt('findD'), key: 'b', onClick: () => this.setFindMode(!this.findOn) });
+  }
+
+  public setFindMode(on: boolean): void {
+    this.findOn = on;
+    this.tools.setState('find', { on });
+    if (!on) { this.tools.hideContext('find'); return; }
+    this.exitModes('find');
+    const box = this.tools.showContext('find', tt('findL'), () => this.setFindMode(false));
+    if (!this.lastTalhoes.length) { box.textContent = tt('findEmpty'); return; }
+    const input = document.createElement('input');
+    input.type = 'search'; input.className = 'map-find-input'; input.placeholder = tt('findPh'); input.setAttribute('aria-label', tt('findL'));
+    input.setAttribute('role', 'combobox'); input.setAttribute('aria-controls', 'map-find-list'); input.setAttribute('aria-expanded', 'true'); input.autocomplete = 'off';
+    const list = document.createElement('ul'); list.className = 'map-find-list'; list.id = 'map-find-list'; list.setAttribute('role', 'listbox');
+    box.append(input, list);
+    let sel = 0, hits: Talhao[] = [];
+    const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const go = (tl: Talhao) => {
+      this.setFindMode(false);
+      this.fitBoundsToTalhao(tl);
+      const c = calculatePolygonCenter(tl.coordinates);
+      this.map.once('moveend', () => this.openTalhaoPopup(tl, new maplibregl.LngLat(c[1], c[0])));
+    };
+    const render = () => {
+      const q = norm(input.value.trim());
+      // o rótulo do mapa abrevia "Talhão 12" para "T12": aceita os dois jeitos (e com ou sem zero à esquerda)
+      const keys = (tl: Talhao) => { const n = tl.name.match(/\d+/)?.[0]; return [tl.name, tl.crop || '', translateCropName(tl.crop || ''), ...(n ? [`t${+n}`, `t${n.padStart(2, '0')}`] : [])].map(norm).join(' '); };
+      hits = this.lastTalhoes.filter((tl) => tl.coordinates.length && (!q || keys(tl).includes(q.replace(/\s+/g, ' '))));
+      hits.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+      sel = Math.min(sel, Math.max(0, hits.length - 1));
+      list.innerHTML = '';
+      if (!hits.length) { const li = document.createElement('li'); li.className = 'map-find-none'; li.textContent = tt('findNone'); list.appendChild(li); return; }
+      hits.slice(0, 8).forEach((tl, i) => {
+        const li = document.createElement('li'); li.setAttribute('role', 'option'); li.id = `map-find-${i}`;
+        li.setAttribute('aria-selected', String(i === sel));
+        li.innerHTML = `<strong>${escapeHtml(tl.name)}</strong><span>${escapeHtml(translateCropName(tl.crop || '') || '—')} · ${escapeHtml(formatHectares(tl.areaHectares))}</span>`;
+        li.onmousedown = (e) => { e.preventDefault(); go(tl); };
+        list.appendChild(li);
+      });
+      input.setAttribute('aria-activedescendant', `map-find-${sel}`);
+    };
+    input.addEventListener('input', () => { sel = 0; render(); });
+    input.addEventListener('keydown', (e) => {
+      const n = Math.min(hits.length, 8);
+      if (e.key === 'ArrowDown' && n) { e.preventDefault(); sel = (sel + 1) % n; render(); }
+      else if (e.key === 'ArrowUp' && n) { e.preventDefault(); sel = (sel - 1 + n) % n; render(); }
+      else if (e.key === 'Enter' && hits[sel]) { e.preventDefault(); go(hits[sel]); }
+    });
+    render();
+    window.setTimeout(() => input.focus(), 0);
   }
 
   // ==========================================

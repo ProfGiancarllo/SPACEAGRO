@@ -1,10 +1,12 @@
 import type { Feature, FeatureCollection } from 'geojson';
 import maplibregl, { GeoJSONSource, Map as MLMap, Marker } from 'maplibre-gl';
 import { FarmData } from '../types';
+import { MapToolRail, ICONS } from './MapToolRail';
+import { tt } from '../i18n/toolsText';
 import { st } from '../i18n/satText';
 import { fetchNasaSeries, summarizeNasa } from '../utils/nasaPower';
 
-export interface SatelliteHealthOptions { getFarm: () => FarmData; getMap: () => MLMap; /** coluna de botões do mapa */ getTools: () => HTMLElement; }
+export interface SatelliteHealthOptions { getFarm: () => FarmData; getMap: () => MLMap; /** barra de ferramentas do mapa */ tools: () => MapToolRail; }
 interface Res {
   id: string; nome: string; cultura: string | null; nivel: 'ok' | 'atencao' | 'sem_dado'; alertas: string[];
   ultima_imagem?: { data: string; ndvi: number; ndmi: number }; dap_na_imagem?: number; fase_informada?: string;
@@ -17,7 +19,6 @@ const COLOR = { atencao: '#b45309', ok: '#2f6b4f', sem_dado: '#65756e' };
 
 /** Botão no mapa que mostra os alertas de saúde da lavoura (Landsat 8/9, NASA/USGS) calculados pela rotina scripts/saude_satelite.py. */
 export class SatelliteHealth {
-  private btn: HTMLButtonElement | null = null;
   private markers: Marker[] = [];
   private pill: HTMLElement | null = null;
   private modal: HTMLElement | null = null;
@@ -27,11 +28,7 @@ export class SatelliteHealth {
   constructor(private opts: SatelliteHealthOptions) {}
 
   start(): void {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'adjust-btn sat-btn'; b.textContent = st('btn'); b.setAttribute('aria-pressed', 'false');
-    b.onclick = (e) => { e.stopPropagation(); void this.toggle(); };
-    this.btn = b;
-    this.opts.getTools().appendChild(b);
+    this.opts.tools().add({ id: 'sat', group: 'analisar', order: 10, icon: ICONS.sat, label: st('btn'), desc: tt('satD'), key: 's', onClick: () => void this.toggle() });
   }
 
   private async load(): Promise<Data | null> {
@@ -50,16 +47,16 @@ export class SatelliteHealth {
   private async toggle(): Promise<void> {
     if (this.on) { this.off(); return; }
     this.on = true;
-    if (this.btn) { this.btn.textContent = st('loading'); this.btn.classList.add('on'); this.btn.setAttribute('aria-pressed', 'true'); }
+    this.opts.tools().setState('sat', { on: true, busy: true, label: st('loading') });
     this.data = await this.load();
     if (!this.on) return;
-    if (this.btn) this.btn.textContent = st('btnOn');
+    this.opts.tools().setState('sat', { busy: false, label: st('btnOn') });
     this.paint();
   }
 
   private off(): void {
     this.on = false; this.clearMap(); this.pill?.remove(); this.pill = null;
-    if (this.btn) { this.btn.textContent = st('btn'); this.btn.classList.remove('on'); this.btn.setAttribute('aria-pressed', 'false'); }
+    this.opts.tools().setState('sat', { on: false, busy: false, label: st('btn') });
   }
 
   private say(text: string, cls = ''): void {

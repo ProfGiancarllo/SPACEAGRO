@@ -282,17 +282,19 @@ export class RotationPlanner {
 
   private monthTicks(a: string, b: string): string {
     const total = Math.max(1, diffDays(a, b));
-    const out: string[] = [];
+    const ticks: { pct: number; txt: string }[] = [];
     let y = Number(a.slice(0, 4)), m = Number(a.slice(5, 7)) + 1;
     for (let k = 0; k < 24; k++) {
       if (m > 12) { m = 1; y++; }
       const iso = `${y}-${String(m).padStart(2, '0')}-01`;
       const off = diffDays(a, iso);
       if (off > total) break;
-      out.push(`<span class="sf-tick" style="left:${((off / total) * 100).toFixed(2)}%">${String(m).padStart(2, '0')}/${String(y).slice(2)}</span>`);
+      ticks.push({ pct: (off / total) * 100, txt: `${String(m).padStart(2, '0')}/${String(y).slice(2)}` });
       m++;
     }
-    return out.join('');
+    // no máximo ~6 datas escritas (as outras ficam só com o tracinho), para não encavalarem em tela estreita
+    const step = Math.max(1, Math.ceil(ticks.length / 6));
+    return ticks.map((tk, i) => `<span class="sf-tick" style="left:${tk.pct.toFixed(2)}%">${i % step === 0 ? tk.txt : ''}</span>`).join('');
   }
 
   private currentTab(): string {

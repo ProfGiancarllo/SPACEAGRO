@@ -6,6 +6,8 @@ import { SatelliteHealth } from './components/SatelliteHealth';
 import { WaterStress } from './components/WaterStress';
 import { enableDraggableWindows } from './utils/dragWindows';
 import { MapManager } from './components/MapManager';
+import { ICONS } from './components/MapToolRail';
+import { tt } from './i18n/toolsText';
 import { CoordinateRow, parseCoordinatePair, parsePastedCoordinateText, validateCoordinate } from './utils/coordinateParser';
 import { DEFAULT_REFERENCE_DATE, formatBrDateWithWeekday, formatBrDateShort, addDaysToDate, calculateTalhaoCropStatus, calculateExpectedHarvestDate, checkCropDatesOverlap, getCropColor, DEFAULT_CROP_CYCLES } from './utils/cropCalendar';
 import { FarmGameView } from './components/FarmGameView';
@@ -158,9 +160,9 @@ class AgroApp {
     void this.mapManager.useFarmSnapshot(this.farmData.talhoes, this.farmData.waterPoints);
     this.fireAlert = new FireAlert({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap() });
     this.fireAlert.start();
-    this.satHealth = new SatelliteHealth({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap(), getTools: () => this.mapManager.topLeft() });
+    this.satHealth = new SatelliteHealth({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap(), tools: () => this.mapManager.tools });
     this.satHealth.start();
-    this.waterStress = new WaterStress({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap(), getTools: () => this.mapManager.topLeft() });
+    this.waterStress = new WaterStress({ getFarm: () => this.farmData, getMap: () => this.mapManager.getMap(), tools: () => this.mapManager.tools });
     this.waterStress.start();
     enableDraggableWindows();
   }
@@ -1071,6 +1073,13 @@ ${isSuperAdmin() ? `<div class="menu-head">Sistema</div>
       },
       onWaterPointDelete: (waterPointId) => {
         this.deleteWaterPoint(waterPointId);
+      },
+      onModesExited: () => this.hideHUDs(),
+    });
+    this.mapManager.tools.add({
+      id: 'draw', group: 'criar', order: 10, icon: ICONS.draw, label: tt('drawL'), desc: tt('drawD'), key: 'd',
+      onClick: () => {
+        if (this.mapManager.isDrawing()) { this.mapManager.cancelDrawing(); this.hideHUDs(); } else this.startDrawingTalhao();
       },
     });
 

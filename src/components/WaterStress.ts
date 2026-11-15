@@ -1,11 +1,13 @@
 import type { Feature } from 'geojson';
 import maplibregl, { GeoJSONSource, Map as MLMap, Marker } from 'maplibre-gl';
 import { FarmData } from '../types';
+import { MapToolRail, ICONS } from './MapToolRail';
+import { tt } from '../i18n/toolsText';
 import { wt } from '../i18n/waterText';
 import { getCurrentLanguage } from '../i18n/index';
 import { addDaysIso, fetchNasaSeries } from '../utils/nasaPower';
 
-export interface WaterStressOptions { getFarm: () => FarmData; getMap: () => MLMap; /** coluna de botões do mapa */ getTools: () => HTMLElement; }
+export interface WaterStressOptions { getFarm: () => FarmData; getMap: () => MLMap; /** barra de ferramentas do mapa */ tools: () => MapToolRail; }
 interface Res {
   id: string; nome: string; cultura: string | null; nivel: 'ok' | 'atencao' | 'sem_dado'; alertas: string[];
   ultima_imagem?: { data: string; hora_local: string; dias_atras: number; esi: number; pct_valido: number };
@@ -21,7 +23,6 @@ const RAIN_WARN_MM = 15;
 
 /** Botão no mapa com o estresse hídrico (ECOSTRESS/NASA). Sempre diz o dia exato da imagem e cruza com a chuva que veio depois (NASA POWER). */
 export class WaterStress {
-  private btn: HTMLButtonElement | null = null;
   private markers: Marker[] = [];
   private pill: HTMLElement | null = null;
   private modal: HTMLElement | null = null;
@@ -31,11 +32,7 @@ export class WaterStress {
   constructor(private opts: WaterStressOptions) {}
 
   start(): void {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'adjust-btn sat-btn water-btn'; b.textContent = wt('btn'); b.setAttribute('aria-pressed', 'false');
-    b.onclick = (e) => { e.stopPropagation(); void this.toggle(); };
-    this.btn = b;
-    this.opts.getTools().appendChild(b);
+    this.opts.tools().add({ id: 'water', group: 'analisar', order: 20, icon: ICONS.water, label: wt('btn'), desc: tt('waterD'), key: 'h', onClick: () => void this.toggle() });
   }
 
   private async load(): Promise<Data | null> {
@@ -54,16 +51,16 @@ export class WaterStress {
   private async toggle(): Promise<void> {
     if (this.on) { this.off(); return; }
     this.on = true;
-    if (this.btn) { this.btn.textContent = wt('loading'); this.btn.classList.add('on'); this.btn.setAttribute('aria-pressed', 'true'); }
+    this.opts.tools().setState('water', { on: true, busy: true, label: wt('loading') });
     this.data = await this.load();
     if (!this.on) return;
-    if (this.btn) this.btn.textContent = wt('btnOn');
+    this.opts.tools().setState('water', { busy: false, label: wt('btnOn') });
     this.paint();
   }
 
   private off(): void {
     this.on = false; this.clearMap(); this.pill?.remove(); this.pill = null;
-    if (this.btn) { this.btn.textContent = wt('btn'); this.btn.classList.remove('on'); this.btn.setAttribute('aria-pressed', 'false'); }
+    this.opts.tools().setState('water', { on: false, busy: false, label: wt('btn') });
   }
 
   private say(text: string, cls = ''): void {
