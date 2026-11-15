@@ -21,7 +21,7 @@
 // para instalar o SDK da Anthropic.
 
 const MAX_PER_IP_PER_DAY = 40;
-const MAX_TTS_PER_IP_PER_DAY = 200;
+const MAX_TTS_PER_IP_PER_DAY = 20; // protege os créditos do ElevenLabs
 const MAX_ADMIN_FAILS_PER_IP_PER_DAY = 10;
 const hits = new Map(); // limites simples por IP (reiniciam quando o worker reinicia)
 

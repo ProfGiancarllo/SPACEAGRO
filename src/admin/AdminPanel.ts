@@ -49,6 +49,7 @@ const ELEVEN_MODEL_LABEL: Record<string, string> = {
 
 /** Traduz o motivo devolvido pela rota /tts quando o ElevenLabs recusa. */
 function elevenErrorText(raw: string): string {
+  if (/payment_required|elevenlabs 402/.test(raw)) return 'O plano do ElevenLabs não permite usar essa voz pela API (vozes da Biblioteca exigem plano pago). Escolha uma voz padrão do ElevenLabs ou mude para um plano pago.';
   if (/quota_exceeded|insufficient|credits|payment/.test(raw)) return 'A conta do ElevenLabs está sem créditos de caracteres neste mês. Veja o plano em elevenlabs.io → Subscription.';
   if (/invalid_api_key|elevenlabs 401/.test(raw)) return 'O ElevenLabs recusou a chave (inválida ou revogada). Gere uma nova em elevenlabs.io → Developers → API keys.';
   if (/voice_not_found|elevenlabs 404|elevenlabs 400/.test(raw)) return 'O ElevenLabs não encontrou essa voz. Confira o Voice ID e se a voz está na sua biblioteca (My Voices).';

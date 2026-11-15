@@ -54,7 +54,7 @@ usa a **OpenAI** como reserva. Sem nenhum dos dois, a Estrela só escreve.
 1. Em https://platform.openai.com, coloque crédito, ative um **limite de gasto** e crie uma chave em **API keys** (começa com `sk-`).
 2. No painel, em **Voz de reserva — OpenAI**, cole a chave, escolha a voz e clique **Salvar**.
 
-O Worker limita 200 falas por pessoa por dia. Cada fala tem no máximo 600 caracteres.
+O Worker limita 20 falas por pessoa (IP) por dia, para proteger os créditos; depois disso a Estrela continua respondendo por escrito. Cada fala tem no máximo 600 caracteres.
 
 ## Segurança
 - As chaves vão do painel direto para o servidor, que guarda no KV da Cloudflare e **nunca devolve**: o painel mostra só os 4 últimos caracteres.
