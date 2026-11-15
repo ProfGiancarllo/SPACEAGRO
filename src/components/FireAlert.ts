@@ -17,6 +17,8 @@ export class FireAlert {
   private alerted = new Set<string>();
   private muted = false;
   private status: 'idle' | 'ok' | 'off' = 'idle';
+  /** falha por falta de configuração (sem servidor ou sem chave FIRMS), não passageira */
+  private notSetUp = false;
   private updated = '';
   private lastRun = 0;
   private audio: AudioContext | null = null;
@@ -51,7 +53,7 @@ export class FireAlert {
     const map = this.opts.getMap();
     const c = map.getCenter();
     const r = await fetchFires(bboxOf(farm.talhoes, [c.lat, c.lng]), 2);
-    if (!r.ok) { if (this.status !== 'ok') { this.status = 'off'; } this.paintPill(); return; }
+    if (!r.ok) { this.notSetUp = r.error === 'sem_chave' || r.error === 'sem_servidor'; if (this.status !== 'ok') { this.status = 'off'; } this.paintPill(); return; }
     this.status = 'ok';
     this.updated = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     this.fires = annotate(r.fires, farm.talhoes);
@@ -88,7 +90,7 @@ export class FireAlert {
       document.body.appendChild(this.pill);
     }
     const p = this.pill;
-    if (this.status === 'off') { p.textContent = ft('pillOff'); p.className = 'fire-pill off'; return; }
+    if (this.status === 'off') { p.textContent = ft(this.notSetUp ? 'pillNotSetUp' : 'pillOff'); p.className = 'fire-pill off'; return; }
     if (this.status !== 'ok') return;
     p.textContent = this.fires.length ? ft('pillSome', { n: this.fires.length, t: this.updated }) : ft('pillNone', { t: this.updated });
     p.className = 'fire-pill ' + (this.fires.some((f) => f.km <= NEAR_KM) ? 'hot' : '');
