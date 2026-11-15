@@ -5,7 +5,7 @@ Aplicação web aberta que ajuda o produtor rural a decidir **o que plantar, qua
 Projeto da equipe SpaceAgro para o **NASA Space Apps Challenge 2026**, desafio *Adapting Farms with NASA Data*, evento local de Rio Verde (GO). O código é aberto e livre para qualquer pessoa usar.
 
 - Produção (app completo, com Estrela e contas): https://spaceagro.pro
-- Site estático (GitHub Pages): https://profgiancarllo.github.io/myroca/
+- Site estático (GitHub Pages): https://profgiancarllo.github.io/SPACEAGRO/
 - Documentação técnica: [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md)
 - Camada de mercado: [docs/mercado-dados.md](docs/mercado-dados.md)
 - Roteiro da demonstração: [docs/roteiro-demonstracao.md](docs/roteiro-demonstracao.md)
@@ -32,7 +32,17 @@ Projeto da equipe SpaceAgro para o **NASA Space Apps Challenge 2026**, desafio *
 - Globo 3D girando com os **focos de calor reais das últimas 24 h** na América do Sul (NASA FIRMS, VIIRS NOAA-20).
 - Voo automático até a fazenda de demonstração, com **tour guiado talhão por talhão** (cultura, área, fase de hoje e colheita prevista), água da fazenda (nascente, poço, rio), foco de calor mais próximo e totais.
 - Seções de problema, solução, telas reais do app, previsões, impacto e modelo de negócio.
-- Atalhos: **`/demonstracao`** abre direto a fazenda de demonstração, sem cadastro (ex.: https://spaceagro.pro/demonstracao); `/#inicio` abre a página inicial mesmo com sessão ativa; `/#entrar` e `/#criar-conta` vão direto para o acesso.
+- Endereços (rotas):
+
+  | Endereço | Abre |
+  |---|---|
+  | `/` | Página inicial sem sessão; o app para quem já entrou |
+  | `/home` | Página inicial, mesmo com sessão |
+  | `/demo` | Fazenda de demonstração, sem cadastro (ex.: https://spaceagro.pro/demo) |
+  | `/login` | Tela de acesso, aba Entrar |
+  | `/signup` | Tela de acesso, aba Criar conta |
+
+  Os nomes antigos (`/inicio`, `/demonstracao`, `/entrar`, `/criar-conta` e `#inicio`, `#demonstracao`, `#entrar`, `#criar-conta`) continuam funcionando e são trocados pelo nome em inglês. A lógica fica em [src/auth/routes.ts](src/auth/routes.ts).
 
 ### Mapa e talhões
 - Mapa de satélite (MapLibre GL) com os talhões da fazenda e a fazenda de demonstração real de Rio Verde (limites do CAR).

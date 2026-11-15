@@ -1,5 +1,6 @@
 import { setLanguage, getCurrentLanguage, LanguageCode } from '../i18n';
-import { AuthError, currentUser, deleteAccount, enterAsGuest, isCloudMode, login, signup } from './auth';
+import { AuthError, currentUser, deleteAccount, enterAsGuest, GUEST_ID, isCloudMode, login, signup } from './auth';
+import { currentRoute, setRoute } from './routes';
 import { at } from './authText';
 import { showLanding } from '../landing/landing';
 
@@ -10,41 +11,51 @@ const LANGS: [LanguageCode, string][] = [
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 
-/** Mostra a tela de acesso e só resolve quando houver sessão válida. */
+/**
+ * Decide a primeira tela pelo endereço (ver routes.ts) e só resolve quando houver sessão válida.
+ *   /demo     entra direto na fazenda de demonstração (quem já tem conta continua nela)
+ *   /home     página inicial, mesmo com sessão
+ *   /login    tela de acesso (aba Entrar);  /signup  aba Criar conta
+ *   /         página inicial sem sessão; o app com sessão
+ */
 export function requireAuth(): Promise<void> {
-  // /demonstracao (ou #demonstracao) abre direto a fazenda de demonstração, sem cadastro nem página inicial.
-  // Quem já está logado com a própria conta continua nela (não troca a sessão).
-  if (/\/demonstracao\/?$/.test(location.pathname) || location.hash === '#demonstracao') {
-    if (location.pathname.endsWith('/')) history.replaceState(null, '', location.pathname.replace(/\/+$/, '') + location.search);
-    if (!currentUser()) enterAsGuest();
+  const route = currentRoute();
+  const user = currentUser();
+  const hasAccount = !!user && user.id !== GUEST_ID;
+
+  if (route === 'demo') {
+    if (!user) enterAsGuest();
+    setRoute('demo');
     return Promise.resolve();
   }
-  // #inicio abre a página inicial mesmo com sessão ativa (para divulgar ou rever a página).
-  const forceLanding = location.hash === '#inicio';
-  if (currentUser() && !forceLanding) return Promise.resolve();
+  if ((route === 'login' || route === 'signup') && hasAccount) { setRoute('root'); return Promise.resolve(); }
+  if (route === 'root' && user) { setRoute(user.id === GUEST_ID ? 'demo' : 'root'); return Promise.resolve(); }
+
   return new Promise((resolve) => {
-    // Quem chega sem sessão vê primeiro a página inicial; #entrar e #criar-conta pulam direto para o acesso.
-    const hash = location.hash;
-    const direct = hash === '#entrar' ? 'login' : hash === '#criar-conta' ? 'signup' : null;
-    const fromLanding = () => showLanding().then((choice) => {
-      if (forceLanding) history.replaceState(null, '', location.pathname + location.search);
-      if (choice === 'guest') {
-        enterAsGuest();
-        resolve();
-      } else openAuth(choice);
-    });
-    if (direct) openAuth(direct);
+    const fromLanding = () => {
+      setRoute(route === 'home' ? 'home' : 'root');
+      return showLanding().then((choice) => {
+        if (choice === 'guest') {
+          enterAsGuest();
+          setRoute('demo');
+          resolve();
+        } else openAuth(choice);
+      });
+    };
+    if (route === 'login' || route === 'signup') openAuth(route);
     else void fromLanding();
 
     function openAuth(initial: 'login' | 'signup') {
     let mode: 'login' | 'signup' = initial;
     let showForgot = false;
+    setRoute(mode);
     const root = document.createElement('div');
     root.id = 'auth-screen';
     document.body.appendChild(root);
 
     const done = () => {
       root.remove();
+      setRoute('root');
       resolve();
     };
 
@@ -109,6 +120,7 @@ export function requireAuth(): Promise<void> {
         b.onclick = () => {
           mode = b.dataset.mode as 'login' | 'signup';
           showForgot = false;
+          setRoute(mode);
           render();
         };
       });
@@ -118,7 +130,9 @@ export function requireAuth(): Promise<void> {
       };
       root.querySelector<HTMLButtonElement>('#auth-guest')!.onclick = () => {
         enterAsGuest();
-        done();
+        root.remove();
+        setRoute('demo');
+        resolve();
       };
       const forgot = root.querySelector<HTMLButtonElement>('#auth-forgot');
       if (forgot) forgot.onclick = () => {

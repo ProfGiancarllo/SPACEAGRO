@@ -2,7 +2,7 @@
 
 **Abertura:** vídeo de ~12 s toca ao abrir o app (satélite → dados → fazenda → gêmeo digital → produtor + "Olhando de cima, a gente te ajuda."). Botão Pular/Entrar. Para desligar em testes: adicionar `?intro=0` ao endereço.
 
-Site: https://profgiancarllo.github.io/myroca/ (abrir no Chrome, microfone permitido)
+Site: https://profgiancarllo.github.io/SPACEAGRO/ (abrir no Chrome, microfone permitido)
 
 | # | Tempo | O que fazer na tela | O que dizer |
 |---|-------|--------------------|-------------|

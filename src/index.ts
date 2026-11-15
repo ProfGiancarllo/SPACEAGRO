@@ -12,6 +12,7 @@ import { CoordinateRow, parseCoordinatePair, parsePastedCoordinateText, validate
 import { DEFAULT_REFERENCE_DATE, formatBrDateWithWeekday, formatBrDateShort, addDaysToDate, calculateTalhaoCropStatus, calculateExpectedHarvestDate, checkCropDatesOverlap, getCropColor, DEFAULT_CROP_CYCLES } from './utils/cropCalendar';
 import { FarmGameView } from './components/FarmGameView';
 import { requireAuth } from './auth/loginScreen';
+import { appBase } from './auth/routes';
 import { AdminPanel, openAdminSetup } from './admin/AdminPanel';
 import { hasSuperAdmin, initCloud, isSuperAdmin, syncOnStart } from './auth/auth';
 import { NasaPanel } from './components/NasaPanel';
@@ -1604,7 +1605,8 @@ ${isSuperAdmin() ? `<div class="menu-head">Sistema</div>
     document.getElementById('btn-nasa')?.addEventListener('click', () => this.nasaPanel.open());
     document.getElementById('btn-logout')?.addEventListener('click', () => {
       logout();
-      window.location.reload();
+      // volta para a página inicial (em /demo, recarregar entraria de novo como visitante)
+      window.location.assign(appBase());
     });
 
     // Language selector: grava o idioma e recarrega a página (os dados da fazenda ficam no localStorage)

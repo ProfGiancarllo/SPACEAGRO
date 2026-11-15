@@ -343,7 +343,7 @@ async function precosMercado(env) {
   if (Date.now() - mercadoCache.t < 3600_000) return mercadoCache.texto;
   let texto = 'Preços de mercado: sem dados reais disponíveis agora. Não cite preços; diga que o painel Mercado do app mostra os valores.';
   try {
-    const base = env.SITE_URL || 'https://profgiancarllo.github.io/myroca';
+    const base = env.SITE_URL || 'https://profgiancarllo.github.io/SPACEAGRO';
     const r = await fetch(`${base}/data/mercado.json`, { cf: { cacheTtl: 3600 } });
     if (r.ok) {
       const m = await r.json();

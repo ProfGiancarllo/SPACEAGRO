@@ -6,7 +6,7 @@ Estado do código em 13/11/2026 (ramo `main`). Objetivo: permitir que outra pess
 
 Aplicação web (sem backend próprio) que une mapa de satélite, talhões da fazenda, clima (NASA POWER, Open-Meteo), preços de bolsa (CBOT/ICE via FRED/Yahoo) e um diário de safra, para apoiar a decisão de troca de safra e rotação de culturas. Projeto do NASA Space Apps 2026 (desafio "Adapting Farms with NASA Data"), Rio Verde (GO).
 
-Site publicado: https://profgiancarllo.github.io/myroca/ (GitHub Pages, ramo `gh-pages`, gerado pelo workflow).
+Site publicado: https://profgiancarllo.github.io/SPACEAGRO/ (GitHub Pages, ramo `gh-pages`, gerado pelo workflow).
 
 ## 2. Stack
 
