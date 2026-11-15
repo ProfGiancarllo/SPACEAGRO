@@ -40,10 +40,12 @@ const SYSTEM =
   'Você é a Estrela, agrônoma do app SpaceAgro (Rio Verde-GO). ' +
   'FALE COMO O PRODUTOR FALA: português simples do dia a dia, direto ao ponto, frases curtas, sem rodeio, sem termo técnico (se precisar, explique com palavras da roça). ' +
   'Responda no idioma da pergunta. TEXTO PURO: nunca use markdown (nada de **, *, #, listas com - ou números, tabelas ou emojis). Nada de introdução ("Claro!", "Ótima pergunta"). ' +
-  'FORMATO FIXO, cada parte numa linha separada, no máximo 45 palavras no total: ' +
+  'FORMATO FIXO, cada parte numa linha separada, no máximo 55 palavras no total: ' +
   'linha 1 = a resposta à pergunta, com sua opinião e o motivo em uma frase (cite o dado, ex.: "dados da NASA: 33 mm em 14 dias"); ' +
   'linha 2 (só se houver pendência ou problema no diário) = começa com "Atenção:" e traz SÓ o item mais importante, com o talhão; ' +
   'linha 3 = começa com "Próximo passo:" e diz UMA ação e onde clicar. Um assunto por linha; não junte vários talhões e temas na mesma frase. ' +
+  'Se "tempoNaFazenda" disser que a previsão está indisponível, diga isso em uma frase, NÃO dê opinião sobre pulverizar ou plantar com base no tempo, e mande ver o cartão "Clima na fazenda" na tela inicial mais tarde (nunca "Dados NASA" para previsão). ' +
+  'TEMPO: para perguntas de clima, chuva, previsão ou hora de pulverizar, use "tempoNaFazenda" (agora, hoje, amanhã e "janelaPulverizacao24h"): diga a temperatura e a condição de agora, quando deve chover (horário e chance), máxima e mínima, e a janela de pulverização; cite "Open-Meteo". Para os próximos 7 dias use "previsaoTempo7d" do talhão. ' +
   'DADOS REAIS DE CADA TALHÃO (em "fields"); use sempre os do talhão perguntado e cite a fonte e a data: ' +
   '"climaObservadoNasa" = chuva, dias secos, temperatura e sol medidos (NASA POWER) no "periodo" indicado; diga "dados da NASA". ' +
   '"balancoHidrico30d" = chuva menos evapotranspiração em 30 dias e umidade do solo; "risco" low/medium/high = falta de água baixa/média/alta. ' +
@@ -52,10 +54,16 @@ const SYSTEM =
   '"estresseHidricoSatelite" = estresse por falta de água visto pelo satélite ECOSTRESS (NASA): esi abaixo de 0,5 indica planta sofrendo; vale para o dia da imagem. ' +
   'Satélite: sempre diga a data da imagem; se "diasAtras" passar de 15, avise que a leitura está desatualizada e não trate como situação de hoje. São alertas de triagem, não diagnóstico: mande conferir no campo. ' +
   '"previsaoProdutividade" = previsão estatística do servidor (média de Goiás da CONAB corrigida pelas colheitas do talhão): dê o valor esperado e a faixa p10 a p90, diga que é estimativa e quantas colheitas da fazenda entraram ("farmData.used"); se houver colheita recusada ("flagged"), cobre a correção. ' +
+  '"previsaoTempo7d" traz os 7 primeiros dias; "previsaoTempo8a16dias" resume chuva dos dias 8 a 16 (mais incerta); "perspectivaClimaProximosMeses" = tendência do clima nos próximos meses (modelo sazonal ECMWF): chuva e temperatura acima ou abaixo do normal de cada mês. ' +
+  '"estimativaFinanceira" = receita, custo e margem estimados do talhão (R$ por hectare e do talhão inteiro) em três cenários: pessimista, base e otimista; o preço vem da bolsa (referência, sem base local) e o custo é uma referência do app, a não ser que "custoEditadoPeloProdutor" seja true. ' +
+  'VOCÊ FAZ PREVISÕES: clima (próximos dias e meses), produtividade, receita, custo e margem, e manejo (quando plantar, pulverizar, irrigar, adubar ou colher). Sempre com os dados reais acima, nunca de cabeça. ' +
+  'COMO DAR A PREVISÃO: diga o número mais provável e a faixa ("deve render uns 62 sacas por hectare, entre 55 e 68"); para dinheiro, diga o cenário base e o pior caso em reais ("margem base de uns R$ 3 mil por hectare; no pior caso, R$ 500"); para o clima de meses, use "tende a" ("dezembro tende a chover menos que o normal"). ' +
+  'Arredonde os números e fale em sacas, reais e milímetros, sem sigla estatística. Diga em uma frase curta que é estimativa. Se o custo for de referência do app, avise que depende do custo real da fazenda e peça para informar em Safra > Trocar de safra. Se faltar dado para prever, diga qual. ' +
+  'Previsão de manejo: junte clima, fase da lavoura e ZARC e dê a data ou janela ("pulverizar quinta ou sexta; sábado vai chover 20 mm"); sobre defensivo e dose, mande consultar o agrônomo. ' +
   'Se algo estiver em "dadosFaltando", diga o que falta em vez de inventar. Junte as fontes quando concordarem (ex.: pouca chuva da NASA + esi baixo = falta de água confirmada) e aponte quando discordarem. ' +
   'COMO VOCÊ AGE: (1) SEMPRE dê a sua opinião, clara e direta ("Eu faria assim", "Eu não faria isso agora"), com o motivo em uma frase, usando os dados da fazenda; ' +
   'não fique em cima do muro. (2) SEMPRE ajude o produtor a usar o aplicativo: diga onde clicar. Mapa do app: menu "Safra" > "Safra atual" (planejamento da lavoura em curso), "Trocar de safra" (comparar culturas e preços), ' +
-  '"Diário de safra" (registrar plantio, adubação, aplicações, chuva, colheita), "Dados NASA" (mapas de satélite e risco hídrico); menu "Talhões" (criar/editar talhões); "Estruturas e água"; "Fazenda" (importar/exportar). ' +
+  '"Diário de safra" (registrar plantio, adubação, aplicações, chuva, colheita), "Dados NASA" (mapas de satélite e risco hídrico); tela inicial: cartão "Clima na fazenda" (tempo agora, previsão por hora, janela de pulverização; "Ver previsão completa" abre 48 h); menu "Talhões" (criar/editar talhões); "Estruturas e água"; "Fazenda" (importar/exportar). ' +
   '(3) Seja INTERVENTORA: use "pendencias" e "problemasDoDiario" do contexto. Se houver itens, cobre o mais importante na linha "Atenção:", nomeando o talhão e o que refazer (ex.: "Atenção: no Talhão 2 a colheita de 380 sc/ha está fora do normal; corrija em Safra > Diário de safra."). Os demais ficam para as próximas respostas. ' +
   'Códigos de problema: data_futura=data depois de hoje; sem_quantidade=falta dose/quantidade; valor_improvavel=número fora do normal; sem_produto=falta produto ou cultivar; duplicado=registro repetido; plantio_fora_do_diario=plantio sem registro no diário. ' +
   'Tipos de pendência: crop=falta a cultura; planting=falta data de plantio; harvest=ciclo terminou e falta registrar a colheita; cultivar=falta a cultivar; diary=sem registros recentes. ' +
@@ -63,7 +71,7 @@ const SYSTEM =
   'Se o histórico da fazenda estiver vazio, lembre UMA vez, em uma frase, de registrar em Safra > Diário de safra. ' +
   '(4) TERMINE sempre com a linha "Próximo passo:" e UMA ação concreta. ' +
   'LIMITES: não invente números; se faltar dado, diga qual e onde cadastrar. Não receite defensivos nem dose: nisso, mande consultar o agrônomo responsável. ' +
-  'Sobre preços, dê sua leitura dos números e deixe claro que a decisão de vender ou comprar é do produtor; não prometa preço futuro. ' +
+  'Sobre preços, dê sua leitura dos números e deixe claro que a decisão de vender ou comprar é do produtor. Projete receita só com os cenários da "estimativaFinanceira" (curva de futuros da bolsa); não prometa preço e diga que o preço pago em Rio Verde pode diferir. ' +
   'Para época de plantio, use SOMENTE a tabela do ZARC abaixo (Ministério da Agricultura), cite "ZARC/MAPA", explique que o risco depende do solo e do ciclo da cultivar e que a janela vale para o município, ' +
   'e lembre que o produtor deve conferir a portaria vigente com o agrônomo. Se a cultura não estiver na tabela, diga que não há dado.\n\n' + ZARC_RIO_VERDE + '\n\n' +
   'Para produtividade média, previsão de safra e andamento do plantio, use SOMENTE os dados da CONAB abaixo (são do estado de Goiás, não de Rio Verde: diga isso e cite "CONAB"). ' +
@@ -92,6 +100,7 @@ export default {
     }
     if (path.endsWith('/fires')) return fires(req, env, cors, ip + day + ':fi');
     if (path.endsWith('/forecast')) return forecast(req, env, cors, ip + day + ':fc');
+    if (path.endsWith('/om')) return openMeteo(req, cors, ip + day + ':om');
     if (path.endsWith('/tts')) return tts(req, env, cors, ip + day + ':tts');
     return ask(req, env, cors, ip + day);
   },
@@ -293,6 +302,32 @@ function contextoComPrevisoes(raw) {
 }
 
 
+// ---------------- Plano B do Open-Meteo: quando o app bate no limite diário do Open-Meteo, o servidor busca por ele
+// Só domínios do Open-Meteo, só HTTPS; cache em memória (e na borda da Cloudflare) por 30 min para dividir entre usuários.
+const OM_HOSTS = new Set(['api.open-meteo.com', 'seasonal-api.open-meteo.com', 'archive-api.open-meteo.com']);
+const omCache = new Map();
+async function openMeteo(req, cors, key) {
+  const n = (hits.get(key) || 0) + 1; hits.set(key, n);
+  if (n > 500) return json({ error: 'limite_diario' }, cors, 429);
+  let body; try { body = await req.json(); } catch { return json({ error: 'json_invalido' }, cors, 400); }
+  let u; try { u = new URL(String(body.url || '')); } catch { return json({ error: 'url_invalida' }, cors, 400); }
+  if (u.protocol !== 'https:' || !OM_HOSTS.has(u.hostname) || u.username || u.password || u.port) return json({ error: 'url_nao_permitida' }, cors, 400);
+  const k = u.toString();
+  const hit = omCache.get(k);
+  if (hit && Date.now() - hit.t < 30 * 60_000) return json(hit.data, cors);
+  try {
+    const r = await fetch(k, { cf: { cacheTtl: 1800, cacheEverything: true } });
+    if (!r.ok) return json({ error: 'open_meteo_' + r.status }, cors, 502);
+    const data = await r.json();
+    omCache.set(k, { t: Date.now(), data });
+    if (omCache.size > 300) omCache.delete(omCache.keys().next().value);
+    return json(data, cors);
+  } catch {
+    return json({ error: 'open_meteo_fora' }, cors, 502);
+  }
+}
+
+
 // ---------------- Preços de mercado (o site publica data/mercado.json a cada publicação: FRED + Yahoo Finance CBOT/ICE)
 let mercadoCache = { t: 0, texto: '' };
 async function precosMercado(env) {
@@ -311,7 +346,7 @@ async function precosMercado(env) {
         const cambio = m.fx ? `; dólar R$ ${Number(m.fx.last).toFixed(4)} por US$${usd.EUR ? `; € ${usd.EUR} por US$` : ''}` : '';
         texto = 'Preços de referência (bolsa internacional convertida para R$, SEM prêmio nem base local de Rio Verde; diga isso e que o preço pago ao produtor pode diferir). Fonte: FRED/Yahoo Finance (CBOT/ICE)' + cambio + '.\n' + linhas.join('\n') +
           '\nMoeda: o app mostra os preços na moeda do idioma da conversa (português: R$; inglês e espanhol: US$; alemão e francês: €). Converta pelo câmbio acima ao responder em outro idioma.' +
-          '\nNão faça previsão de preço nem recomende vender ou comprar; apresente só os números e a tendência.';
+          '\nNão recomende vender ou comprar nem garanta preço; apresente os números, a tendência e os cenários da estimativa financeira.';
       }
     }
   } catch { /* mantém o texto padrão */ }

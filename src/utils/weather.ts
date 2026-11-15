@@ -7,6 +7,7 @@
  *   4) estimativa pela época do ano (estação chuvosa de outubro a março no Cerrado).
  */
 import { scopedKey } from '../auth/auth';
+import { omFetch, omPoint } from './openMeteo';
 import { NasaSeries } from './nasaPower';
 
 export type Condition = 'clear' | 'partly' | 'cloudy' | 'rain' | 'storm';
@@ -82,16 +83,14 @@ export async function fetchCurrentWeather(lat: number, lng: number): Promise<Wea
   const key = `${CACHE_KEY}_${lat.toFixed(2)}_${lng.toFixed(2)}`;
   const cached = read<WeatherState>(key);
   if (cached && Date.now() - cached.at < CACHE_TTL) return cached;
+  const pt = omPoint(lat, lng);
   const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}` +
+    `https://api.open-meteo.com/v1/forecast?latitude=${pt.lat}&longitude=${pt.lng}` +
     `&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,cloud_cover,wind_speed_10m&timezone=auto`;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 10000);
   try {
-    const res = await fetch(url, { signal: ctrl.signal });
-    if (!res.ok) return cached || null;
-    const j = await res.json();
-    const c = j?.current;
+    const got = await omFetch(url, CACHE_TTL, 10000);
+    if (!got) return cached || null;
+    const c = got.data?.current;
     if (!c || typeof c.weather_code !== 'number') return cached || null;
     const rainMm = Number(c.precipitation) || 0;
     const w = fromWmo(c.weather_code, typeof c.cloud_cover === 'number' ? c.cloud_cover : null, rainMm);
@@ -108,8 +107,6 @@ export async function fetchCurrentWeather(lat: number, lng: number): Promise<Wea
     return state;
   } catch {
     return cached || null;
-  } finally {
-    clearTimeout(timer);
   }
 }
 
