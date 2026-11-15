@@ -1,25 +1,42 @@
 import './landing.css';
+import { getCurrentLanguage, setLanguage } from '../i18n';
+import { LANDING_TEXT, LandingDict, LandingLang } from './landingText';
+import { mountGlobe, GlobeHandle, GlobeView, FireSnapshot, FarmStats, NEAR_KM } from './globe';
 
 /** O que o visitante escolheu na página inicial. */
 export type LandingChoice = 'login' | 'signup' | 'guest';
 
 const IMG = './assets/landing/';
+const STAR = './assets/brand/spaceagro-icon.png';
+// Versão do logo para fundo escuro (gerada a partir de spaceagro-logo.png).
+const LOGO = './assets/brand/spaceagro-logo-escuro.png';
+const LANGS: [LandingLang, string, string][] = [['pt', 'PT', 'Português'], ['en', 'EN', 'English'], ['es', 'ES', 'Español']];
 
-const html = () => `
+/** Idioma da página: o mesmo do sistema; alemão e francês caem para inglês. */
+const landingLang = (): LandingLang => {
+  const l = getCurrentLanguage();
+  return l === 'pt' || l === 'es' ? l : 'en';
+};
+
+const html = (t: LandingDict, lang: LandingLang) => `
 <header class="lp-header">
   <div class="lp-wrap lp-header-in">
-    <a class="lp-brand" href="#lp-top" data-scroll aria-label="SpaceAgro, início">
-      <span class="brand-mark brand-mark-nav" role="img" aria-hidden="true"><img src="./assets/brand/spaceagro-logo.svg" alt="" /></span>
+    <a class="lp-brand" href="#lp-top" data-scroll aria-label="${t.homeAria}">
+      <span class="lp-logo"><img src="${LOGO}" width="1460" height="384" alt="SpaceAgro" /></span>
     </a>
-    <nav class="lp-nav" aria-label="Seções">
-      <a href="#lp-problema" data-scroll>Problema</a>
-      <a href="#lp-solucao" data-scroll>Solução</a>
-      <a href="#lp-como" data-scroll>Da NASA ao talhão</a>
-      <a href="#lp-mercado" data-scroll>Modelo de negócio</a>
+    <nav class="lp-nav" aria-label="${t.navAria}">
+      <a href="#lp-problema" data-scroll>${t.navProblem}</a>
+      <a href="#lp-solucao" data-scroll>${t.navSolution}</a>
+      <a href="#lp-previsoes" data-scroll>${t.navForecast}</a>
+      <a href="#lp-como" data-scroll>${t.navHow}</a>
+      <a href="#lp-mercado" data-scroll>${t.navMarket}</a>
     </nav>
     <div class="lp-header-act">
-      <button type="button" class="lp-btn lp-btn-text" data-go="login">Entrar</button>
-      <button type="button" class="lp-btn lp-btn-primary" data-go="signup">Criar conta</button>
+      <label class="lp-lang"><span class="lp-sr">${t.langLabel}</span>
+        <select id="lp-lang" aria-label="${t.langLabel}">
+          ${LANGS.map(([c, short, name]) => `<option value="${c}" ${c === lang ? 'selected' : ''} title="${name}">${short}</option>`).join('')}
+        </select>
+      </label>
     </div>
   </div>
 </header>
@@ -28,80 +45,103 @@ const html = () => `
   <section class="lp-hero" id="lp-top">
     <div class="lp-wrap lp-hero-in">
       <div class="lp-hero-text">
-        <h1>A próxima safra começa com uma decisão.</h1>
-        <p class="lp-lead">Dados da Terra e inteligência para o campo. O SpaceAgro junta imagens de satélite da NASA, clima, dados de cada talhão e mercado em um só lugar, e a assistente Estrela transforma isso em recomendação: o que plantar, quando plantar e quanto produzir.</p>
+        <p class="lp-mono lp-kicker">${t.kicker}</p>
+        <h1>${t.h1a} <em>${t.h1b}</em></h1>
+        <p class="lp-lead">${t.lead}</p>
         <div class="lp-cta-row">
-          <button type="button" class="lp-btn lp-btn-light" data-go="guest">Conhecer sem conta (demonstração)</button>
-          <button type="button" class="lp-btn lp-btn-outline-light" data-go="signup">Criar conta</button>
+          <button type="button" class="lp-btn lp-btn-accent lp-btn-lg" data-go="guest">${t.demo}</button>
+          <button type="button" class="lp-btn lp-btn-outline lp-btn-lg" data-go="signup">${t.signup}</button>
         </div>
-        <p class="lp-hero-note">A demonstração abre uma fazenda de exemplo em Rio Verde (GO), sem cadastro.</p>
+        <p class="lp-hero-note">${t.heroNote}</p>
       </div>
-      <figure class="lp-hero-fig">
-        <img fetchpriority="high" src="${IMG}equipe-astronautas.jpg" width="875" height="1568" alt="Equipe SpaceAgro em uma lavoura de soja, em montagem com trajes de astronauta" />
-      </figure>
+
+      <div class="lp-globe-wrap">
+        <div class="lp-globe" id="lp-globe" role="img" aria-label="${t.globeAria}"></div>
+        <div class="lp-globe-bar">
+          <p class="lp-globe-status" id="lp-globe-status" aria-live="polite">${t.globeLoading}</p>
+          <div class="lp-globe-btns">
+            <button type="button" class="lp-chip" id="lp-fly">${t.globeFly}</button>
+            <button type="button" class="lp-chip" id="lp-pause">${t.btnPause}</button>
+            <button type="button" class="lp-chip" id="lp-replay">${t.btnReplay}</button>
+            <button type="button" class="lp-chip" id="lp-planet">${t.globePlanet}</button>
+          </div>
+        </div>
+        <ul class="lp-globe-legend">
+          <li><span class="lp-dot lp-dot-fire" aria-hidden="true"></span><span id="lp-fire-legend">${t.globeLoading}</span></li>
+          <li><span class="lp-dot lp-dot-farm" aria-hidden="true"></span>${t.legendFarm}</li>
+          <li><span class="lp-dot lp-dot-field" aria-hidden="true"></span>${t.legendFields}</li>
+        </ul>
+      </div>
     </div>
-    <div class="lp-wrap lp-hero-foot">
-      <p class="lp-challenge"><strong>Desafio:</strong> como adaptar as fazendas às constantes mudanças do campo com informações confiáveis.</p>
-      <ul class="lp-sources-bar" aria-label="Fontes de dados usadas pelo SpaceAgro">
-        <li>NASA Landsat 8/9</li><li>HLS</li><li>NASA POWER</li><li>ECOSTRESS</li><li>FIRMS</li><li>Esri World Imagery</li>
-      </ul>
+    <div class="lp-wrap">
+      <dl class="lp-facts" aria-label="${t.missionAria}">
+        <div><dt>${t.missionKicker}</dt><dd>Rio Verde (GO) · ${t.mCoordsV}</dd></div>
+        <div><dt>${t.mArea}</dt><dd>${t.mAreaV}</dd></div>
+        <div><dt>${t.mImg}</dt><dd>${t.mImgV}</dd></div>
+        <div><dt>${t.mRain}</dt><dd>${t.mRainV}</dd></div>
+        <div><dt>${t.mFire}</dt><dd>NASA FIRMS · VIIRS 375 m</dd></div>
+      </dl>
+      <p class="lp-challenge"><span class="lp-mono">${t.challengeK}</span> ${t.challenge}</p>
     </div>
   </section>
 
   <section class="lp-sec" id="lp-problema">
     <div class="lp-wrap lp-split">
       <div>
-        <h2>Uma decisão errada na data de plantio pode custar centenas de milhares de reais.</h2>
-        <p class="lp-body">Na safra 2025/2026 em Goiás, o atraso de até 2 semanas no plantio e a irregularidade das chuvas reduziram a produtividade da soja.</p>
+        <p class="lp-mono lp-idx">${t.pIdx}</p>
+        <h2>${t.pTitle}</h2>
+        <p class="lp-body">${t.pBody}</p>
         <table class="lp-figs">
-          <caption class="lp-sr">Impacto do atraso no plantio da soja, safra 2025/2026, Goiás</caption>
+          <caption class="lp-sr">${t.pCaption}</caption>
           <tbody>
-            <tr><th scope="row">Produtividade da safra anterior</th><td>~70 sc/ha</td></tr>
-            <tr><th scope="row">Estimativa da safra 2025/2026</th><td>66,5 sc/ha</td></tr>
-            <tr class="lp-neg"><th scope="row">Queda de produtividade</th><td>−3,5 sc/ha (−5%)</td></tr>
-            <tr><th scope="row">Receita não realizada por hectare<span>3,5 sacas × R$ 120,00</span></th><td>R$ 420/ha</td></tr>
-            <tr><th scope="row">Em uma propriedade de 1.000 hectares</th><td>R$ 420.000</td></tr>
-            <tr><th scope="row">Se houver replantio<span>custo adicional de até 5,9 sacas/ha em Rio Verde (GO), com nova adubação</span></th><td>≈ R$ 708/ha</td></tr>
+            <tr><th scope="row">${t.f1}</th><td>${t.f1v}</td></tr>
+            <tr><th scope="row">${t.f2}</th><td>${t.f2v}</td></tr>
+            <tr class="lp-neg"><th scope="row">${t.f3}</th><td>${t.f3v}</td></tr>
+            <tr><th scope="row">${t.f4}<span>${t.f4s}</span></th><td>${t.f4v}</td></tr>
+            <tr class="lp-total"><th scope="row">${t.f5}</th><td>${t.f5v}</td></tr>
+            <tr><th scope="row">${t.f6}<span>${t.f6s}</span></th><td>${t.f6v}</td></tr>
           </tbody>
         </table>
-        <p class="lp-src">Fontes: FAEG, Expedição Safra Goiás 2025/26 (23/01/2026), queda de 70 para 66,5 sc/ha e atraso de até 2 semanas · CNA, replantio da soja (16/01/2026), custo adicional em Rio Verde (GO) · IFAG/DadoAgro, preço médio da soja em Rio Verde (GO), R$ 120/saca (nov/2025).</p>
+        <p class="lp-src">${t.pSrc}</p>
       </div>
       <figure class="lp-photo lp-photo-tall">
-        <img src="${IMG}produtor-talhao.jpg" width="900" height="1200" loading="lazy" alt="Produtor consultando o celular no meio da lavoura de soja" />
+        <img src="${IMG}produtor-talhao.jpg" width="900" height="1200" loading="lazy" alt="${t.pAlt}" />
       </figure>
     </div>
   </section>
 
-  <section class="lp-sec lp-sec-alt">
+  <section class="lp-sec lp-dark lp-questions-sec">
     <div class="lp-wrap">
-      <h2>Decidir sem enxergar o cenário completo.</h2>
-      <p class="lp-body">Toda safra começa com três perguntas fundamentais.</p>
+      <p class="lp-mono lp-idx">${t.qIdx}</p>
+      <h2>${t.qTitle}</h2>
+      <p class="lp-body">${t.qBody}</p>
       <ol class="lp-questions">
-        <li><span class="lp-qn">01</span><h3>O que plantar?</h3><p>Culturas, oferta e demanda.</p></li>
-        <li><span class="lp-qn">02</span><h3>Quando plantar?</h3><p>Clima e janela de plantio.</p></li>
-        <li><span class="lp-qn">03</span><h3>Quanto produzir?</h3><p>Área, custo e risco de mercado.</p></li>
+        <li><span class="lp-qn">01</span><h3>${t.q1}</h3><p>${t.q1s}</p></li>
+        <li><span class="lp-qn">02</span><h3>${t.q2}</h3><p>${t.q2s}</p></li>
+        <li><span class="lp-qn">03</span><h3>${t.q3}</h3><p>${t.q3s}</p></li>
       </ol>
-      <p class="lp-statement">O problema não é a falta de dados. É a falta de integração.</p>
+      <p class="lp-statement">${t.qStatementA} <strong>${t.qStatementB}</strong></p>
     </div>
   </section>
 
   <section class="lp-sec" id="lp-solucao">
     <div class="lp-wrap lp-split lp-split-rev">
       <figure class="lp-photo">
-        <img src="${IMG}equipe-notebook.jpg" width="900" height="1200" loading="lazy" alt="Integrante da equipe SpaceAgro mostrando o aplicativo aberto em um notebook" />
+        <img src="${IMG}equipe-notebook.jpg" width="900" height="1200" loading="lazy" alt="${t.sAlt}" />
       </figure>
       <div>
-        <h2>Todos os dados. Uma decisão mais inteligente.</h2>
-        <p class="lp-body">Uma plataforma digital que integra, organiza e analisa, em um só lugar, dados de satélite, clima, dados do campo e mercado, e usa a assistente Estrela para indicar a melhor decisão para a sua safra.</p>
+        <p class="lp-mono lp-idx">${t.sIdx}</p>
+        <h2>${t.sTitle}</h2>
+        <p class="lp-body">${t.sBody}</p>
         <div class="lp-flow">
           <ul class="lp-inputs">
-            <li><strong>Satélite</strong>Imagens e saúde da lavoura</li>
-            <li><strong>Clima</strong>Previsão, chuva e riscos</li>
-            <li><strong>Dados do campo</strong>Talhões, plantio e operações</li>
-            <li><strong>Mercado</strong>Preços, demanda e tendências</li>
+            <li><strong>${t.in1}</strong>${t.in1s}</li>
+            <li><strong>${t.in2}</strong>${t.in2s}</li>
+            <li><strong>${t.in3}</strong>${t.in3s}</li>
+            <li><strong>${t.in4}</strong>${t.in4s}</li>
           </ul>
-          <div class="lp-flow-step">Análise integrada + Estrela</div>
-          <div class="lp-flow-out">Recomenda o que plantar, quando plantar, quanto produzir e como melhorar o resultado.</div>
+          <div class="lp-flow-step"><img src="${STAR}" width="32" height="32" alt="" />${t.flowStep}</div>
+          <div class="lp-flow-out">${t.flowOut}</div>
         </div>
       </div>
     </div>
@@ -111,152 +151,206 @@ const html = () => `
     <div class="lp-wrap">
       <div class="lp-feature">
         <div class="lp-feature-text">
-          <h2>Saúde da lavoura por satélite da NASA, talhão por talhão.</h2>
-          <p class="lp-body">O SpaceAgro busca a imagem Landsat 8/9 mais recente de cada talhão, analisa pixel a pixel e mostra o estágio e a saúde da lavoura em cada área, com alerta para os talhões que merecem uma visita.</p>
-          <ul class="lp-list">
-            <li>Vigor da planta (NDVI) e água na folha (NDMI)</li>
-            <li>Fase da lavoura e dias após o plantio</li>
-            <li>Chuva dos últimos 14 dias na fazenda</li>
-          </ul>
+          <p class="lp-mono lp-idx">${t.satIdx}</p>
+          <h2>${t.satTitle}</h2>
+          <p class="lp-body">${t.satBody}</p>
+          <ul class="lp-list"><li>${t.sat1}</li><li>${t.sat2}</li><li>${t.sat3}</li></ul>
         </div>
         <figure class="lp-shot">
-          <button type="button" class="lp-zoom-btn" data-zoom="${IMG}app-saude.jpg" aria-label="Ampliar: Tela do SpaceAgro com o mapa de talhões e o painel de saúde da lavoura">
-            <img src="${IMG}app-saude.jpg" width="1600" height="1000" loading="lazy" alt="Tela do SpaceAgro com o mapa de talhões e o painel de saúde da lavoura" />
-            <span class="lp-zoom-hint" aria-hidden="true">Ampliar</span>
+          <button type="button" class="lp-zoom-btn" data-zoom="${IMG}app-saude.jpg" aria-label="${t.satZoom}">
+            <img src="${IMG}app-saude.jpg" width="1600" height="1000" loading="lazy" alt="${t.satAlt}" />
+            <span class="lp-zoom-hint" aria-hidden="true">${t.zoomHint}</span>
           </button>
-          <figcaption>Tela real do aplicativo com a fazenda de demonstração. Clique para ampliar.</figcaption>
+          <figcaption>${t.shotCaption}</figcaption>
         </figure>
       </div>
 
       <div class="lp-feature lp-feature-rev">
         <div class="lp-feature-text">
-          <h2>Safra e decisões: qual cultura deixa mais dinheiro e por quê.</h2>
-          <p class="lp-body">Para cada talhão, o planejamento de safra compara culturas, cruza clima e mercado e mostra a estimativa de lucro e os riscos de cada opção.</p>
-          <ul class="lp-list">
-            <li>Comparação de culturas por talhão</li>
-            <li>Clima e preços considerados juntos</li>
-            <li>Indicação da opção com melhor retorno e o porquê</li>
-          </ul>
+          <p class="lp-mono lp-idx">${t.cropIdx}</p>
+          <h2>${t.cropTitle}</h2>
+          <p class="lp-body">${t.cropBody}</p>
+          <ul class="lp-list"><li>${t.crop1}</li><li>${t.crop2}</li><li>${t.crop3}</li></ul>
         </div>
         <figure class="lp-shot">
-          <button type="button" class="lp-zoom-btn" data-zoom="${IMG}app-safra.jpg" aria-label="Ampliar: Tela de planejamento de safra do SpaceAgro comparando culturas para um talhão">
-            <img src="${IMG}app-safra.jpg" width="1600" height="1000" loading="lazy" alt="Tela de planejamento de safra do SpaceAgro comparando culturas para um talhão" />
-            <span class="lp-zoom-hint" aria-hidden="true">Ampliar</span>
+          <button type="button" class="lp-zoom-btn" data-zoom="${IMG}app-safra.jpg" aria-label="${t.cropZoom}">
+            <img src="${IMG}app-safra.jpg" width="1600" height="1000" loading="lazy" alt="${t.cropAlt}" />
+            <span class="lp-zoom-hint" aria-hidden="true">${t.zoomHint}</span>
           </button>
-          <figcaption>Tela real do aplicativo com a fazenda de demonstração. Clique para ampliar.</figcaption>
-        </figure>
-      </div>
-
-      <div class="lp-feature lp-feature-photo">
-        <div class="lp-feature-text">
-          <h2>Estrela, a assistente do produtor rural.</h2>
-          <p class="lp-body">A Estrela analisa os dados da sua lavoura e responde em linguagem simples, direto do celular. Pergunte, por exemplo, “Posso plantar no talhão 2?” ou “Como está o clima?”.</p>
-          <ul class="lp-list">
-            <li>Respostas com base nos dados da sua fazenda</li>
-            <li>Acompanha a fazenda e avisa sobre clima e risco de plantio</li>
-            <li>Funciona no celular, no meio da lavoura</li>
-          </ul>
-        </div>
-        <figure class="lp-photo lp-photo-feature">
-          <img src="${IMG}produtor-celular.jpg" width="900" height="1200" loading="lazy" alt="Produtor na lavoura de soja mostrando o SpaceAgro aberto no celular" />
+          <figcaption>${t.shotCaption}</figcaption>
         </figure>
       </div>
     </div>
   </section>
 
-  <section class="lp-sec" id="lp-como">
+  <section class="lp-sec" id="lp-previsoes">
     <div class="lp-wrap">
-      <h2>Da NASA ao talhão: como funciona.</h2>
-      <p class="lp-body">Da coleta de dados espaciais à recomendação prática para o produtor.</p>
-      <ol class="lp-steps">
+      <p class="lp-mono lp-idx">${t.fcIdx}</p>
+      <h2>${t.fcTitle}</h2>
+      <p class="lp-body">${t.fcBody}</p>
+      <div class="lp-forecast">
+        <article class="lp-fc-card">
+          <figure class="lp-shot">
+            <button type="button" class="lp-zoom-btn" data-zoom="${IMG}app-previsao.jpg" aria-label="${t.zoomHint}: ${t.wxT}">
+              <img src="${IMG}app-previsao.jpg" width="1200" height="896" loading="lazy" alt="${t.wxAlt}" />
+              <span class="lp-zoom-hint" aria-hidden="true">${t.zoomHint}</span>
+            </button>
+          </figure>
+          <h3>${t.wxT}</h3>
+          <p class="lp-fc-lead">${t.wxB}</p>
+          <ul class="lp-list"><li>${t.wx1}</li><li>${t.wx2}</li></ul>
+          <p class="lp-src">${t.wxSrc}</p>
+        </article>
+        <article class="lp-fc-card">
+          <figure class="lp-shot">
+            <button type="button" class="lp-zoom-btn" data-zoom="${IMG}app-tempo.jpg" aria-label="${t.zoomHint}: ${t.wkT}">
+              <img src="${IMG}app-tempo.jpg" width="1524" height="1366" loading="lazy" alt="${t.wkAlt}" />
+              <span class="lp-zoom-hint" aria-hidden="true">${t.zoomHint}</span>
+            </button>
+          </figure>
+          <h3>${t.wkT}</h3>
+          <p class="lp-fc-lead">${t.wkB}</p>
+          <ol class="lp-steps-mini"><li>${t.wk1}</li><li>${t.wk2}</li><li>${t.wk3}</li><li>${t.wk4}</li></ol>
+          <p class="lp-src">${t.wkNote}</p>
+        </article>
+      </div>
+      <p class="lp-src lp-fc-caption">${t.shotCaptionDay}</p>
+    </div>
+  </section>
+
+  <section class="lp-sec lp-dark lp-estrela">
+    <div class="lp-wrap lp-feature lp-feature-photo">
+      <div class="lp-feature-text">
+        <div class="lp-estrela-id">
+          <img src="${STAR}" width="80" height="80" alt="" />
+          <div>
+            <h2>Estrela</h2>
+            <p class="lp-mono">${t.estSub}</p>
+          </div>
+        </div>
+        <p class="lp-body">${t.estBody}</p>
+        <div class="lp-chat" aria-label="${t.estChatAria}">
+          <p class="lp-chat-q">${t.estQ1}</p>
+          <p class="lp-chat-q">${t.estQ2}</p>
+        </div>
+        <ul class="lp-list"><li>${t.est1}</li><li>${t.est2}</li><li>${t.est3}</li></ul>
+      </div>
+      <figure class="lp-photo lp-photo-feature">
+        <img src="${IMG}produtor-celular.jpg" width="900" height="1200" loading="lazy" alt="${t.estAlt}" />
+      </figure>
+    </div>
+  </section>
+
+  <section class="lp-sec lp-space" id="lp-como">
+    <div class="lp-wrap">
+      <p class="lp-mono lp-idx">${t.hIdx}</p>
+      <h2>${t.hTitle}</h2>
+      <p class="lp-body">${t.hBody}</p>
+      <ol class="lp-pipeline">
         <li>
-          <h3><span>1</span>Dados da NASA</h3>
-          <dl class="lp-sources">
-            <div><dt>Landsat 8/9 e HLS L30</dt><dd>Saúde da lavoura com resolução de 30 m</dd></div>
-            <div><dt>NASA POWER</dt><dd>Chuva, temperatura, radiação e umidade</dd></div>
-            <div><dt>ECOSTRESS</dt><dd>Estresse hídrico da vegetação</dd></div>
-            <div><dt>FIRMS</dt><dd>Focos de fogo próximos à fazenda</dd></div>
-            <div><dt>GIBS e MODIS</dt><dd>Imagens diárias e séries de vegetação</dd></div>
-          </dl>
+          <span class="lp-node" aria-hidden="true"></span>
+          <p class="lp-mono">${t.h1k}</p>
+          <h3>${t.h1t}</h3>
+          <table class="lp-spec">
+            <caption class="lp-sr">${t.hSpecCaption}</caption>
+            <tbody>
+              <tr><th scope="row">Landsat 8/9 · HLS</th><td>${t.sp1}</td></tr>
+              <tr><th scope="row">NASA POWER</th><td>${t.sp2}</td></tr>
+              <tr><th scope="row">ECOSTRESS</th><td>${t.sp3}</td></tr>
+              <tr><th scope="row">FIRMS</th><td>${t.sp4}</td></tr>
+              <tr><th scope="row">GIBS · MODIS</th><td>${t.sp5}</td></tr>
+            </tbody>
+          </table>
         </li>
         <li>
-          <h3><span>2</span>Integração e análise</h3>
-          <p>Os dados de satélite são cruzados com o clima, o mercado e o histórico de cada talhão: plantio, cultura e operações.</p>
-          <p>A partir disso, o sistema identifica padrões, tendências e riscos por talhão.</p>
+          <span class="lp-node" aria-hidden="true"></span>
+          <p class="lp-mono">${t.h2k}</p>
+          <h3>${t.h2t}</h3>
+          <p>${t.h2p1}</p>
+          <p>${t.h2p2}</p>
         </li>
         <li>
-          <h3><span>3</span>Recomendação para o produtor</h3>
-          <p>O resultado chega como decisão simples e prática: o que plantar, quando plantar e quanto produzir, com a assistente Estrela para tirar dúvidas.</p>
+          <span class="lp-node" aria-hidden="true"></span>
+          <p class="lp-mono">${t.h3k}</p>
+          <h3>${t.h3t}</h3>
+          <p>${t.h3p}</p>
         </li>
       </ol>
     </div>
   </section>
 
-  <section class="lp-sec lp-sec-alt" id="lp-impacto">
+  <section class="lp-sec" id="lp-impacto">
     <div class="lp-wrap">
-      <h2>O impacto que buscamos no campo.</h2>
-      <p class="lp-body">Transformar dados em decisões que gerem mais produtividade, rentabilidade e sustentabilidade.</p>
+      <p class="lp-mono lp-idx">${t.iIdx}</p>
+      <h2>${t.iTitle}</h2>
+      <p class="lp-body">${t.iBody}</p>
       <dl class="lp-impact">
-        <div><dt>Produtividade</dt><dd><strong>até 20%</strong> de aumento na produtividade por talhão</dd></div>
-        <div><dt>Rentabilidade</dt><dd><strong>até 15%</strong> de redução de custos operacionais e de insumos</dd></div>
-        <div><dt>Riscos</dt><dd><strong>até 40%</strong> menos perdas por clima e escolha de cultura</dd></div>
-        <div><dt>Sustentabilidade</dt><dd>Uso mais eficiente de água, solo e insumos, com menor impacto ambiental</dd></div>
+        <div><dt>${t.i1}</dt><dd><strong>${t.i1v}</strong> ${t.i1s}</dd></div>
+        <div><dt>${t.i2}</dt><dd><strong>${t.i2v}</strong> ${t.i2s}</dd></div>
+        <div><dt>${t.i3}</dt><dd><strong>${t.i3v}</strong> ${t.i3s}</dd></div>
+        <div><dt>${t.i4}</dt><dd><strong class="lp-impact-word">${t.i4v}</strong> ${t.i4s}</dd></div>
       </dl>
-      <p class="lp-src">Potencial estimado pela equipe SpaceAgro. Ainda não são resultados medidos em fazendas clientes.</p>
+      <p class="lp-src">${t.iSrc}</p>
     </div>
   </section>
 
-  <section class="lp-sec" id="lp-mercado">
+  <section class="lp-sec lp-sec-alt" id="lp-mercado">
     <div class="lp-wrap lp-market">
       <div>
-        <h2>Modelo de negócio.</h2>
-        <p class="lp-price"><strong>R$ 6,00</strong> por hectare por ano</p>
-        <p class="lp-body">Assinatura (SaaS) cobrada pela área monitorada.</p>
-        <h3 class="lp-h3">Próximos passos</h3>
+        <p class="lp-mono lp-idx">${t.mIdx}</p>
+        <h2>${t.mTitle}</h2>
+        <p class="lp-price"><strong>${t.priceV}</strong> ${t.priceUnit}</p>
+        <p class="lp-body">${t.priceBody}</p>
+        <h3 class="lp-h3">${t.nextTitle}</h3>
         <ol class="lp-next">
-          <li><strong>Escalar a solução.</strong> Evoluir o MVP e validar com mais produtores.</li>
-          <li><strong>Expandir o mercado.</strong> Conquistar novas regiões e culturas.</li>
-          <li><strong>Consolidar a startup.</strong> Estruturar operações, parcerias estratégicas e captação de investimento.</li>
+          <li><strong>${t.n1a}</strong> ${t.n1b}</li>
+          <li><strong>${t.n2a}</strong> ${t.n2b}</li>
+          <li><strong>${t.n3a}</strong> ${t.n3b}</li>
         </ol>
       </div>
-      <div>
-        <h3 class="lp-h3">Tamanho do mercado</h3>
+      <div class="lp-market-card">
+        <h3 class="lp-h3">${t.mkTitle}</h3>
         <table class="lp-table">
-          <caption class="lp-sr">Tamanho do mercado em área e receita anual a R$ 6,00 por hectare</caption>
-          <thead><tr><th scope="col"></th><th scope="col">Área</th><th scope="col">Receita/ano</th></tr></thead>
+          <caption class="lp-sr">${t.mkCaption}</caption>
+          <thead><tr><th scope="col"></th><th scope="col">${t.mkArea}</th><th scope="col">${t.mkRev}</th></tr></thead>
           <tbody>
-            <tr><th scope="row">TAM<span>mercado total</span></th><td>85,3 milhões ha</td><td>R$ 511,8 mi</td></tr>
-            <tr><th scope="row">SAM<span>mercado endereçável</span></th><td>47,62 milhões ha</td><td>R$ 285,7 mi</td></tr>
-            <tr><th scope="row">SOM<span>meta inicial</span></th><td>476 mil ha</td><td>R$ 2,86 mi</td></tr>
+            <tr><th scope="row">TAM<span>${t.tam}</span></th><td>${t.tamA}</td><td>${t.tamR}</td></tr>
+            <tr><th scope="row">SAM<span>${t.sam}</span></th><td>${t.samA}</td><td>${t.samR}</td></tr>
+            <tr><th scope="row">SOM<span>${t.som}</span></th><td>${t.somA}</td><td>${t.somR}</td></tr>
           </tbody>
         </table>
-        <p class="lp-src">Receita calculada a R$ 6,00 por hectare por ano.</p>
+        <p class="lp-src">${t.mkSrc}</p>
       </div>
     </div>
   </section>
 
-  <section class="lp-final">
+  <section class="lp-final lp-space">
     <div class="lp-wrap lp-final-in">
-      <h2>Somos a equipe SpaceAgro e estamos prontos para conectar a tecnologia da NASA ao futuro da agricultura.</h2>
-      <div class="lp-cta-row">
-        <button type="button" class="lp-btn lp-btn-light" data-go="guest">Conhecer sem conta (demonstração)</button>
-        <button type="button" class="lp-btn lp-btn-outline-light" data-go="signup">Criar conta</button>
-        <button type="button" class="lp-btn lp-btn-text-light" data-go="login">Já tenho conta</button>
+      <div>
+        <span class="lp-logo lp-logo-lg"><img src="${LOGO}" width="1460" height="384" alt="SpaceAgro" /></span>
+        <h2>${t.finA} <em>${t.finB}</em></h2>
+        <div class="lp-cta-row">
+          <button type="button" class="lp-btn lp-btn-accent lp-btn-lg" data-go="guest">${t.demo}</button>
+          <button type="button" class="lp-btn lp-btn-outline lp-btn-lg" data-go="signup">${t.signup}</button>
+        </div>
       </div>
+      <figure class="lp-final-fig">
+        <img src="${IMG}equipe-astronautas.jpg" width="875" height="1568" loading="lazy" alt="${t.finAlt}" />
+      </figure>
     </div>
   </section>
 </main>
 
 <footer class="lp-footer">
   <div class="lp-wrap lp-footer-in">
-    <span class="brand-mark brand-mark-sm" role="img" aria-label="SpaceAgro"><img src="./assets/brand/spaceagro-logo.svg" alt="" /></span>
-    <p>Dados: NASA Landsat, HLS, POWER, ECOSTRESS, FIRMS e GIBS · Imagem de base: Esri World Imagery</p>
+    <span class="lp-logo lp-logo-sm"><img src="${LOGO}" width="1460" height="384" alt="SpaceAgro" /></span>
+    <p>${t.footData}</p>
     <p>© ${new Date().getFullYear()} SpaceAgro · spaceagro.pro</p>
   </div>
 </footer>
 
-<dialog class="lp-zoom" aria-label="Tela ampliada">
-  <form method="dialog"><button class="lp-zoom-close" aria-label="Fechar">Fechar</button></form>
+<dialog class="lp-zoom" aria-label="${t.zoomAria}">
+  <form method="dialog"><button class="lp-zoom-close">${t.close}</button></form>
   <img alt="" />
 </dialog>`;
 
@@ -268,48 +362,113 @@ export function showLanding(): Promise<LandingChoice> {
   return new Promise((resolve) => {
     const root = document.createElement('div');
     root.id = 'landing';
-    root.innerHTML = html();
     document.body.appendChild(root);
     const prevTitle = document.title;
-    document.title = 'SpaceAgro - Dados da NASA para decidir a safra';
+    let io: IntersectionObserver | null = null;
+    let globe: GlobeHandle | null = null;
+    let snap: FireSnapshot | null = null;
+    let farmStats: FarmStats | null = null;
+    let view: GlobeView = 'planet';
 
-    root.querySelectorAll<HTMLAnchorElement>('a[data-scroll]').forEach((a) => {
-      a.addEventListener('click', (e) => {
-        const target = root.querySelector(a.getAttribute('href') || '');
-        if (!target) return;
-        e.preventDefault();
-        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-      });
-    });
-    // Destaca no menu a seção visível.
-    const links = [...root.querySelectorAll<HTMLAnchorElement>('.lp-nav a')];
-    const io = new IntersectionObserver((entries) => {
-      for (const en of entries) if (en.isIntersecting) {
-        links.forEach((l) => l.toggleAttribute('aria-current', l.getAttribute('href') === '#' + en.target.id));
-      }
-    }, { root, rootMargin: '-40% 0px -55% 0px' });
-    links.forEach((l) => { const t = root.querySelector(l.getAttribute('href') || ''); if (t) io.observe(t); });
+    const render = () => {
+      const lang = landingLang();
+      const t = LANDING_TEXT[lang];
+      io?.disconnect();
+      root.innerHTML = html(t, lang);
+      root.lang = lang === 'pt' ? 'pt-BR' : lang;
+      document.title = t.docTitle;
 
-    // Ampliar as telas do aplicativo.
-    const zoom = root.querySelector<HTMLDialogElement>('.lp-zoom')!;
-    const zoomImg = zoom.querySelector('img')!;
-    root.querySelectorAll<HTMLButtonElement>('[data-zoom]').forEach((b) => {
-      b.addEventListener('click', () => {
-        zoomImg.src = b.dataset.zoom!;
-        zoomImg.alt = b.querySelector('img')?.alt || '';
-        zoom.showModal();
+      // Globo
+      const locale = lang === 'pt' ? 'pt-BR' : lang === 'es' ? 'es' : 'en-US';
+      const fmt = (iso: string) => new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(new Date(iso));
+      const nf = new Intl.NumberFormat(locale);
+      const fill = (tpl: string, v: Record<string, string>) => tpl.replace(/\{(\w+)\}/g, (_, k) => v[k] ?? '');
+      const statusEl = root.querySelector<HTMLElement>('#lp-globe-status')!;
+      const legendEl = root.querySelector<HTMLElement>('#lp-fire-legend')!;
+      const paint = () => {
+        if (snap) legendEl.textContent = snap.total
+          ? fill(t.legendFires, { n: nf.format(snap.total), a: fmt(snap.primeiraDeteccao), b: fmt(snap.ultimaDeteccao) })
+          : t.legendFiresNone;
+        if (view === 'flying') statusEl.textContent = t.stFlying;
+        else if (view === 'tour') statusEl.textContent = t.stTour;
+        else if (view === 'paused') statusEl.textContent = t.stPaused;
+        else if (view === 'done' && farmStats) {
+          const d = farmStats.nearestKm === null ? '—' : nf.format(Math.round(farmStats.nearestKm));
+          statusEl.textContent = fill(farmStats.nearCount ? t.stFarm : t.stFarmNone, { n: nf.format(farmStats.nearCount), r: String(NEAR_KM), d });
+        } else if (snap) statusEl.textContent = t.stPlanet;
+        const show = (id: string, on: boolean) => root.querySelector('#' + id)?.toggleAttribute('hidden', !on);
+        show('lp-fly', view === 'planet');
+        show('lp-pause', view === 'tour' || view === 'paused');
+        show('lp-replay', view === 'done' || view === 'paused');
+        show('lp-planet', view === 'tour' || view === 'paused' || view === 'done');
+        const pb = root.querySelector('#lp-pause');
+        if (pb) pb.textContent = view === 'paused' ? t.btnResume : t.btnPause;
+      };
+      globe?.destroy();
+      view = 'planet';
+      globe = mountGlobe(root.querySelector<HTMLElement>('#lp-globe')!, {
+        cooperative: { windows: t.coopWin, mac: t.coopMac, mobile: t.coopMobile },
+        labels: { locale, ha: t.gmHa, step: t.tStep, crop: t.tCrop, area: t.tArea, phase: t.tPhase, harvest: t.tHarvest, water: t.tWater, struct: t.tStruct, fireTitle: t.tFireTitle, fireBody: t.tFireBody, nearestFire: t.gmNearest, cardTitle: t.gmCardTitle, cardFields: t.gmFields, cardArea: t.gmArea, cardWater: t.gmWater, cardFire: t.gmFire },
+        onFires: (s) => { snap = s; paint(); },
+        onFarm: (f) => { farmStats = f; paint(); },
+        onView: (v) => { view = v; paint(); },
+        onError: () => { statusEl.textContent = t.globeError; root.querySelector('.lp-globe-wrap')?.classList.add('lp-globe-failed'); },
       });
-    });
-    zoom.addEventListener('click', (e) => { if (e.target === zoom) zoom.close(); });
+      root.querySelector('#lp-fly')!.addEventListener('click', () => globe?.flyToFarm());
+      root.querySelector('#lp-planet')!.addEventListener('click', () => globe?.flyToPlanet());
+      root.querySelector('#lp-pause')!.addEventListener('click', () => globe?.togglePause());
+      root.querySelector('#lp-replay')!.addEventListener('click', () => globe?.replay());
+      paint();
 
-    root.querySelectorAll<HTMLButtonElement>('[data-go]').forEach((b) => {
-      b.addEventListener('click', () => {
-        io.disconnect();
-        root.remove();
-        document.title = prevTitle;
-        resolve(b.dataset.go as LandingChoice);
+      root.querySelector<HTMLSelectElement>('#lp-lang')!.addEventListener('change', (e) => {
+        const top = root.scrollTop;
+        setLanguage((e.target as HTMLSelectElement).value as LandingLang);
+        render();
+        root.scrollTop = top;
+        root.querySelector<HTMLSelectElement>('#lp-lang')?.focus();
       });
-    });
+
+      root.querySelectorAll<HTMLAnchorElement>('a[data-scroll]').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          const target = root.querySelector(a.getAttribute('href') || '');
+          if (!target) return;
+          e.preventDefault();
+          const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        });
+      });
+
+      // Destaca no menu a seção visível.
+      const links = [...root.querySelectorAll<HTMLAnchorElement>('.lp-nav a')];
+      io = new IntersectionObserver((entries) => {
+        for (const en of entries) if (en.isIntersecting) {
+          links.forEach((l) => l.toggleAttribute('aria-current', l.getAttribute('href') === '#' + en.target.id));
+        }
+      }, { root, rootMargin: '-40% 0px -55% 0px' });
+      links.forEach((l) => { const tg = root.querySelector(l.getAttribute('href') || ''); if (tg) io!.observe(tg); });
+
+      // Ampliar as telas do aplicativo.
+      const zoom = root.querySelector<HTMLDialogElement>('.lp-zoom')!;
+      const zoomImg = zoom.querySelector('img')!;
+      root.querySelectorAll<HTMLButtonElement>('[data-zoom]').forEach((b) => {
+        b.addEventListener('click', () => {
+          zoomImg.src = b.dataset.zoom!;
+          zoomImg.alt = b.querySelector('img')?.alt || '';
+          zoom.showModal();
+        });
+      });
+      zoom.addEventListener('click', (e) => { if (e.target === zoom) zoom.close(); });
+
+      root.querySelectorAll<HTMLButtonElement>('[data-go]').forEach((b) => {
+        b.addEventListener('click', () => {
+          io?.disconnect();
+          globe?.destroy();
+          root.remove();
+          document.title = prevTitle;
+          resolve(b.dataset.go as LandingChoice);
+        });
+      });
+    };
+    render();
   });
 }

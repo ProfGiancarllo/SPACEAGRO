@@ -12,12 +12,15 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 /** Mostra a tela de acesso e só resolve quando houver sessão válida. */
 export function requireAuth(): Promise<void> {
-  if (currentUser()) return Promise.resolve();
+  // #inicio abre a página inicial mesmo com sessão ativa (para divulgar ou rever a página).
+  const forceLanding = location.hash === '#inicio';
+  if (currentUser() && !forceLanding) return Promise.resolve();
   return new Promise((resolve) => {
     // Quem chega sem sessão vê primeiro a página inicial; #entrar e #criar-conta pulam direto para o acesso.
     const hash = location.hash;
     const direct = hash === '#entrar' ? 'login' : hash === '#criar-conta' ? 'signup' : null;
     const fromLanding = () => showLanding().then((choice) => {
+      if (forceLanding) history.replaceState(null, '', location.pathname + location.search);
       if (choice === 'guest') {
         enterAsGuest();
         resolve();
