@@ -16,6 +16,8 @@ import { calculateTalhaoCropStatus } from '../utils/cropCalendar';
 import { fetchNasaSeries, polygonCentroid, summarizeNasa } from '../utils/nasaPower';
 import { waterForPoint } from '../utils/waterRisk';
 import { cropKey, currentForecast, yieldSeries } from '../utils/forecast';
+import { cropMarket, loadMarket, slotMargin } from '../utils/market';
+import type { CropKey } from '../utils/rotation';
 
 /** Tamanho máximo do contexto enviado (o servidor aceita até 40 mil caracteres). */
 export const MAX_CONTEXT_CHARS = 38000;
@@ -97,7 +99,7 @@ function forecast7d(lat: number, lng: number): Promise<DayFc[] | null> {
   const hit = fcCache.get(k);
   if (hit && Date.now() - hit.t < 3 * 3600_000) return hit.p;
   const p = (async () => {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lng.toFixed(2)}&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min&forecast_days=7&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lng.toFixed(2)}&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min&forecast_days=16&timezone=auto`;
     const r = await fetch(url);
     if (!r.ok) return null;
     const j = await r.json();
@@ -113,6 +115,67 @@ function forecast7d(lat: number, lng: number): Promise<DayFc[] | null> {
   return p;
 }
 
+// ---------------- Perspectiva do clima para os próximos meses (Open-Meteo, modelo sazonal ECMWF), em cache por quadrícula de 0,5°
+interface MonthOutlook { mes: string; chuvaVsNormalMm: number | null; temperaturaVsNormalC: number | null }
+const seasCache = new Map<string, { t: number; p: Promise<MonthOutlook[] | null> }>();
+
+function seasonal(lat: number, lng: number): Promise<MonthOutlook[] | null> {
+  const k = `${(Math.round(lat * 2) / 2).toFixed(1)}_${(Math.round(lng * 2) / 2).toFixed(1)}`;
+  const hit = seasCache.get(k);
+  if (hit && Date.now() - hit.t < 12 * 3600_000) return hit.p;
+  const p = (async () => {
+    const url = `https://seasonal-api.open-meteo.com/v1/seasonal?latitude=${lat.toFixed(2)}&longitude=${lng.toFixed(2)}&monthly=temperature_2m_anomaly,precipitation_anomaly&timezone=auto`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const m = (await r.json())?.monthly;
+    if (!m?.time?.length) return null;
+    // a primeira data pode ser o mês corrente já parcial; mantém até 5 meses
+    return (m.time as string[]).slice(0, 5).map((t, i) => ({
+      mes: t.slice(0, 7), chuvaVsNormalMm: r0(m.precipitation_anomaly?.[i]), temperaturaVsNormalC: r1(m.temperature_2m_anomaly?.[i]),
+    }));
+  })().catch(() => null);
+  seasCache.set(k, { t: Date.now(), p });
+  void p.then((v) => { if (!v) seasCache.delete(k); });
+  return p;
+}
+
+// ---------------- Receita, custo e margem estimados (preço de referência da bolsa × produtividade esperada − custo de referência)
+function monthsTo(iso?: string): number | undefined {
+  if (!iso) return undefined;
+  const t = Date.parse(iso); if (!isFinite(t)) return undefined;
+  return Math.max(0, (t - Date.now()) / (30.4 * 86400000));
+}
+
+function finance(tl: Talhao, histMedia: number | null): object | undefined {
+  const k = cropKey(tl.crop) as CropKey | '';
+  if (!k) return undefined;
+  const cm = cropMarket(k);
+  if (!cm || !(cm.m.price > 0)) return undefined;
+  const sm = slotMargin(k, 'low', histMedia, 0, 1, monthsTo(tl.harvestDateExpected));
+  if (!sm) return undefined;
+  const area = tl.areaHectares > 0 ? tl.areaHectares : null;
+  const tot = (v: number) => (area ? r0(v * area) : null);
+  return {
+    unidadePreco: `R$/${sm.unit}`,
+    produtividadeUsada: `${r1(sm.yieldUsed)} ${sm.unit}/ha (${sm.yieldFromHistory ? 'média das safras do talhão' : 'referência regional, o talhão não tem histórico'})`,
+    precoNaColheita: { pessimista: r1(sm.price.pess), base: r1(sm.price.base), otimista: r1(sm.price.opt) },
+    precoAtual: r1(cm.m.price),
+    baseDoPreco: sm.basis === 'futures' ? `curva de contratos futuros da bolsa${sm.contract ? ` (${sm.contract})` : ''}` : 'tendência de 12 meses',
+    custoPorHa: r0(sm.cost),
+    custoEditadoPeloProdutor: cm.edited.cost,
+    avisoCusto: cm.edited.cost ? undefined : 'custo é uma REFERÊNCIA genérica do app, não o custo real da fazenda; peça para o produtor informar o custo dele em Safra > Trocar de safra',
+    receitaPorHa: { pessimista: r0(sm.revenue.pess), base: r0(sm.revenue.base), otimista: r0(sm.revenue.opt) },
+    margemPorHa: { pessimista: r0(sm.margin.pess), base: r0(sm.margin.base), otimista: r0(sm.margin.opt) },
+    areaHa: area ? r1(area) : undefined,
+    receitaDoTalhao: area ? { pessimista: tot(sm.revenue.pess), base: tot(sm.revenue.base), otimista: tot(sm.revenue.opt) } : undefined,
+    custoDoTalhao: area ? tot(sm.cost) : undefined,
+    margemDoTalhao: area ? { pessimista: tot(sm.margin.pess), base: tot(sm.margin.base), otimista: tot(sm.margin.opt) } : undefined,
+    precoDeReferenciaReal: !cm.m.example,
+    fontePreco: cm.m.source,
+    precoEm: cm.m.asOf,
+  };
+}
+
 // ---------------- Montagem
 export interface FieldCtxOpts { name: (tl: Talhao) => string; refDate: string; today: string }
 
@@ -123,6 +186,7 @@ async function fieldData(tl: Talhao, o: FieldCtxOpts, health: SatFile | null, st
   d.forEach((e) => { tipos[e.type] = (tipos[e.type] || 0) + 1; });
   const hist = yieldSeries(tl);
   const base = currentForecast(tl);
+  const fin = finance(tl, base.value);
   const out: Record<string, unknown> = {
     name: o.name(tl), crop: tl.crop, cropKey: cropKey(tl.crop) || undefined, cultivar: tl.cultivar, areaHa: r1(tl.areaHectares),
     plantingDate: tl.plantingDate, cycleDays: tl.cycleDays, stage: st.stageBadgeText, daysSincePlanting: tl.plantingDate ? st.daysPassed : undefined,
@@ -131,16 +195,18 @@ async function fieldData(tl: Talhao, o: FieldCtxOpts, health: SatFile | null, st
     // histórico na unidade do app (sc/ha; algodão em @/ha). O servidor calcula a previsão estatística com ele.
     historicoProdutividade: hist.slice(-12).map((p) => ({ date: p.date, yield: r1(p.value), doDiario: p.fromDiary })),
     mediaDasSafrasAnteriores: base.value !== null ? { valor: r1(base.value), safras: base.basedOn } : undefined,
+    estimativaFinanceira: fin,
   };
   if (!withRemote || !tl.coordinates || tl.coordinates.length < 3) {
     out.dadosRemotos = withRemote ? 'talhão sem desenho no mapa: sem clima e satélite' : 'não consultados (limite de talhões por pergunta)';
     return out;
   }
   const c = polygonCentroid(tl.coordinates);
-  const [nasa, water, fc] = await Promise.all([
+  const [nasa, water, fc, seas] = await Promise.all([
     withTimeout(fetchNasaSeries(c.lat, c.lng, o.today, 14)),
     withTimeout(waterForPoint(c.lat, c.lng)),
     withTimeout(forecast7d(c.lat, c.lng)),
+    withTimeout(seasonal(c.lat, c.lng)),
   ]);
   const faltou: string[] = [];
   if (nasa) {
@@ -161,8 +227,13 @@ async function fieldData(tl: Talhao, o: FieldCtxOpts, health: SatFile | null, st
       umidadeSolo0a100cm: water.soil === null ? null : Math.round(water.soil * 1000) / 1000, risco: water.level,
     };
   } else faltou.push('balanço hídrico indisponível');
-  if (fc) out.previsaoTempo7d = { fonte: 'Open-Meteo', dias: fc };
-  else faltou.push('previsão do tempo indisponível');
+  if (fc) {
+    const longe = fc.slice(7);
+    out.previsaoTempo7d = { fonte: 'Open-Meteo', dias: fc.slice(0, 7) };
+    if (longe.length) out.previsaoTempo8a16dias = { fonte: 'Open-Meteo', chuvaTotalMm: r0(longe.reduce((a, d) => a + (d.chuvaMm || 0), 0)), diasComChuvaProvavel: longe.filter((d) => (d.chanceChuvaPct || 0) >= 60).length, observacao: 'tempo mais incerto quanto mais longe' };
+  } else faltou.push('previsão do tempo indisponível');
+  if (seas) out.perspectivaClimaProximosMeses = { fonte: 'Open-Meteo, modelo sazonal ECMWF', unidade: 'diferença para o normal do mês: chuva em mm, temperatura em °C', meses: seas, observacao: 'tendência com acerto limitado; fale em "tende a" e nunca como certeza' };
+  else faltou.push('perspectiva de clima dos próximos meses indisponível');
   const h = satHealth(health, tl);
   if (h) out.saudeSatelite = h; else faltou.push('sem análise Landsat para este talhão');
   const s = waterStress(stress, tl);
@@ -179,7 +250,9 @@ function fitContext(ctx: Record<string, any>, focused: boolean): Record<string, 
   const fields = all.slice(focused ? 1 : 0);
   const steps: Array<() => void> = [
     () => fields.forEach((f) => { if (f.saudeSatelite) delete f.saudeSatelite.serieNdvi; }),
+    () => fields.forEach((f) => { delete f.previsaoTempo8a16dias; if (f.perspectivaClimaProximosMeses) f.perspectivaClimaProximosMeses.meses = f.perspectivaClimaProximosMeses.meses.slice(0, 3); }),
     () => fields.forEach((f) => { if (f.previsaoTempo7d) f.previsaoTempo7d.dias = f.previsaoTempo7d.dias.slice(0, 3); }),
+    () => fields.forEach((f) => { if (f.estimativaFinanceira) { delete f.estimativaFinanceira.receitaPorHa; delete f.estimativaFinanceira.precoNaColheita; delete f.estimativaFinanceira.avisoCusto; } }),
     () => fields.forEach((f) => { if (Array.isArray(f.historicoProdutividade)) f.historicoProdutividade = f.historicoProdutividade.slice(-5); }),
     () => { if (Array.isArray(ctx.problemasDoDiario)) ctx.problemasDoDiario = ctx.problemasDoDiario.slice(0, 10); },
     () => fields.forEach((f) => { delete f.diario?.porTipo; if (f.saudeSatelite) delete f.saudeSatelite.alertas; if (f.estresseHidricoSatelite) delete f.estresseHidricoSatelite.alertas; }),
@@ -195,7 +268,7 @@ function fitContext(ctx: Record<string, any>, focused: boolean): Record<string, 
  * para nunca ficar de fora quando a fazenda tiver muitos talhões.
  */
 export async function buildFarmContext(farm: FarmData, o: FieldCtxOpts, extra: Record<string, unknown>, focus?: Talhao | null): Promise<Record<string, any>> {
-  const [health, stress] = await Promise.all([withTimeout(loadSatFile('saude-talhoes.json')), withTimeout(loadSatFile('estresse-hidrico.json'))]);
+  const [health, stress] = await Promise.all([withTimeout(loadSatFile('saude-talhoes.json')), withTimeout(loadSatFile('estresse-hidrico.json')), withTimeout(loadMarket())]).then((r) => [r[0], r[1]] as [SatFile | null, SatFile | null]);
   const list = focus ? [focus, ...farm.talhoes.filter((x) => x.id !== focus.id)] : [...farm.talhoes];
   const fields = await Promise.all(list.map((tl, i) => fieldData(tl, o, health, stress, i < MAX_FIELDS_WITH_DATA)));
   const ctx: Record<string, any> = {
