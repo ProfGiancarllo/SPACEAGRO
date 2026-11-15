@@ -97,30 +97,6 @@ const de: D = {
   diary_plantio: 'Aussaat', diary_adubacao: 'Düngung', diary_aplicacao: 'Pflanzenschutz', diary_irrigacao: 'Bewässerung', diary_chuva: 'gemessener Regen', diary_monitoramento: 'Kontrolle', diary_colheita: 'Ernte', diary_observacao: 'Notiz',
   wx_clear: 'klarer Himmel', wx_partly: 'teilweise bewölkt', wx_cloudy: 'bewölkt', wx_rain: 'Regen', wx_storm: 'Gewitter',
 };
-const zh: D = {
-  fab: '问问 Estrela', title: 'Estrela • 虚拟农艺师', placeholder: '提问或请求记录…', send: '发送',
-  mic: '说话', micOn: '正在聆听… 请说话', micNo: '此浏览器不支持语音识别，请使用 Chrome 或手动输入。', micDenied: '请允许麦克风以便与 Estrela 对话。',
-  minimize: '最小化对话',
-  speakOn: 'Estrela 语音已开启', speakOff: 'Estrela 语音已关闭', clear: '清空对话', close: '关闭',
-  hello: '你好，我是 Estrela，SpaceAgro 的虚拟农艺师。我可以告诉你现在适不适合播种、地块状况、天气，并通过语音或文字记录农事日记。',
-  help: '我可以：用 NASA 数据评估播种风险、汇总地块情况、介绍天气、打开轮作规划器并记录日记（例如“在地块 2 记录今天灌溉 20 毫米”）。',
-  askTalhao: '哪个地块？{list}', noTalhao: '尚未添加地块。', thinking: '思考中…',
-  askTalhaoMany: '哪块地？请输入编号（1 到 {n}）。', talhaoHint: '还需要知道是哪块地。请输入编号（1 到 {n}）。说“取消”可放弃。',
-  confirmDiary: '记入日记：{type}{amount}，地块 {name}，日期 {date}？（是或否）', yes: '确认', no: '取消',
-  saved: '已记入 {name} 的日记。', cancelled: '好的，未记录。',
-  nasaFail: '暂时无法获取 NASA 数据，请稍后再试。', nasaSrc: '来源：NASA POWER 和 SpaceAgro 农艺规则。',
-  risk: '风险{level}', riskLow: '低', riskMedium: '中', riskHigh: '高',
-  plantTitle: '未来 7 天播种的风险：',
-  statusLine: '{name}：{crop}，{stage}。{days}', statusDays: '第 {d} 天，共 {t} 天。', statusNoCrop: '未登记作物。',
-  calNote: '应用中农场的日历：{d}。',
-  weatherLine: '农场现在：{desc}，{temp}。{src}',
-  nasaInfo: 'NASA POWER 数据（降雨、温度、太阳辐射）用于播种风险、作物预警和产量预测。使用这些数据的页面会显示“NASA POWER 数据”标签。',
-  rotationOpen: '正在打开轮作规划器。',
-  fallbackLocal: '这个问题我还不能独立回答。开放式对话需要管理员开启 Estrela 的 AI 服务。目前可以问：播种风险、地块状况、天气或记录日记。',
-  extNotice: '开放式问题会发送到 AI 服务，不包含您的姓名或联系方式。', extFail: 'AI 服务没有响应，请重试。',
-  diary_plantio: '播种', diary_adubacao: '施肥', diary_aplicacao: '施药', diary_irrigacao: '灌溉', diary_chuva: '实测降雨', diary_monitoramento: '巡查', diary_colheita: '收获', diary_observacao: '备注',
-  wx_clear: '晴', wx_partly: '多云', wx_cloudy: '阴', wx_rain: '降雨', wx_storm: '雷暴',
-};
 const fr: D = {
   fab: 'Demander à Estrela', title: 'Estrela • Agronome virtuelle', placeholder: 'Posez une question ou demandez un enregistrement…', send: 'Envoyer',
   mic: 'Parler', micOn: 'J’écoute… parlez maintenant', micNo: "Ce navigateur n'a pas de reconnaissance vocale. Utilisez Chrome ou tapez.", micDenied: 'Autorisez le micro pour parler avec Estrela.',
@@ -145,7 +121,7 @@ const fr: D = {
   diary_plantio: 'semis', diary_adubacao: 'fertilisation', diary_aplicacao: 'traitement', diary_irrigacao: 'irrigation', diary_chuva: 'pluie mesurée', diary_monitoramento: 'suivi', diary_colheita: 'récolte', diary_observacao: 'observation',
   wx_clear: 'ciel dégagé', wx_partly: 'partiellement nuageux', wx_cloudy: 'nuageux', wx_rain: 'pluie', wx_storm: 'orage',
 };
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 export function et(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));

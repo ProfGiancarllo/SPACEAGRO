@@ -71,22 +71,6 @@ const de: D = {
   up: 'Anstieg', down: 'Rückgang', cmp: 'Margen vergleichen',
 };
 
-const zh: D = {
-  exTag: '示例', realTag: '真实', partialNote: '标注“示例”的作物仍使用示意数值。真实价格为按美元换算的国际参考价；您当地的价格可能不同，可自行调整。',
-  decisionLoss: '按这些价格，没有任何方案能覆盖成本。亏损最小的是 {name}：基准利润每公顷 {m}。请检查成本和作物。',
-  title: '市场与预估利润', exampleBadge: '示例数据', realBadge: '市场数据',
-  exampleNote: '下方价格、趋势和成本仅为示例，待真实数据序列加载后替换。您也可以输入自己的价格和成本。',
-  realNote: '来源：{src}（{date}）。',
-  crop: '作物', price: '价格', trend: '12个月', cost: '成本（{cur}/公顷）', yourValue: '填入您的数值', reset: '恢复默认值',
-  stress: '价格压力测试', stressHelp: '模拟所有作物价格下跌或上涨，观察决策如何变化。', stressNow: '价格 {v}',
-  margin: '预估利润', perHa: '每公顷', total: '整块地（{ha} 公顷）', pess: '悲观', base: '基准', opt: '乐观',
-  best: '考虑风险后的最佳利润', loss: '在悲观情景下，该方案会亏损。', yieldAdj: '采用产量：{v} {u}/公顷（已按风险调整）',
-  decision: '综合决策：气候、作物与市场', decisionText: '该地块的最佳方案：{name}，基准利润每公顷 {m}，风险{risk}。整块地利润：{t}。',
-  decisionNone: '按当前数据没有风险可接受的方案；请检查日期或作物。',
-  foot: '仅为规划估算，不构成买卖建议。利润 = 产量 × 价格 − 成本。基准价格采用近12个月变动的一半（上限 ±10%）；情景采用各作物的波动率以及 −15% 至 +10% 的产量。产量随方案风险下降。',
-  noMarket: '该作物暂无市场数据。', cover: '覆盖作物不出售：只计成本，收益来自土壤。',
-  up: '上涨', down: '下跌', cmp: '比较利润',
-};
 
 const fr: D = {
   exTag: 'exemple', realTag: 'réel', partialNote: 'Les cultures marquées « exemple » utilisent encore des valeurs illustratives. Le prix réel est la référence internationale convertie par le dollar ; votre prix local peut différer, vous pouvez donc l’ajuster.',
@@ -105,7 +89,7 @@ const fr: D = {
   up: 'hausse', down: 'baisse', cmp: 'Comparer les marges',
 };
 
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 
 export function mt(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;

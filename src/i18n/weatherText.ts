@@ -28,13 +28,6 @@ const de: D = {
   fix: 'Wetter korrigieren', auto: 'Zurück zu automatisch', fixTitle: 'Wie ist das Wetter dort gerade?',
   rainLbl: 'Regen', humLbl: 'Feuchte', windLbl: 'Wind',
 };
-const zh: D = {
-  clear: '晴', partly: '多云', cloudy: '阴', rain: '降雨', storm: '雷暴',
-  light: '小', moderate: '中', heavy: '大',
-  srcOpenMeteo: '来源：Open-Meteo，当前', srcNasa: '来源：NASA POWER，最新数据（{d}）', srcEstimate: '按季节估计（暂无数据）', srcManual: '由您修正',
-  fix: '修正天气', auto: '恢复自动', fixTitle: '那里现在天气如何？',
-  rainLbl: '降雨', humLbl: '湿度', windLbl: '风速',
-};
 const fr: D = {
   clear: 'Ciel dégagé', partly: 'Partiellement nuageux', cloudy: 'Nuageux', rain: 'Pluie', storm: 'Orage',
   light: 'faible', moderate: 'modérée', heavy: 'forte',
@@ -42,7 +35,7 @@ const fr: D = {
   fix: 'Corriger la météo', auto: 'Revenir en automatique', fixTitle: 'Quel temps fait-il là-bas maintenant ?',
   rainLbl: 'Pluie', humLbl: 'Humidité', windLbl: 'Vent',
 };
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 export function wt(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));

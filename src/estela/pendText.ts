@@ -76,25 +76,6 @@ const de: D = {
   nothing: 'nichts Neues — Begehung ohne Vorkommnisse', notyet: 'Verstanden, ich erinnere später.',
   chipPend: 'Was fehlt?', harvestSaved: 'Ernte erfasst. Nächste Saison planen?', openRot: 'Planer öffnen',
 };
-const zh: D = {
-  hist: '提醒：为了真正帮到您，我需要您农场的历史记录。请在系统中填写过去各季所做的一切：播种、施肥、施药、降雨，尤其是收获及产量（sc/ha）。记录越早，对您地块的预测越准确。目前日记中有 {n} 条记录。', histOpen: '打开日记', histHere: '在这里记录', histLater: '稍后',
-  q_amount: '{type}：多少 {unit}？（只说数字，或“不知道”）',
-  intro: '我在您的农场发现 {n} 项待补充信息。我可以逐项询问吗？您可用文字或语音回答，保存前我会请您确认。',
-  go: '开始', later: '稍后', skip: '跳过',
-  q_crop: '{name}：这块地种的是什么作物？（如大豆、玉米、牧草）',
-  q_planting: '{name}（{crop}）：播种日期是哪天？（如“10月5日”“05/10”“20天前”）',
-  q_cultivar: '{name}（{crop}）：种的是什么品种？不清楚请说“不知道”。',
-  q_diary: '{name}：已 {d} 天没有日志记录。发生过什么吗（降雨、灌溉、施肥、施药）？只是巡查请说“没有新情况”。',
-  q_diary_none: '{name}：还没有日志记录。发生过什么吗（降雨、灌溉、施肥、施药）？没有请说“没有新情况”。',
-  q_harvest: '{name}（{crop}）：预计生育期已结束。已经收获了吗？请告知日期和产量（sc/ha）。还没有请说“还没有”。',
-  noparse: '没听懂，请再说一次？或说“跳过”。',
-  confirm: '确认保存：{what}？',
-  f_crop: '作物', f_planting: '播种日期', f_cultivar: '品种',
-  saved: '已保存。', skipped: '好的，稍后再问。',
-  next: '下一项。', done: '完成，暂无待补充信息。辛苦了！', none: '一切都是最新的，没有待办。',
-  nothing: '没有新情况——巡查无异常', notyet: '明白，稍后再提醒您。',
-  chipPend: '还缺什么？', harvestSaved: '已记录收获。要规划下一季吗？', openRot: '打开规划器',
-};
 const fr: D = {
   hist: 'Attention : pour vraiment vous aider, j’ai besoin de l’HISTORIQUE de votre exploitation. Saisissez tout ce que vous avez fait lors des saisons passées : semis, fertilisation, traitements, pluie et surtout les récoltes avec le rendement (sc/ha). Plus vous remontez dans le temps, meilleure est la prévision. Il y a actuellement {n} entrée(s) dans le journal.', histOpen: 'Ouvrir le journal', histHere: 'Saisir ici', histLater: 'Plus tard',
   q_amount: '{type} : combien de {unit} ? (dites juste le nombre, ou "je ne sais pas")',
@@ -114,7 +95,7 @@ const fr: D = {
   nothing: 'rien de neuf — visite sans incident', notyet: 'Compris, je vous le rappellerai.',
   chipPend: 'Que manque-t-il ?', harvestSaved: 'Récolte enregistrée. Planifier la saison suivante ?', openRot: 'Ouvrir le planificateur',
 };
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 export function pq(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));

@@ -3,7 +3,7 @@
  *
  * Os dados (mercado.json, valores digitados pelo produtor, margens) ficam sempre em reais (R$).
  * Na hora de mostrar, o valor é convertido para a moeda do idioma: português → R$, inglês e espanhol → US$,
- * alemão e francês → €, chinês → ¥ (yuan). O câmbio vem do mercado.json (FRED: DEXBZUS, DEXUSEU, DEXCHUS);
+ * alemão e francês → €. O câmbio vem do mercado.json (FRED: DEXBZUS, DEXUSEU, DEXCHUS);
  * sem ele, usa um câmbio aproximado de referência.
  */
 import { getCurrentLanguage } from '../i18n';
@@ -11,8 +11,8 @@ import { currentMarket } from './market';
 
 export type Currency = 'BRL' | 'USD' | 'EUR' | 'CNY';
 
-const BY_LANG: Record<string, Currency> = { pt: 'BRL', en: 'USD', es: 'USD', de: 'EUR', fr: 'EUR', zh: 'CNY' };
-const LOCALES: Record<string, string> = { pt: 'pt-BR', es: 'es', en: 'en-US', de: 'de-DE', zh: 'zh-CN', fr: 'fr-FR' };
+const BY_LANG: Record<string, Currency> = { pt: 'BRL', en: 'USD', es: 'USD', de: 'EUR', fr: 'EUR' };
+const LOCALES: Record<string, string> = { pt: 'pt-BR', es: 'es', en: 'en-US', de: 'de-DE', fr: 'fr-FR' };
 
 /** Câmbio de referência (FRED, 06/11/2026), usado só quando o mercado.json não traz a cotação. */
 const FALLBACK = { brlPerUsd: 5.49, perUsd: { EUR: 0.9, CNY: 6.68 } as Record<'EUR' | 'CNY', number> };

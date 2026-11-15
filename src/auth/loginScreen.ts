@@ -4,7 +4,7 @@ import { at } from './authText';
 
 const LANGS: [LanguageCode, string][] = [
   ['pt', 'Português'], ['es', 'Español'], ['en', 'English'],
-  ['de', 'Deutsch'], ['zh', '简体中文'], ['fr', 'Français'],
+  ['de', 'Deutsch'], ['fr', 'Français'],
 ];
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));

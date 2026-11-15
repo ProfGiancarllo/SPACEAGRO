@@ -1,4 +1,4 @@
-export type LanguageCode = 'pt' | 'es' | 'en' | 'de' | 'zh' | 'fr';
+export type LanguageCode = 'pt' | 'es' | 'en' | 'de' | 'fr';
 
 export interface LanguageOption {
   code: LanguageCode;
@@ -12,7 +12,6 @@ export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   { code: 'es', label: 'Español', flag: '', shortLabel: 'ES' },
   { code: 'en', label: 'English', flag: '', shortLabel: 'EN' },
   { code: 'de', label: 'Deutsch', flag: '', shortLabel: 'DE' },
-  { code: 'zh', label: '简体中文', flag: '', shortLabel: 'ZH' },
   { code: 'fr', label: 'Français', flag: '', shortLabel: 'FR' },
 ];
 

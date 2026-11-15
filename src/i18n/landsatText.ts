@@ -30,13 +30,6 @@ const de: D = {
   found: 'Überflug vom {d}{c}.', cloudy: ' ({p}% Wolken; kein klares Bild in den letzten 90 Tagen)',
   none: 'Kein Landsat-Überflug hier in den letzten 90 Tagen gefunden.',
 };
-const zh: D = {
-  name: 'Landsat 30 米（NASA）',
-  note: 'NASA Landsat 8/9（HLS），每像素 30 米。卫星约每 8 天过境一次；应用会自动选择该区域最近一次无云的过境。更改日期可查看其他过境。',
-  searching: '正在查找最近的无云 Landsat 影像…',
-  found: '{d} 过境{c}。', cloudy: '（云量 {p}%；最近 90 天没有晴空影像）',
-  none: '最近 90 天此处没有 Landsat 过境。',
-};
 const fr: D = {
   name: 'Landsat 30 m (NASA)',
   note: 'Landsat 8/9 de la NASA (HLS), 30 m par pixel. Le satellite passe environ tous les 8 jours ; l’app choisit le passage sans nuages le plus récent sur la zone. Changez la date pour voir un autre passage.',
@@ -44,7 +37,7 @@ const fr: D = {
   found: 'Passage du {d}{c}.', cloudy: ' ({p} % de nuages ; aucune image claire sur les 90 derniers jours)',
   none: 'Aucun passage Landsat trouvé ici sur les 90 derniers jours.',
 };
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 export function lt(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));

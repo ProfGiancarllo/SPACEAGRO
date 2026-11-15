@@ -54,19 +54,6 @@ const de: D = {
   heroSwitch: 'Kultur wechseln', heroSwitchText: '{field}: {name} bringt etwa {m} pro Hektar, {risk} Risiko', heroSwitchNone: 'Sehen Sie, welche Kultur im nächsten Zyklus mehr bringt', heroOpen: 'Öffnen',
   fabCur: 'Aktuelle Saison', fabSwitch: 'Kultur wechseln', exampleShort: 'mit Beispieldaten',
 };
-const zh: D = {
-  chipHarvestToday: '今天收获：{name}',
-  hub: '季节与决策', tabCurrent: '当前季节', tabSwitch: '更换作物',
-  curTitle: '农场当前季节进展', curSub: '每条横条从播种到收获。深色线表示今天。点按地块来决定下一季。',
-  chipFields: '{n} 块地', chipArea: '{ha} 公顷', chipHarvest: '最近收获：{name}，{d} 天后', chipNone: '近期没有收获',
-  today: '今天', dayOf: '第 {d} 天 / 共 {t} 天', harvestOn: '收获 {date}', daysLeft: '还剩 {d} 天', done: '已收获', pasture: '常年牧场', noCrop: '未登记季节',
-  next: '下一季：{crop}', forecast: '预测 {v} sc/ha', decide: '决策', noFields: '添加地块后即可查看季节。',
-  chartTitle: '这块地哪种方案收益更高？', chartSub: '横条为基准情景下每公顷预估利润；线段从悲观到乐观。标签颜色代表风险。',
-  details: '查看详情、调整价格和日期', adopt: '采用', best: '最佳',
-  heroCur: '当前季节', heroCurText: '{n} 块地在生产 · {harvest}', heroCurNone: '目前没有地块在生产',
-  heroSwitch: '更换作物', heroSwitchText: '{field}：{name} 每公顷约 {m}，风险{risk}', heroSwitchNone: '看看下一周期哪种作物收益更高', heroOpen: '打开',
-  fabCur: '当前季节', fabSwitch: '更换作物', exampleShort: '使用示例数据',
-};
 const fr: D = {
   chipHarvestToday: 'Récolte aujourd’hui : {name}',
   hub: 'Saison et décisions', tabCurrent: 'Saison en cours', tabSwitch: 'Changer de culture',
@@ -80,7 +67,7 @@ const fr: D = {
   heroSwitch: 'Changer de culture', heroSwitchText: '{field} : {name} rapporte environ {m} par hectare, risque {risk}', heroSwitchNone: 'Voyez quelle culture rapporte le plus au prochain cycle', heroOpen: 'Ouvrir',
   fabCur: 'Saison en cours', fabSwitch: 'Changer de culture', exampleShort: 'avec données d’exemple',
 };
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 
 export function sf(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;

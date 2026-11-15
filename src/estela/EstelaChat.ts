@@ -50,7 +50,7 @@ export function formatAnswer(raw: string): { html: string; speech: string } {
   const speech = lines.map((l) => l.replace(/[*`#]+/g, '')).join(' ');
   return { html, speech };
 }
-const LANG_TAG: Record<string, string> = { pt: 'pt-BR', es: 'es-ES', en: 'en-US', de: 'de-DE', zh: 'zh-CN', fr: 'fr-FR' };
+const LANG_TAG: Record<string, string> = { pt: 'pt-BR', es: 'es-ES', en: 'en-US', de: 'de-DE', fr: 'fr-FR' };
 
 const DIARY_RULES: [DiaryEntryType, RegExp, string | null][] = [
   ['irrigacao', /irrig|riego|regar|irrigat|bewaesser|arros|灌溉|irrigu/, 'mm'],

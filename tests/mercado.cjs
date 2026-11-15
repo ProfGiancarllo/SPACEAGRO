@@ -33,12 +33,11 @@ const ok = (n, c, extra='') => console.log((c ? 'OK   ' : 'FALHA') + ' | ' + n +
   await p.click('.mk-reset'); await p.waitForTimeout(300);
   ok('8 Restaurar limpa edições', await p.locator('.mk-in.edited').count() === 0);
   // idiomas
-  for (const [code, re] of [['en',/Market and estimated margin/],['es',/Mercado y margen/],['de',/Markt und/],['zh',/市场/],['fr',/Marché et marge/]]) {
+  for (const [code, re] of [['en',/Market and estimated margin/],['es',/Mercado y margen/],['de',/Markt und/],['fr',/Marché et marge/]]) {
     await p.evaluate((c) => { sessionStorage.setItem('lg','1'); localStorage.setItem('myroca_language', c); }, code);
     await p.reload(); await p.waitForTimeout(2200);
     await openPlanner();
     ok('Idioma ' + code, re.test(await t('.mk-panel')) && /R\$/.test(await t('.mk-margin')), (await t('.mk-decision')).slice(0,110));
-    if (code === 'zh') await p.screenshot({ path: process.env.S + '/mercado-zh.png' });
     await p.evaluate(() => document.querySelector('.rot-x')?.click());
   }
   await openPlanner();

@@ -30,13 +30,6 @@ const de: D = {
   f1: 'Wetter und Stundenvorhersage', f2: 'Aussaatrisiko mit NASA-Daten', f3: 'Feldtagebuch per Sprache oder Text', f4: 'Markt und beste Fruchtfolge',
   start: 'Gespräch beginnen', skip: 'Vorstellung überspringen',
 };
-const zh: D = {
-  hi: '你好！我是 Estrela。',
-  role: '帮助农户做决策的人工智能。',
-  lead: '我会关注你的农场，并在合适的时候提醒你：',
-  f1: '天气与逐小时预报', f2: '基于 NASA 数据的播种风险', f3: '语音或文字记录田间日志', f4: '市场行情与最佳换茬',
-  start: '开始对话', skip: '跳过介绍',
-};
 const fr: D = {
   hi: 'Bonjour ! Je suis Estrela.',
   role: "L'intelligence artificielle qui aide l'agriculteur à prendre ses décisions.",
@@ -44,7 +37,7 @@ const fr: D = {
   f1: 'Météo et prévision heure par heure', f2: 'Risque de semis avec les données de la NASA', f3: 'Journal de culture à la voix ou par écrit', f4: 'Marché et meilleur changement de culture',
   start: 'Commencer la conversation', skip: 'Passer la présentation',
 };
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 
 export function it(key: string): string {
   return (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;

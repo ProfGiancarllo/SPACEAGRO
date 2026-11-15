@@ -298,7 +298,6 @@ ${isSuperAdmin() ? `<div class="menu-head">Sistema</div>
                 <button class="dropdown-item lang-item" data-lang="es">Español</button>
                 <button class="dropdown-item lang-item" data-lang="en">English</button>
                 <button class="dropdown-item lang-item" data-lang="de">Deutsch</button>
-                <button class="dropdown-item lang-item" data-lang="zh">简体中文</button>
                 <button class="dropdown-item lang-item" data-lang="fr">Français</button>
               </div>
             </div>

@@ -484,7 +484,6 @@ export class MapManager {
     en: ['days', '{n} field changed phase', '{n} fields changed phase', 'No field changed phase', 'and {n} more'],
     es: ['días', '{n} lote cambió de fase', '{n} lotes cambiaron de fase', 'Ningún lote cambió de fase', 'y {n} más'],
     de: ['Tage', '{n} Feld hat die Phase gewechselt', '{n} Felder haben die Phase gewechselt', 'Kein Feld hat die Phase gewechselt', 'und {n} weitere'],
-    zh: ['天', '{n} 块地进入新阶段', '{n} 块地进入新阶段', '没有地块进入新阶段', '另有 {n} 块'],
     fr: ['jours', '{n} parcelle a changé de phase', '{n} parcelles ont changé de phase', 'Aucune parcelle n’a changé de phase', 'et {n} autres'],
   };
   private lt(i: number, n = 0): string { const l = (document.documentElement.lang || 'pt').slice(0, 2); return (MapManager.LAPSE[l] || MapManager.LAPSE.pt)[i].replace('{n}', String(n)); }
@@ -848,7 +847,6 @@ export class MapManager {
     en: ['Legal Reserve', 'APP (protected area)', 'Property boundary'],
     es: ['Reserva Legal', 'APP (área protegida)', 'Límite del inmueble'],
     de: ['Gesetzliches Schutzgebiet', 'APP (Schutzzone)', 'Grundstücksgrenze'],
-    zh: ['法定保护区', 'APP（保护区）', '地产边界'],
     fr: ['Réserve légale', 'APP (zone protégée)', 'Limite de la propriété'],
   };
   private drawCarLayers(): void {
@@ -881,13 +879,12 @@ export class MapManager {
     en: ['Adjust fields', 'Done adjusting', 'Drag the corners to the field edge'],
     es: ['Ajustar lotes', 'Terminar ajuste', 'Arrastre las esquinas al borde del lote'],
     de: ['Felder anpassen', 'Fertig', 'Ecken an den Feldrand ziehen'],
-    zh: ['调整地块', '完成调整', '拖动角点到地块边缘'],
     fr: ['Ajuster les parcelles', 'Terminer', 'Faites glisser les coins au bord de la parcelle'],
   };
   private adjText(i: number): string { const l = (document.documentElement.lang || 'pt').slice(0, 2); return (MapManager.ADJ[l] || MapManager.ADJ.pt)[i]; }
 
   private topLeftBox: HTMLElement | null = null;
-  private static TOOLS: Record<string, string> = { pt: 'Ferramentas', en: 'Tools', es: 'Herramientas', de: 'Werkzeuge', zh: '工具', fr: 'Outils' };
+  private static TOOLS: Record<string, string> = { pt: 'Ferramentas', en: 'Tools', es: 'Herramientas', de: 'Werkzeuge', fr: 'Outils' };
   /**
    * Menu "Ferramentas" do canto superior esquerdo: um botão que abre a lista (ajustar, marcar lavoura, saúde por satélite,
    * estresse hídrico…). Devolve a lista, onde cada recurso põe o seu botão. A ferramenta ligada (classe "on") continua à vista
@@ -967,7 +964,6 @@ export class MapManager {
     en: ['Mark field (tap)', 'Cancel marking', 'Tap inside a field on the image', 'More area', 'Less area', 'Use this field', 'Could not detect it. Tap another spot.'],
     es: ['Marcar lote (toque)', 'Cancelar marcado', 'Toque dentro de un lote en la imagen', 'Más área', 'Menos área', 'Usar este lote', 'No se pudo identificar. Toque otro punto.'],
     de: ['Feld markieren (tippen)', 'Abbrechen', 'Tippen Sie in ein Feld im Bild', 'Mehr Fläche', 'Weniger Fläche', 'Dieses Feld verwenden', 'Nicht erkannt. Anderen Punkt antippen.'],
-    zh: ['点选地块', '取消标记', '在图像中点击一块农田', '扩大', '缩小', '使用此地块', '未能识别，请点击其他位置。'],
     fr: ['Marquer la parcelle (toucher)', 'Annuler', 'Touchez l’intérieur d’une parcelle sur l’image', 'Plus de surface', 'Moins de surface', 'Utiliser cette parcelle', 'Non détectée. Touchez un autre point.'],
   };
   private wt(i: number): string { const l = (document.documentElement.lang || 'pt').slice(0, 2); return (MapManager.WAND[l] || MapManager.WAND.pt)[i]; }

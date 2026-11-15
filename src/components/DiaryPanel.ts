@@ -46,7 +46,7 @@ const TYPES: TypeDef[] = [
 const CATS = ['herbicida', 'fungicida', 'inseticida', 'dessecacao', 'outro'];
 const NEEDS_DOSE = (d: TypeDef) => !!d.units;
 
-const LOCALES: Record<string, string> = { pt: 'pt-BR', es: 'es', en: 'en-US', de: 'de-DE', zh: 'zh-CN', fr: 'fr-FR' };
+const LOCALES: Record<string, string> = { pt: 'pt-BR', es: 'es', en: 'en-US', de: 'de-DE', fr: 'fr-FR' };
 const loc = () => LOCALES[getCurrentLanguage()] || 'pt-BR';
 const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 const nf = (v: number, d = 1) => v.toLocaleString(loc(), { minimumFractionDigits: 0, maximumFractionDigits: d });

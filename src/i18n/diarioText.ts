@@ -82,25 +82,6 @@ const de: D = {
   fromProducer: 'Landwirt',
 };
 
-const zh: D = {
-  btn: '农事日记', title: '农事日记', sub: '记录每个地块发生的事情。记录越完整，换茬决策越准确。', close: '关闭',
-  estela: '和 Estrela 聊聊，她帮你更新',
-  newRec: '新记录', date: '日期', where: '哪些地块？', all: '全部（{n}）', none: '清除', byCrop: '仅{c}', selN: '已选 {n} 个地块',
-  what: '发生了什么？', product: '产品', cultivar: '品种', implement: '农具或方法', dose: '数量', unit: '单位',
-  catL: '防治类型', target: '对象（害虫、病害或杂草）', depth: '深度（厘米）', rain: '当天降雨（毫米）',
-  rainHint: '留空：SpaceAgro 会用 NASA 和 Open-Meteo 的数据自动填写。', note: '备注', save: '保存记录',
-  saved: '已在 {n} 个地块保存记录。', pickField: '请至少选择一个地块。', pickDate: '请填写日期。',
-  t_preparo: '整地与松土', t_calagem: '施石灰与石膏', t_plantio: '播种', t_adubacao: '施肥', t_foliar: '叶面施肥',
-  t_aplicacao: '防治（虫、病、草）', t_irrigacao: '灌溉', t_chuva: '实测降雨', t_monitoramento: '田间巡查',
-  t_colheita: '收获', t_ocorrencia: '事件（冰雹、霜冻、干旱）', t_analise_solo: '土壤分析', t_observacao: '其他备注',
-  c_herbicida: '除草剂', c_fungicida: '杀菌剂', c_inseticida: '杀虫剂', c_dessecacao: '催枯', c_outro: '其他',
-  timeline: '时间线', fField: '地块', fAll: '全部地块', fType: '类型', fAllTypes: '全部类型',
-  empty: '还没有记录。请使用上面的表单。', del: '删除', delSure: '确认删除？',
-  complete: '日记完整度', completeN: '{n} 个地块中有 {a} 个在最近 7 天有记录', missing: '7 天或更久没有记录', register: '记录',
-  fieldsN: '{n} 个地块', fetching: '正在获取天气…', noWx: '当天没有天气数据。', wxAuto: '自动天气',
-  wxFilled: '已由 NASA POWER 和 Open-Meteo 自动补全 {n} 天的天气。', farmWx: '农场天气', more: '显示更多', grp: '在 {n} 个地块一起记录',
-  fromProducer: '农户',
-};
 
 const fr: D = {
   btn: 'Journal de culture', title: 'Journal de culture', sub: 'Notez ce qui se passe sur chaque parcelle. Plus il est complet, meilleure est la décision de culture.', close: 'Fermer',
@@ -122,7 +103,7 @@ const fr: D = {
   fromProducer: 'Exploitant',
 };
 
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 export function dj(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));

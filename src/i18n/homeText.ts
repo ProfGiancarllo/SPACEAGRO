@@ -58,20 +58,6 @@ const de: D = {
   hum: 'Luftfeuchte', wind: 'Wind', rain: 'Regen',
   mkTitle: 'Agrarmarkt', mkOpen: 'Marktübersicht öffnen', mk12: '12 Monate', fx: 'US-Dollar',
 };
-const zh: D = {
-  mapMax: '最大化', mapRestore: '退出全屏',
-  advShort: '+1 周', subShort: '{farm} · {n} 块地 · {ha}',
-  wxMore: '查看完整预报', close: '关闭',
-  navSafra: '种植季', navFields: '地块', navStruct: '设施和水源', navFarm: '农场', secPlan: '规划', secRecords: '记录', secCoords: '按坐标', secFiles: '文件', secView: '查看',
-  wxTitle: '农场天气', subStruct: '{n} 处设施和水源', updated: '更新于 {t}', now: '现在', tomorrow: '明天', tomorrowLc: '明天', today: '今天', tempLine: '逐小时预报气温', hoursAria: '逐小时预报', sprayOk: '适合喷药的时段', pop: '降雨概率', feels: '体感', sunrise: '日出', sunset: '日落', spray: '喷药', sprayNone: '未来 24 小时没有合适时段', sprayRule: '至少连续 2 小时：降雨概率低于 30%，风速 3–10 km/h，气温低于 30 °C，湿度不低于 55%。', h48: '48 小时预报', h12: '未来 12 小时', noHourly: '暂时无法获取逐小时预报（无法连接 Open-Meteo）', simNote: '这是今天的真实预报；应用的参考日期为模拟日期。', rainAt: '{p}可能下雨。', morning: '上午', afternoon: '下午', night: '夜间', maxmin: '最高 {max}°C，最低 {min}°C。',
-  play: '继续', pause: '暂停', base12: '12 个月涨跌', cmTitle: '农产品行情', cmNone: '暂无行情。', cmHist: '近几个月价格', per: '每',
-  onFarm: '本农场', prev: '上一组', next: '下一组', fxNote: '商业汇率',
-  title: '农场概览', sub: '{farm} · {n} 块地 · {ha} · 参考日期 {d}',
-  mapTitle: '农场地图', mapSub: '卫星影像及已登记地块', center: '居中',
-  wxLoading: '正在加载天气…', wxFix: '更正', wxAuto: '恢复自动', wxPick: '现在天气如何？',
-  hum: '湿度', wind: '风速', rain: '降雨',
-  mkTitle: '农产品市场', mkOpen: '打开市场面板', mk12: '12 个月', fx: '美元',
-};
 const fr: D = {
   mapMax: 'Agrandir', mapRestore: 'Quitter le plein écran',
   advShort: '+1 semaine', subShort: '{farm} · {n} parcelles · {ha}',
@@ -86,7 +72,7 @@ const fr: D = {
   hum: 'Humidité', wind: 'Vent', rain: 'Pluie',
   mkTitle: 'Marché agricole', mkOpen: 'Ouvrir le panneau du marché', mk12: '12 mois', fx: 'Dollar',
 };
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 
 export function ht(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;

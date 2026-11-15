@@ -18,7 +18,7 @@ export interface HomeSideOptions {
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 const CONDS: Condition[] = ['clear', 'partly', 'cloudy', 'rain', 'storm'];
-const LOCALES: Record<string, string> = { pt: 'pt-BR', es: 'es', en: 'en-US', de: 'de-DE', zh: 'zh-CN', fr: 'fr-FR' };
+const LOCALES: Record<string, string> = { pt: 'pt-BR', es: 'es', en: 'en-US', de: 'de-DE', fr: 'fr-FR' };
 const COL = 56; // largura de cada coluna de hora (px)
 
 /** Ícones de traço, uma cor (herdam a cor do texto). */

@@ -18,7 +18,7 @@ export interface MarketPanelOptions {
   openRotation: () => void;
 }
 
-const LOCALES: Record<string, string> = { pt: 'pt-BR', es: 'es', en: 'en-US', de: 'de-DE', zh: 'zh-CN', fr: 'fr-FR' };
+const LOCALES: Record<string, string> = { pt: 'pt-BR', es: 'es', en: 'en-US', de: 'de-DE', fr: 'fr-FR' };
 const loc = () => LOCALES[getCurrentLanguage()] || 'pt-BR';
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 const ICON: Record<string, string> = { soja: '', milho: '', sorgo: '', feijao: '', algodao: '', trigo: '', cana: '', pasto: '' };

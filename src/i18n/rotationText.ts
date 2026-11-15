@@ -139,37 +139,6 @@ const de: D = {
   noClimatology: 'Das Klimarisiko kommender Saisons nutzt noch keine langen NASA-Reihen (SMAP, GPM, GRACE); sie kommen mit den Challenge-Daten.',
 };
 
-const zh: D = {
-  open: '规划种植季', title: '规划下一个种植季', subtitle: '比较该地块的轮作策略。每张卡片显示依据、收益、风险和缺口。',
-  talhao: '地块', sowDate: '夏季作物播种日', noTalhao: '请先添加地块再规划轮作。',
-  nasaTitle: '地块近期天气', nasaBadge: 'NASA POWER 数据', nasaLoading: '正在获取 NASA POWER 数据…', nasaFail: '暂无 NASA 数据：规划仅使用规则。',
-  nasaLine: '近 15 天降雨：{mm} 毫米 • 现在播种的风险：{risk}',
-  riskLow: '低', riskMedium: '中', riskHigh: '高',
-  current: '您目前的做法', suggested: 'Embrapa 建议', custom: '您的策略',
-  summer: '夏季作物', second: '二茬作物', cycle: '周期（天）', sow: '播种', harvest: '收获',
-  yieldRef: '参考单产', yieldNone: '该地块暂无收获记录', yieldVal: '{v} sc/ha（该地块 {n} 季平均）',
-  levelLow: '有利', levelMedium: '注意', levelHigh: '高风险',
-  benefits: '收益', risks: '风险', gaps: '缺口与依据', none: '未发现',
-  adopt: '设为下一季', adopted: '已更新地块的下一季作物', adoptNo: '请选择要采用的作物', remove: '移除', add: '+ 添加策略',
-  foot: '以上为戈亚斯州西南部的初始值，需与团队农艺师确认。来源：Embrapa、ZARC 和 NASA POWER。',
-  close: '关闭', cover: '覆盖作物（珍珠粟、猪屎豆、臂形草）', fallow: '休耕（无作物）',
-  evModel: '含 NASA 数据的模型', evTrend: '趋势 + Embrapa 规则', evRules: '仅 Embrapa 规则',
-  windowOk: '{crop}：{date} 播种，在理想窗口内。', windowEarly: '{crop}：{date} 播种，早于理想窗口，风险较高。', windowLate: '{crop}：{date} 播种，晚于理想窗口，风险较高。',
-  windowOut: '{crop}：{date} 播种，超出推荐窗口。', notForSeason: '该作物不适合此时节（{date} 播种）。',
-  perennial: '{crop} 全年占地，没有二茬。', perennialConflict: '{crop} 全年占地：无法再种其他作物。',
-  overlapNext: '二茬收获距下一个夏季的最小间隔还差 {days} 天。',
-  wheatAltitude: '旱作小麦需要约 {min} 米海拔；里奥韦尔迪约 {alt} 米。请在 ZARC 中确认。',
-  monoSoy: '大豆连作：易引发土传病虫害。', monoCotton: '棉花连作：易引发病虫害。',
-  sameFamily: '{a} 与 {b} 同科：无法中断病虫害循环。', alternates: '{a} 之后种 {b}：豆科与禾本科交替，有利于土壤和病虫害控制。',
-  coverBenefit: '种植 {b} 之前的覆盖作物：提供秸秆并改善水分入渗。', noSecondIncome: '无二茬：休闲期没有收入。',
-  pairSojaMilhoBenefit: '约 80% 的戈亚斯州西南部耕地采用此做法。', pairSojaMilhoRisk: '窗口狭窄（约 2 月 20 日后种玉米有风险）；叶蝉和线虫；连续复种易产生抗性杂草和土壤板结。',
-  pairSojaSorgoRisk: '结果仅来自一个地点和一年（里奥韦尔迪，2021/22）；6 月霜冻和 4 月缺水；高粱价格待调查。',
-  pairSojaCoverBenefit: '秸秆、更好的入渗，部分品种可减少线虫。', pairSojaCoverRisk: '无直接收入，也没有可比的 sc/ha 产量。',
-  evModelSoja: '大豆：含 NASA 数据的模型，提升较小（测试误差 4.24，仅趋势为 4.53 sc/ha）。', evModelSorgo: '高粱：含 NASA 数据的模型，测试误差 6.71，仅趋势为 8.83 sc/ha；误差仍较高。',
-  fEvTrend: '{crop}：按趋势和 Embrapa 规则预测；已测试的 NASA 数据没有帮助。', fEvRules: '{crop}：仅 Embrapa 规则；未测试模型。',
-  nasaSowing: '地块 15 天降雨 {mm} 毫米（NASA POWER），用于夏季播种。',
-  noClimatology: '未来种植季的气候风险尚未使用 NASA 长序列（SMAP、GPM、GRACE）；将随挑战赛数据加入。',
-};
 
 const fr: D = {
   open: 'Planifier la saison', title: 'Planifier la prochaine saison', subtitle: "Comparez des stratégies de rotation pour la parcelle. Chaque carte montre preuves, bénéfices, risques et lacunes.",
@@ -203,7 +172,7 @@ const fr: D = {
   noClimatology: "Le risque climatique des prochaines saisons n'utilise pas encore les longues séries NASA (SMAP, GPM, GRACE) ; elles viendront avec les données du défi.",
 };
 
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 export function rt(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));

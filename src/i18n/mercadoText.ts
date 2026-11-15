@@ -63,21 +63,6 @@ const de: D = {
   footer: 'Planungsschätzung, keine Kauf- oder Verkaufsempfehlung.', noData: 'Keine Marktdaten geladen.', perUnit: '{cur}/{u}', months: 'Monate',
   unitSc: '60-kg-Sack', unitArr: 'Arroba', unitT: 'Tonne', up: 'steigend', down: 'fallend', pess: 'Pessimistisch', base: 'Basis', opt: 'Optimistisch',
 };
-const zh: D = {
-  card: '市场', cardHint: '点击打开面板', title: '市场面板', sub: '您农场作物的价格、交易所与预测', close: '关闭',
-  real: '真实数据', example: '示例数据', partial: '部分为示例',
-  updated: '更新于 {d}', fx: '美元', today: '今日价格', trend: '12个月', proj: '{m}个月后预测', vol: '价格风险', margin: '基准利润/公顷',
-  farmCrops: '您农场的作物', fields: '{n}块地 · {ha} 公顷', pick: '点击作物查看详情',
-  histTitle: '近2年价格', futTitle: '交易所期货曲线', futHelp: '每个点是一份期货合约：市场今天为该月交割支付的价格。曲线上升=预期价格更高；下降=更低。',
-  noFut: '该作物没有期货曲线，决策使用近12个月趋势。', exampleCrop: '该作物仍使用示例数值（无真实数据序列）。',
-  rankTitle: '每公顷哪种作物收益最高', rankHelp: '利润=产量×预期收获价格−成本。柱为基准情景；细线从悲观到乐观。',
-  impactTitle: '这些数据如何进入换茬决策', impactText: '规划器使用同样的价格。对每个换茬方案，收获时的预期价格跟随交易所期货曲线（若有；否则用12个月趋势），利润使用地块产量，并已按气候与轮作风险折减。“综合决策”选择无高风险的最高利润方案。',
-  impactNow: '当前决策：{t}', impactBtn: '打开换茬决策', basisFut: '按期货的收获价格（{c}）：{p}', basisTrend: '按趋势的收获价格：{p}',
-  fxTitle: '美元（雷亚尔/美元）', parity: '按美元换算的国际价格（出口平价）。里奥韦尔迪本地价格通常更低（运费与升贴水）。请在规划器中输入您的价格。',
-  exch: '使用的交易所：CBOT（芝加哥）与 ICE（纽约），涵盖大豆、玉米、小麦、棉花；美元和月度历史来自 FRED。B3 无免费开放数据。',
-  footer: '规划估算，不构成买卖建议。', noData: '未加载市场数据。', perUnit: '{cur}/{u}', months: '个月',
-  unitSc: '60公斤袋', unitArr: '阿罗巴', unitT: '吨', up: '上涨', down: '下跌', pess: '悲观', base: '基准', opt: '乐观',
-};
 const fr: D = {
   card: 'Marché', cardHint: 'Touchez pour ouvrir le panneau', title: 'Panneau de marché', sub: 'Prix, bourses et projections des cultures de votre exploitation', close: 'Fermer',
   real: 'Données réelles', example: 'Données d’exemple', partial: 'En partie exemple',
@@ -94,7 +79,7 @@ const fr: D = {
   unitSc: 'sac de 60 kg', unitArr: 'arroba', unitT: 'tonne', up: 'hausse', down: 'baisse', pess: 'Pessimiste', base: 'Base', opt: 'Optimiste',
 };
 
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 export function mk2(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));

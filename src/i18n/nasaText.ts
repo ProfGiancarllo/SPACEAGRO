@@ -56,10 +56,9 @@ const es: D = {
   limits: 'SMAP e IMERG tienen 9–10 km: describen la región, no una parcela. El riesgo por parcela usa ERA5-Land (≈9 km). Apoyo a la planificación; no sustituye la medición en campo.',
 };
 const de: D = { btn: 'NASA-Daten', title: 'NASA-Daten', close: 'Schließen', tabMap: 'Kartenebenen', tabWater: 'Wasser je Schlag', tabSrc: 'Quellen und Methode', ndvi: 'Vegetationsvitalität (NDVI, MODIS)', rain: 'Niederschlag (GPM IMERG)', smap: 'Bodenfeuchte (SMAP)', lst: 'Oberflächentemperatur (MODIS)', lo: 'niedriger', hi: 'höher', unavail: 'Ebene derzeit nicht verfügbar', field: 'Schlag', low: 'Niedrig', medium: 'Mittel', high: 'Hoch', risk: 'Wasserrisiko' };
-const zh: D = { btn: 'NASA 数据', title: 'NASA 数据', close: '关闭', tabMap: '地图图层', tabWater: '地块水分', tabSrc: '来源与方法', ndvi: '植被活力 (NDVI, MODIS)', rain: '降水 (GPM IMERG)', smap: '土壤湿度 (SMAP)', lst: '地表温度 (MODIS)', lo: '较低', hi: '较高', unavail: '图层暂不可用', field: '地块', low: '低', medium: '中', high: '高', risk: '水分风险' };
 const fr: D = { btn: 'Données NASA', title: 'Données NASA', close: 'Fermer', tabMap: 'Couches de la carte', tabWater: 'Eau par parcelle', tabSrc: 'Sources et méthode', ndvi: 'Vigueur de la végétation (NDVI, MODIS)', rain: 'Pluie (GPM IMERG)', smap: 'Humidité du sol (SMAP)', lst: 'Température de surface (MODIS)', lo: 'plus faible', hi: 'plus élevé', unavail: 'Couche indisponible', field: 'Parcelle', low: 'Faible', medium: 'Moyen', high: 'Élevé', risk: 'Risque hydrique' };
 
-const ALL: Record<string, D> = { pt, en, es, de, zh, fr };
+const ALL: Record<string, D> = { pt, en, es, de, fr };
 export function nn(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));

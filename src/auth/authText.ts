@@ -77,25 +77,6 @@ const de: Dict = {
   cloudNote: 'Ihr Konto und die Betriebsdaten werden auf dem SpaceAgro-Server gespeichert und sind auf jedem Gerät verfügbar.', forgotCloud: 'Bitten Sie den SpaceAgro-Administrator, Ihr Passwort zurückzusetzen. Sie erhalten ein vorläufiges Passwort zum Anmelden und Ändern.', errOffline: 'Keine Verbindung zum Server. Prüfen Sie das Internet und versuchen Sie es erneut.', errServer: 'Der Server konnte die Anfrage nicht abschließen. Versuchen Sie es gleich noch einmal.',
   logout: 'Abmelden', guestName: 'Gast',
 };
-const zh: Dict = {
-  title: '登录 SpaceAgro', subtitle: '登录或创建账户以管理您的农场。',
-  tabLogin: '登录', tabSignup: '创建账户',
-  name: '姓名', email: '电子邮箱', phone: '电话（选填）', farm: '农场名称', city: '城市 / 州',
-  password: '密码', password2: '再次输入密码', passwordHint: '至少 8 个字符，包含字母和数字。',
-  keep: '在此设备上保持登录',
-  consent: '我同意 SpaceAgro 在此设备上保存我的数据以运行应用（LGPD）。',
-  btnLogin: '登录', btnSignup: '创建账户并进入', guest: '无需账户体验（演示）',
-  forgot: '忘记密码', forgotMsg: '演示版本的账户仅保存在此设备上，因此无法找回密码。您可以删除此账户及其数据后重新创建。',
-  forgotDelete: '删除此账户及其数据', forgotDone: '账户已删除，可重新创建。',
-  localNote: '演示模式：账户和农场数据仅保存在此浏览器中。',
-  errRequired: '请填写所有必填项。', errEmail: '请输入有效的电子邮箱。', errPwShort: '密码至少 8 个字符，需包含字母和数字。',
-  errPwMismatch: '两次输入的密码不一致。', errConsent: '创建账户需同意数据使用。',
-  errExists: '该邮箱已有账户。', errBadLogin: '邮箱或密码错误。',
-  errLocked: '尝试次数过多，请 {s} 秒后重试。', errCrypto: '此浏览器无法保护密码，请通过 HTTPS 打开应用。',
-  heroTitle: '基于卫星影像的农场管理', heroText: '地块、种植日历和气象信息集中在一处。', feat1: '在卫星影像上绘制地块', feat2: '种植日历与轮作规划', feat3: '来自 NASA POWER 的降雨与气候数据', sources: '影像：Esri World Imagery · 气候：NASA POWER',
-  cloudNote: '您的账户和农场数据保存在 SpaceAgro 服务器上，可在任何设备上打开。', forgotCloud: '请联系 SpaceAgro 管理员重置密码。您会收到一个临时密码，用于登录并修改密码。', errOffline: '无法连接服务器。请检查网络后重试。', errServer: '服务器暂时无法完成请求。请稍后重试。',
-  logout: '退出', guestName: '访客',
-};
 const fr: Dict = {
   title: 'Accès à SpaceAgro', subtitle: 'Connectez-vous ou créez votre compte pour gérer votre exploitation.',
   tabLogin: 'Se connecter', tabSignup: 'Créer un compte',
@@ -115,7 +96,7 @@ const fr: Dict = {
   cloudNote: 'Votre compte et les données de l’exploitation sont enregistrés sur le serveur SpaceAgro et accessibles sur tout appareil.', forgotCloud: 'Demandez à l’administrateur SpaceAgro de réinitialiser votre mot de passe. Vous recevrez un mot de passe provisoire pour vous connecter et le changer.', errOffline: 'Pas de connexion au serveur. Vérifiez internet et réessayez.', errServer: 'Le serveur n’a pas pu terminer la demande. Réessayez dans un instant.',
   logout: 'Se déconnecter', guestName: 'Invité',
 };
-const ALL: Record<string, Dict> = { en, pt, es, de, zh, fr };
+const ALL: Record<string, Dict> = { en, pt, es, de, fr };
 
 export function at(key: string, params?: Record<string, string | number>): string {
   let s = (ALL[getCurrentLanguage()] || en)[key] ?? en[key] ?? key;

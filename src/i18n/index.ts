@@ -12,7 +12,7 @@ const listeners: Listener[] = [];
 function detectInitialLanguage(): LanguageCode {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved && (saved === 'pt' || saved === 'es' || saved === 'en' || saved === 'de' || saved === 'zh' || saved === 'fr')) {
+    if (saved && (saved === 'pt' || saved === 'es' || saved === 'en' || saved === 'de' || saved === 'fr')) {
       return saved as LanguageCode;
     }
 
@@ -20,7 +20,6 @@ function detectInitialLanguage(): LanguageCode {
     if (browserLang.startsWith('pt')) return 'pt';
     if (browserLang.startsWith('es')) return 'es';
     if (browserLang.startsWith('de')) return 'de';
-    if (browserLang.startsWith('zh')) return 'zh';
     if (browserLang.startsWith('fr')) return 'fr';
     if (browserLang.startsWith('en')) return 'en';
   } catch {
@@ -47,7 +46,7 @@ export function setLanguage(lang: LanguageCode): void {
 
   // Update HTML lang attribute
   if (typeof document !== 'undefined') {
-    const htmlLang = lang === 'pt' ? 'pt-BR' : lang === 'zh' ? 'zh-CN' : lang;
+    const htmlLang = lang === 'pt' ? 'pt-BR' : lang;
     document.documentElement.lang = htmlLang;
   }
 
@@ -95,13 +94,13 @@ export function t(key: keyof TranslationDictionary, params?: Record<string, stri
 /**
  * Format numbers according to B5:
  * pt, es, de, fr: comma as decimal separator (12,34)
- * en, zh: point as decimal separator (12.34)
+ * en: point as decimal separator (12.34)
  */
 export function formatNumber(val: number, decimals = 2): string {
   const fixed = val.toFixed(decimals);
   const lang = currentLanguage;
 
-  if (lang === 'en' || lang === 'zh') {
+  if (lang === 'en') {
     return fixed;
   }
 
@@ -127,7 +126,6 @@ export function formatKmI18n(val: number): string {
  * pt, es, fr: DD/MM/AAAA
  * de: DD.MM.AAAA
  * en: MM/DD/YYYY
- * zh: YYYY年MM月DD日
  */
 export function formatDateI18n(dateStr?: string): string {
   if (!dateStr) return '';
@@ -142,8 +140,6 @@ export function formatDateI18n(dateStr?: string): string {
       return `${month}/${day}/${year}`;
     case 'de':
       return `${day}.${month}.${year}`;
-    case 'zh':
-      return `${year}年${month}月${day}日`;
     case 'pt':
     case 'es':
     case 'fr':
@@ -153,7 +149,7 @@ export function formatDateI18n(dateStr?: string): string {
 }
 
 /**
- * Short formatted date (e.g. DD/MM, DD.MM., MM/DD, or MM月DD日)
+ * Short formatted date (e.g. DD/MM, DD.MM., or MM/DD)
  */
 export function formatDateShortI18n(dateStr?: string): string {
   if (!dateStr) return '';
@@ -168,8 +164,6 @@ export function formatDateShortI18n(dateStr?: string): string {
       return `${month}/${day}`;
     case 'de':
       return `${day}.${month}.`;
-    case 'zh':
-      return `${month}月${day}日`;
     case 'pt':
     case 'es':
     case 'fr':
@@ -198,15 +192,10 @@ export function formatDateWithWeekdayI18n(dateStr: string): string {
     es: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
     en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     de: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-    zh: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
     fr: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
   };
 
   const dayOfWeek = weekdays[lang][dateObj.getDay()];
-
-  if (lang === 'zh') {
-    return `${formattedDate} ${dayOfWeek}`;
-  }
 
   return `${formattedDate} (${dayOfWeek})`;
 }
