@@ -28,6 +28,8 @@ jobs:
       - name: Enviar para o ramo gh-pages
         run: |
           touch dist/.nojekyll
+          # Endereços do app sem arquivo próprio (ex.: /demonstracao) abrem o app pelo 404.html
+          cp dist/index.html dist/404.html
           cd dist
           git init -q -b gh-pages
           git config user.name "github-actions"

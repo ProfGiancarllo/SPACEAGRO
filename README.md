@@ -32,7 +32,7 @@ Projeto da equipe SpaceAgro para o **NASA Space Apps Challenge 2026**, desafio *
 - Globo 3D girando com os **focos de calor reais das últimas 24 h** na América do Sul (NASA FIRMS, VIIRS NOAA-20).
 - Voo automático até a fazenda de demonstração, com **tour guiado talhão por talhão** (cultura, área, fase de hoje e colheita prevista), água da fazenda (nascente, poço, rio), foco de calor mais próximo e totais.
 - Seções de problema, solução, telas reais do app, previsões, impacto e modelo de negócio.
-- Atalhos: `/#inicio` abre a página inicial mesmo com sessão ativa; `/#entrar` e `/#criar-conta` vão direto para o acesso.
+- Atalhos: **`/demonstracao`** abre direto a fazenda de demonstração, sem cadastro (ex.: https://spaceagro.pro/demonstracao); `/#inicio` abre a página inicial mesmo com sessão ativa; `/#entrar` e `/#criar-conta` vão direto para o acesso.
 
 ### Mapa e talhões
 - Mapa de satélite (MapLibre GL) com os talhões da fazenda e a fazenda de demonstração real de Rio Verde (limites do CAR).

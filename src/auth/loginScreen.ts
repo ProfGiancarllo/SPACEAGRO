@@ -12,6 +12,13 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 /** Mostra a tela de acesso e só resolve quando houver sessão válida. */
 export function requireAuth(): Promise<void> {
+  // /demonstracao (ou #demonstracao) abre direto a fazenda de demonstração, sem cadastro nem página inicial.
+  // Quem já está logado com a própria conta continua nela (não troca a sessão).
+  if (/\/demonstracao\/?$/.test(location.pathname) || location.hash === '#demonstracao') {
+    if (location.pathname.endsWith('/')) history.replaceState(null, '', location.pathname.replace(/\/+$/, '') + location.search);
+    if (!currentUser()) enterAsGuest();
+    return Promise.resolve();
+  }
   // #inicio abre a página inicial mesmo com sessão ativa (para divulgar ou rever a página).
   const forceLanding = location.hash === '#inicio';
   if (currentUser() && !forceLanding) return Promise.resolve();
