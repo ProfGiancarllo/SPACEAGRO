@@ -139,6 +139,7 @@ class AgroApp {
       openRotation: (id) => this.rotationPlanner.open(id),
       openDiary: () => this.diaryPanel.open(),
       getFireSummary: () => this.fireAlert?.summary() ?? null,
+      openWeather: () => this.homeSide?.openDetails(),
       onDiaryAdded: () => {
         saveFarmData(this.farmData);
         this.updateUI();

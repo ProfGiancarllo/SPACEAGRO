@@ -126,7 +126,7 @@ export class HomeSide {
   }
 
   /** Janela com a previsão completa (horas, temperatura, dados do dia, 48 h e correção manual). */
-  private openDetails(): void {
+  openDetails(): void {
     if (!this.dialog) {
       this.dialog = document.createElement('div');
       this.dialog.className = 'wx-overlay';

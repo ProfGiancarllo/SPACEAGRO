@@ -11,6 +11,8 @@ import { calculateTalhaoCropStatus, addDaysToDate } from '../utils/cropCalendar'
 import { fetchNasaSeries, polygonCentroid } from '../utils/nasaPower';
 import { assessPlanting } from '../utils/agronomyRules';
 import { resolveWeather } from '../utils/weather';
+import { fetchFarmForecast, sprayWindow, HourPoint } from '../utils/hourlyForecast';
+import { ht } from '../i18n/homeText';
 import { wt } from '../i18n/weatherText';
 import { cropKey } from '../utils/forecast';
 import { TranslationDictionary } from '../i18n/types';
@@ -27,11 +29,14 @@ export interface EstelaOptions {
   openRotation: (talhaoId?: string) => void;
   openDiary?: () => void;
   getFireSummary?: () => object | null;
+  /** Abre a janela "Ver previsão completa" do cartão de clima. */
+  openWeather?: () => void;
 }
 
 interface Msg { who: 'me' | 'estela'; html: string; t?: string; actions?: { label: string; run: () => void }[] }
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 
 /**
@@ -63,6 +68,13 @@ const DIARY_RULES: [DiaryEntryType, RegExp, string | null][] = [
   ['monitoramento', /monitor|vistori|scout|inspec|巡查/, null],
   ['observacao', /observa|anota|nota\b|note\b|remarque|notiz|备注/, null],
 ];
+/** Pergunta de clima/previsão (texto já sem acento e em minúsculas). */
+const WEATHER_Q = /clima|previsao do tempo|previsao de chuva|\btempo (agora|hoje|amanha|essa semana|esta semana|nos proximos)|como (esta|vai estar|vai ficar|fica) o tempo|vai chover|chove (hoje|amanha)|chover|chuva (hoje|amanha|essa semana|esta semana|na semana)|temperatura|\bvento|umidade|weather|forecast|will it rain|\brain (today|tomorrow)|pronostico|el tiempo|va a llover|llover|lluvia (hoy|manana)|wetter|regnet|regnen|meteo|quel temps|va-t-il pleuvoir|pleuvoir/;
+/** Exclui perguntas de previsão que não são do tempo (produtividade, colheita, preço). */
+const NOT_WEATHER = /produtiv|colheit|colher|safra|preco|yield|harvest|price|rendimiento|cosecha|ertrag|ernte|rendement|recolte/;
+/** Pergunta sobre a hora de pulverizar (janela de aplicação). */
+const SPRAY_Q = /(posso|pode|da pra|da para|hora de|horario de|janela de|quando|melhor hora para|bom para) (pulveriz|aplicar|passar veneno|passar defensivo)|janela de (pulverizacao|aplicacao)|can i spray|spray window|when (can i|to) spray|puedo (pulverizar|fumigar|aplicar)|ventana de aplicacion|kann ich spritzen|puis-je (pulveriser|traiter)/;
+
 /** Endereço da voz natural: a rota /tts do mesmo servidor da Estrela (definido no painel de administração ou em VITE_ESTELA_URL). */
 function voiceUrl(): string | null {
   const base = estelaBaseUrl();
@@ -407,6 +419,18 @@ export class EstelaChat {
   /** Opções que a pessoa responde escrevendo ("sim", "não", "depois"), sem botões. */
   private choices: NonNullable<Msg['actions']> = [];
 
+  /** Mostra "Um instante…" e devolve a mensagem, para tirar só ela depois (mesmo com outras perguntas no meio). */
+  private wait(): Msg {
+    const m: Msg = { who: 'estela', html: esc(et('thinking')) };
+    this.msgs.push(m); this.paint();
+    return m;
+  }
+
+  private drop(m: Msg): void {
+    const i = this.msgs.indexOf(m);
+    if (i >= 0) { this.msgs.splice(i, 1); this.painted = Math.min(this.painted, this.msgs.length); }
+  }
+
   private say(html: string, actions?: Msg['actions'], speakText?: string): void {
     this.choices = actions || [];
     this.msgs.push({ who: 'estela', html });
@@ -581,6 +605,9 @@ export class EstelaChat {
       }
       // 2) Registro no diário
       if (this.parseDiary(text)) return;
+      // 3a) Clima e previsão do tempo (antes do risco de plantio, a menos que a pergunta seja sobre plantar)
+      if (SPRAY_Q.test(n)) return this.weatherInfo(true);
+      if (WEATHER_Q.test(n) && !NOT_WEATHER.test(n) && !/plant|semea|sembr|\bsow/.test(n)) return this.weatherInfo(false);
       // 3) Risco de plantio
       if (/posso (plantar|semear)|plantar|semear|plantio|sow|plant\b|puedo sembrar|sembrar|semer|aussaat|säen|saeen|播种|risco/.test(n) && !/rotac|rotation|rotacion|轮作/.test(n)) return this.plantRisk(this.findTalhao(text));
       // 4) Rotação
@@ -601,8 +628,6 @@ export class EstelaChat {
         this.say(esc(real) + (cal !== realIso ? '<br><span class="estela-src">' + esc(et('calNote', { d: calTxt })) + '</span>' : ''), undefined, real);
         return;
       }
-      // 5) Clima
-      if (/clima|tempo agora|weather|temps|wetter|天气|chover|chuva hoje|llover/.test(n)) return this.weatherInfo();
       // 6) Situação dos talhões
       if (/como (esta|estao|anda)|situacao|status|how are|estado|zustand|wie stehen|comment vont|怎么样|talhoes|fields|lotes|parcelles/.test(n)) return this.fieldStatus(this.findTalhao(text));
       // 7) NASA
@@ -771,20 +796,66 @@ export class EstelaChat {
     this.say(lines.join('<br>'), undefined, lines.join('. ').replace(/<[^>]+>/g, ' '));
   }
 
-  private async weatherInfo(): Promise<void> {
+  /**
+   * Clima e previsão com os mesmos dados do cartão "Clima na fazenda" (Open-Meteo por hora, no fuso da fazenda):
+   * agora, hoje (quando chove, máxima e mínima), amanhã e a janela de pulverização. Com `sprayFirst`, começa pela janela.
+   */
+  private async weatherInfo(sprayFirst = false): Promise<void> {
     const tls = this.talhoes();
     const c = tls.length && tls[0].coordinates?.length >= 3 ? polygonCentroid(tls[0].coordinates) : { lat: -17.8, lng: -51.07 };
-    const w = await resolveWeather(c.lat, c.lng, undefined, this.ref());
-    const temp = w.tempC !== null ? `${Math.round(w.tempC)}°C` : '';
-    const src = w.source === 'openmeteo' ? 'Open-Meteo' : w.source === 'nasa' ? `NASA POWER (${w.note || ''})` : w.source === 'manual' ? wt('srcManual') : wt('srcEstimate');
-    this.say(esc(et('weatherLine', { desc: et('wx_' + w.cond), temp, src })).replace(/, \./, '.'));
+    const wait = this.wait();
+    const [fc, w] = await Promise.all([fetchFarmForecast(c.lat, c.lng).catch(() => null), resolveWeather(c.lat, c.lng, undefined, this.ref()).catch(() => null)]);
+    this.drop(wait);
+    if (!fc) {
+      // sem previsão por hora: só a condição atual (Open-Meteo, NASA POWER ou estimativa)
+      if (!w) return void this.say(esc(et('extFail')));
+      const temp = w.tempC !== null ? `${Math.round(w.tempC)}°C` : '';
+      const src = w.source === 'openmeteo' ? 'Open-Meteo' : w.source === 'nasa' ? `NASA POWER (${w.note || ''})` : w.source === 'manual' ? wt('srcManual') : wt('srcEstimate');
+      return void this.say(esc(et('weatherLine', { desc: et('wx_' + w.cond), temp, src })).replace(/, \./, '.'));
+    }
+    const pct = (v: number | null) => (v === null ? '—' : Math.round(v) + '%');
+    const today = fc.now.time.slice(0, 10);
+    const tomorrow = fc.days.find((d) => d.date > today)?.date;
+    const period = (h: HourPoint) => { const hr = Number(h.time.slice(11, 13)); return ht(hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'night'); };
+    const maxmin = (date: string | undefined) => { const d = fc.days.find((x) => x.date === date); return d && d.tmax !== null && d.tmin !== null ? ht('maxmin', { max: Math.round(d.tmax), min: Math.round(d.tmin) }) : ''; };
+    const dayRain = (date: string | undefined) => {
+      const hs = fc.hours.filter((h) => h.time.slice(0, 10) === date);
+      const pops = hs.map((h) => h.pop).filter((v): v is number => v !== null);
+      return { hs, pop: pops.length ? Math.max(...pops) : null, mm: hs.reduce((s, h) => s + (h.precip ?? 0), 0) };
+    };
+    const manual = w?.source === 'manual';
+    const cond = manual ? w!.cond : fc.now.cond;
+    const temp = fc.now.temp ?? w?.tempC ?? null;
+    const lines: string[] = [];
+    // agora
+    lines.push(`${ht('now')}: ${et('wx_' + cond)}${temp === null ? '' : ', ' + Math.round(temp) + '°C'}. ${ht('pop')} ${pct(fc.now.pop)}, ${ht('wind').toLowerCase()} ${fc.now.wind === null ? '—' : Math.round(fc.now.wind) + ' km/h'}, ${ht('hum').toLowerCase()} ${pct(fc.now.hum)}.`);
+    // hoje: quando deve chover + máxima e mínima
+    const t0 = dayRain(today);
+    const wet0 = t0.hs.find((h) => (h.pop ?? 0) >= 50);
+    lines.push(`${cap(ht('today'))}: ${wet0 ? ht('rainAt', { p: period(wet0) }) : et('wxNoRain')} ${maxmin(today)}`.trim());
+    // amanhã
+    if (tomorrow) {
+      const t1 = dayRain(tomorrow);
+      const wet1 = t1.hs.find((h) => (h.pop ?? 0) >= 50);
+      const rain1 = wet1 ? `${ht('rainAt', { p: period(wet1) })} ${ht('pop')} ${pct(t1.pop)}${t1.mm >= 0.5 ? `, ${Math.round(t1.mm)} mm` : ''}.` : et('wxNoRain');
+      lines.push(`${ht('tomorrow')}: ${rain1} ${maxmin(tomorrow)}`.trim());
+    }
+    // janela de pulverização (mesma regra do cartão)
+    const win = sprayWindow(fc.hours);
+    const endH = win ? `${String((Number(win.end.slice(11, 13)) + 1) % 24).padStart(2, '0')}:00` : '';
+    const spray = `${ht('spray')}: ${win ? `${win.start.slice(0, 10) === today ? ht('today') : ht('tomorrowLc')} ${win.start.slice(11, 16)} – ${endH}` : ht('sprayNone')}.`;
+    if (sprayFirst) lines.unshift(spray + ' ' + et('wxSprayRule')); else lines.push(spray);
+    const src = `Open-Meteo${manual ? ' · ' + wt('srcManual') : ''}`;
+    const html = lines.map((l, i) => `<p class="estela-p">${i === 0 || /:/.test(l) ? esc(l).replace(/^([^:]{2,26}:)\s/, '<strong>$1</strong> ') : esc(l)}</p>`).join('');
+    const actions = this.opts.openWeather ? [{ label: ht('wxMore'), run: () => this.opts.openWeather!() }] : undefined;
+    this.say(html + `<span class="estela-src">${esc(et('wxSrc', { src }))}</span>`, actions, lines.join(' '));
   }
 
   // ---------------- IA externa (opcional)
   private async askExternal(text: string): Promise<void> {
     const url = estelaBaseUrl();
     if (!url) return void this.say(esc(et('fallbackLocal')));
-    this.say(esc(et('thinking')));
+    const wait = this.wait();
     const farm = this.opts.getFarm();
     const now = new Date();
     const hoje = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -807,11 +878,11 @@ export class EstelaChat {
       const j = await res.json();
       const ans = String(j.answer || '').trim();
       if (!ans) throw new Error('empty');
-      this.msgs.pop(); this.painted = Math.min(this.painted, this.msgs.length);
+      this.drop(wait);
       const out = formatAnswer(ans);
       this.say(out.html + `<span class="estela-src">${esc(et('extNotice'))}</span>`, undefined, out.speech);
     } catch {
-      this.msgs.pop(); this.painted = Math.min(this.painted, this.msgs.length);
+      this.drop(wait);
       this.say(esc(et('extFail')));
     } finally {
       clearTimeout(timer);

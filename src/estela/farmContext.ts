@@ -18,6 +18,7 @@ import { waterForPoint } from '../utils/waterRisk';
 import { cropKey, currentForecast, yieldSeries } from '../utils/forecast';
 import { cropMarket, loadMarket, slotMargin } from '../utils/market';
 import type { CropKey } from '../utils/rotation';
+import { fetchFarmForecast, sprayWindow } from '../utils/hourlyForecast';
 
 /** Tamanho máximo do contexto enviado (o servidor aceita até 40 mil caracteres). */
 export const MAX_CONTEXT_CHARS = 38000;
@@ -176,6 +177,31 @@ function finance(tl: Talhao, histMedia: number | null): object | undefined {
   };
 }
 
+// ---------------- Tempo agora e próximas 48 h na fazenda (os mesmos dados do cartão "Clima na fazenda")
+async function weatherNow(farm: FarmData): Promise<object | undefined> {
+  const t = farm.talhoes.find((x) => x.coordinates && x.coordinates.length >= 3);
+  const c = t ? polygonCentroid(t.coordinates) : { lat: -17.8, lng: -51.07 };
+  const fc = await withTimeout(fetchFarmForecast(c.lat, c.lng));
+  if (!fc) return undefined;
+  const day = (date: string) => {
+    const hs = fc.hours.filter((h) => h.time.slice(0, 10) === date);
+    const d = fc.days.find((x) => x.date === date);
+    const wet = hs.filter((h) => (h.pop ?? 0) >= 50).map((h) => h.time.slice(11, 16));
+    const pops = hs.map((h) => h.pop).filter((v): v is number => v !== null);
+    return { data: date, tMaxC: r0(d?.tmax), tMinC: r0(d?.tmin), chanceChuvaMaxPct: pops.length ? Math.max(...pops) : null, chuvaMm: r1(hs.reduce((a, h) => a + (h.precip ?? 0), 0)), horasComChuvaProvavel: wet.length ? `${wet[0]} a ${wet[wet.length - 1]}` : null };
+  };
+  const today = fc.now.time.slice(0, 10);
+  const win = sprayWindow(fc.hours);
+  return {
+    fonte: 'Open-Meteo (previsão por hora, fuso da fazenda)', horaLocal: fc.now.time.slice(11, 16),
+    agora: { temperaturaC: r0(fc.now.temp), sensacaoC: r0(fc.now.feels), condicao: fc.now.cond, chanceChuvaPct: r0(fc.now.pop), ventoKmh: r0(fc.now.wind), umidadePct: r0(fc.now.hum) },
+    hoje: day(today),
+    amanha: fc.days.find((d) => d.date > today) ? day(fc.days.find((d) => d.date > today)!.date) : undefined,
+    janelaPulverizacao24h: win ? { inicio: win.start.replace('T', ' '), fimDaUltimaHoraBoa: win.end.replace('T', ' ') } : 'sem janela boa nas próximas 24 h',
+    regraPulverizacao: 'pelo menos 2 h com chance de chuva < 30%, vento 3 a 10 km/h, < 30 °C e umidade >= 55%',
+  };
+}
+
 // ---------------- Montagem
 export interface FieldCtxOpts { name: (tl: Talhao) => string; refDate: string; today: string }
 
@@ -268,11 +294,12 @@ function fitContext(ctx: Record<string, any>, focused: boolean): Record<string, 
  * para nunca ficar de fora quando a fazenda tiver muitos talhões.
  */
 export async function buildFarmContext(farm: FarmData, o: FieldCtxOpts, extra: Record<string, unknown>, focus?: Talhao | null): Promise<Record<string, any>> {
-  const [health, stress] = await Promise.all([withTimeout(loadSatFile('saude-talhoes.json')), withTimeout(loadSatFile('estresse-hidrico.json')), withTimeout(loadMarket())]).then((r) => [r[0], r[1]] as [SatFile | null, SatFile | null]);
+  const [health, stress, , tempo] = await Promise.all([withTimeout(loadSatFile('saude-talhoes.json')), withTimeout(loadSatFile('estresse-hidrico.json')), withTimeout(loadMarket()), weatherNow(farm)]);
   const list = focus ? [focus, ...farm.talhoes.filter((x) => x.id !== focus.id)] : [...farm.talhoes];
   const fields = await Promise.all(list.map((tl, i) => fieldData(tl, o, health, stress, i < MAX_FIELDS_WITH_DATA)));
   const ctx: Record<string, any> = {
     ...extra,
+    tempoNaFazenda: tempo ?? 'previsão por hora indisponível agora',
     fontesSatelite: {
       landsat: health ? { fonte: health.fonte, geradoEm: health.gerado_em, aviso: health.aviso } : 'indisponível agora',
       ecostress: stress ? { fonte: stress.fonte, geradoEm: stress.gerado_em, limiteEsi: stress.limite_esi } : 'indisponível agora',
