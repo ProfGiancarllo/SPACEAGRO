@@ -18,7 +18,7 @@ const en: Dict = {
   errLocked: 'Too many attempts. Try again in {s} s.', errCrypto: 'This browser cannot protect passwords. Open the app over HTTPS.',
   heroTitle: 'Farm management built on satellite imagery', heroText: 'Fields, crop calendar and weather for your property in one place.', feat1: 'Field mapping over satellite imagery', feat2: 'Crop calendar and rotation planning', feat3: 'Rainfall and climate from NASA POWER', sources: 'Imagery: Esri World Imagery · Climate: NASA POWER',
   cloudNote: 'Your account and farm data are saved on the SpaceAgro server and available on any device.', forgotCloud: 'Ask the SpaceAgro administrator to reset your password. You will receive a temporary password to sign in and change it.', errOffline: 'No connection to the server. Check your internet and try again.', errServer: 'The server could not complete the request. Try again in a moment.',
-  logout: 'Sign out', guestName: 'Guest',
+  logout: 'Sign out', guestName: 'Guest', back: 'Back to home page',
 };
 const pt: Dict = {
   title: 'Acesso ao SpaceAgro', subtitle: 'Entre ou crie sua conta para gerenciar sua fazenda.',
@@ -37,7 +37,7 @@ const pt: Dict = {
   errLocked: 'Muitas tentativas. Tente de novo em {s} s.', errCrypto: 'Este navegador não consegue proteger senhas. Abra o app por HTTPS.',
   heroTitle: 'Gestão da fazenda a partir de imagens de satélite', heroText: 'Talhões, calendário de safra e clima da sua propriedade em um só lugar.', feat1: 'Mapeamento de talhões sobre imagem de satélite', feat2: 'Calendário de safra e planejamento de rotação', feat3: 'Chuva e clima com dados da NASA POWER', sources: 'Imagens: Esri World Imagery · Clima: NASA POWER',
   cloudNote: 'Sua conta e os dados da fazenda ficam salvos no servidor do SpaceAgro e abrem em qualquer aparelho.', forgotCloud: 'Peça ao administrador do SpaceAgro para redefinir sua senha. Você recebe uma senha provisória para entrar e trocar.', errOffline: 'Sem conexão com o servidor. Confira a internet e tente de novo.', errServer: 'O servidor não conseguiu concluir agora. Tente de novo em instantes.',
-  logout: 'Sair', guestName: 'Visitante',
+  logout: 'Sair', guestName: 'Visitante', back: 'Voltar à página inicial',
 };
 const es: Dict = {
   title: 'Acceso a SpaceAgro', subtitle: 'Inicia sesión o crea tu cuenta para gestionar tu finca.',
@@ -56,7 +56,7 @@ const es: Dict = {
   errLocked: 'Demasiados intentos. Inténtalo de nuevo en {s} s.', errCrypto: 'Este navegador no puede proteger contraseñas. Abre la app por HTTPS.',
   heroTitle: 'Gestión de la finca a partir de imágenes satelitales', heroText: 'Lotes, calendario de cosecha y clima de tu propiedad en un solo lugar.', feat1: 'Mapeo de lotes sobre imagen satelital', feat2: 'Calendario de cosecha y planificación de rotación', feat3: 'Lluvia y clima con datos de NASA POWER', sources: 'Imágenes: Esri World Imagery · Clima: NASA POWER',
   cloudNote: 'Tu cuenta y los datos de la finca se guardan en el servidor de SpaceAgro y se abren en cualquier dispositivo.', forgotCloud: 'Pide al administrador de SpaceAgro que restablezca tu contraseña. Recibirás una contraseña temporal para entrar y cambiarla.', errOffline: 'Sin conexión con el servidor. Revisa tu internet e inténtalo de nuevo.', errServer: 'El servidor no pudo completar la solicitud. Inténtalo de nuevo en un momento.',
-  logout: 'Salir', guestName: 'Invitado',
+  logout: 'Salir', guestName: 'Invitado', back: 'Volver a la página inicial',
 };
 const de: Dict = {
   title: 'Zugang zu SpaceAgro', subtitle: 'Melden Sie sich an oder erstellen Sie Ihr Konto, um Ihren Betrieb zu verwalten.',
@@ -75,7 +75,7 @@ const de: Dict = {
   errLocked: 'Zu viele Versuche. Erneut versuchen in {s} s.', errCrypto: 'Dieser Browser kann Passwörter nicht schützen. App über HTTPS öffnen.',
   heroTitle: 'Betriebsführung auf Basis von Satellitenbildern', heroText: 'Schläge, Anbaukalender und Wetter Ihres Betriebs an einem Ort.', feat1: 'Schlagkartierung auf Satellitenbildern', feat2: 'Anbaukalender und Fruchtfolgeplanung', feat3: 'Niederschlag und Klima aus NASA POWER', sources: 'Bilder: Esri World Imagery · Klima: NASA POWER',
   cloudNote: 'Ihr Konto und die Betriebsdaten werden auf dem SpaceAgro-Server gespeichert und sind auf jedem Gerät verfügbar.', forgotCloud: 'Bitten Sie den SpaceAgro-Administrator, Ihr Passwort zurückzusetzen. Sie erhalten ein vorläufiges Passwort zum Anmelden und Ändern.', errOffline: 'Keine Verbindung zum Server. Prüfen Sie das Internet und versuchen Sie es erneut.', errServer: 'Der Server konnte die Anfrage nicht abschließen. Versuchen Sie es gleich noch einmal.',
-  logout: 'Abmelden', guestName: 'Gast',
+  logout: 'Abmelden', guestName: 'Gast', back: 'Zurück zur Startseite',
 };
 const fr: Dict = {
   title: 'Accès à SpaceAgro', subtitle: 'Connectez-vous ou créez votre compte pour gérer votre exploitation.',
@@ -94,7 +94,7 @@ const fr: Dict = {
   errLocked: 'Trop de tentatives. Réessayez dans {s} s.', errCrypto: "Ce navigateur ne peut pas protéger les mots de passe. Ouvrez l'app en HTTPS.",
   heroTitle: "Gestion de l'exploitation à partir d'images satellite", heroText: 'Parcelles, calendrier cultural et météo de votre exploitation au même endroit.', feat1: 'Cartographie des parcelles sur image satellite', feat2: 'Calendrier cultural et planification des rotations', feat3: 'Pluie et climat avec les données NASA POWER', sources: 'Images : Esri World Imagery · Climat : NASA POWER',
   cloudNote: 'Votre compte et les données de l’exploitation sont enregistrés sur le serveur SpaceAgro et accessibles sur tout appareil.', forgotCloud: 'Demandez à l’administrateur SpaceAgro de réinitialiser votre mot de passe. Vous recevrez un mot de passe provisoire pour vous connecter et le changer.', errOffline: 'Pas de connexion au serveur. Vérifiez internet et réessayez.', errServer: 'Le serveur n’a pas pu terminer la demande. Réessayez dans un instant.',
-  logout: 'Se déconnecter', guestName: 'Invité',
+  logout: 'Se déconnecter', guestName: 'Invité', back: "Retour à la page d'accueil",
 };
 const ALL: Record<string, Dict> = { en, pt, es, de, fr };
 

@@ -1,6 +1,7 @@
 import { setLanguage, getCurrentLanguage, LanguageCode } from '../i18n';
 import { AuthError, currentUser, deleteAccount, enterAsGuest, isCloudMode, login, signup } from './auth';
 import { at } from './authText';
+import { showLanding } from '../landing/landing';
 
 const LANGS: [LanguageCode, string][] = [
   ['pt', 'Português'], ['es', 'Español'], ['en', 'English'],
@@ -13,7 +14,20 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 export function requireAuth(): Promise<void> {
   if (currentUser()) return Promise.resolve();
   return new Promise((resolve) => {
-    let mode: 'login' | 'signup' = 'login';
+    // Quem chega sem sessão vê primeiro a página inicial; #entrar e #criar-conta pulam direto para o acesso.
+    const hash = location.hash;
+    const direct = hash === '#entrar' ? 'login' : hash === '#criar-conta' ? 'signup' : null;
+    const fromLanding = () => showLanding().then((choice) => {
+      if (choice === 'guest') {
+        enterAsGuest();
+        resolve();
+      } else openAuth(choice);
+    });
+    if (direct) openAuth(direct);
+    else void fromLanding();
+
+    function openAuth(initial: 'login' | 'signup') {
+    let mode: 'login' | 'signup' = initial;
     let showForgot = false;
     const root = document.createElement('div');
     root.id = 'auth-screen';
@@ -48,6 +62,7 @@ export function requireAuth(): Promise<void> {
               ${LANGS.map(([c, n]) => `<option value="${c}" ${c === getCurrentLanguage() ? 'selected' : ''}>${n}</option>`).join('')}
             </select>
           </div>
+          <button type="button" class="auth-link auth-back" id="auth-back">${at('back')}</button>
           <h1>${at('title')}</h1>
           <p class="auth-sub">${at('subtitle')}</p>
           <div class="auth-tabs">
@@ -87,6 +102,10 @@ export function requireAuth(): Promise<void> {
           render();
         };
       });
+      root.querySelector<HTMLButtonElement>('#auth-back')!.onclick = () => {
+        root.remove();
+        void fromLanding();
+      };
       root.querySelector<HTMLButtonElement>('#auth-guest')!.onclick = () => {
         enterAsGuest();
         done();
@@ -134,5 +153,6 @@ export function requireAuth(): Promise<void> {
       };
     };
     render();
+    }
   });
 }
