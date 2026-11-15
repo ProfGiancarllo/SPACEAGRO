@@ -3,11 +3,12 @@ import { getCurrentLanguage, t, translateCropName } from '../i18n';
 import { et } from './estelaText';
 import { playEstelaIntro, shouldShowIntro } from './EstelaIntro';
 import { estelaBaseUrl } from '../admin/server';
+import { buildFarmContext } from './farmContext';
 
 /** Chat minimizado na lateral (vale entre visitas). */
 const MIN_KEY = 'myroca_estela_min_v1';
 import { calculateTalhaoCropStatus, addDaysToDate } from '../utils/cropCalendar';
-import { fetchNasaSeries, polygonCentroid, summarizeNasa } from '../utils/nasaPower';
+import { fetchNasaSeries, polygonCentroid } from '../utils/nasaPower';
 import { assessPlanting } from '../utils/agronomyRules';
 import { resolveWeather } from '../utils/weather';
 import { wt } from '../i18n/weatherText';
@@ -605,7 +606,8 @@ export class EstelaChat {
       // 6) Situação dos talhões
       if (/como (esta|estao|anda)|situacao|status|how are|estado|zustand|wie stehen|comment vont|怎么样|talhoes|fields|lotes|parcelles/.test(n)) return this.fieldStatus(this.findTalhao(text));
       // 7) NASA
-      if (/nasa/.test(n)) return void this.say(esc(et('nasaInfo')));
+      // sem IA configurada, explica as fontes; com IA, a pergunta vai para ela com os dados reais
+      if (/nasa/.test(n) && !estelaBaseUrl()) return void this.say(esc(et('nasaInfo')));
       // 8) Ajuda
       if (/ajuda|help|ayuda|hilfe|aide|帮助|o que voce faz|what can you/.test(n)) return void this.say(esc(et('help')));
       // 9) IA externa (se configurada)
@@ -786,35 +788,19 @@ export class EstelaChat {
     const farm = this.opts.getFarm();
     const now = new Date();
     const hoje = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    // Dados da NASA POWER dos últimos 14 dias (chuva, temperatura, sol) para a resposta se apoiar neles
-    const nasa: Record<string, unknown> = {};
-    await Promise.all(farm.talhoes.filter((x) => x.coordinates?.length >= 3).slice(0, 4).map(async (tl) => {
-      try {
-        const c = polygonCentroid(tl.coordinates);
-        const sm = summarizeNasa(await fetchNasaSeries(c.lat, c.lng, hoje, 14));
-        if (sm.daysWithData) nasa[this.tName(tl)] = { chuvaMm14d: Math.round(sm.rainTotal), chuvaMm7d: Math.round(sm.rainLast7), diasSecos: sm.dryDays, tempMediaC: sm.tavg === null ? null : Math.round(sm.tavg), tempMaxC: sm.tmaxPeak, radiacaoMJm2: sm.radAvg === null ? null : Number(sm.radAvg.toFixed(1)) };
-      } catch { /* sem NASA: segue sem */ }
-    }));
-    const ctx = {
+    // Todos os dados reais da fazenda: clima observado (NASA POWER), balanço hídrico, previsão do tempo,
+    // satélite (Landsat e ECOSTRESS) e histórico de produtividade. O talhão citado na pergunta vai primeiro.
+    const ctx = await buildFarmContext(farm, { name: this.tName, refDate: this.ref(), today: hoje }, {
       dataDeHojeReal: hoje,
-      nasaPower14dias: Object.keys(nasa).length ? { fonte: 'NASA POWER', porTalhao: nasa } : undefined,
       avisoDatas: 'dataDeHojeReal é a data de hoje de verdade. dataDoCalendarioDaFazenda é só a data simulada do calendário agrícola do app (pode estar diferente de hoje). Se perguntarem que dia é hoje, responda dataDeHojeReal.',
       dataDoCalendarioDaFazenda: this.ref(),
       language: getCurrentLanguage(),
-      fields: farm.talhoes.map((tl) => {
-        const st = calculateTalhaoCropStatus(tl, this.ref());
-        const d = tl.diary || [];
-        const tipos: Record<string, number> = {};
-        d.forEach((e) => { tipos[e.type] = (tipos[e.type] || 0) + 1; });
-        const ult = d.map((e) => e.date).sort().pop();
-        return { name: this.tName(tl), crop: tl.crop, cultivar: tl.cultivar, areaHa: tl.areaHectares, plantingDate: tl.plantingDate, cycleDays: tl.cycleDays, stage: st.stageBadgeText, nextCrop: tl.nextCropPlan?.crop, diario: { registros: d.length, porTipo: tipos, ultimoRegistro: ult } };
-      }),
       pendencias: computePending(farm, this.ref(), new Set()).map((p) => ({ talhao: this.tName(farm.talhoes.find((x) => x.id === p.talhaoId)!), tipo: p.kind, diasAtraso: p.days })),
       alertaQueimadas: this.opts.getFireSummary?.() ?? undefined,
       problemasDoDiario: auditDiary(farm, hoje).slice(0, 25).map((i) => ({ talhao: this.tName(farm.talhoes.find((x) => x.id === i.talhaoId)!), codigo: i.code, detalhe: i.detail })),
-    };
+    }, this.findTalhao(text));
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 30000);
+    const timer = setTimeout(() => ctrl.abort(), 45000);
     try {
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: text, context: ctx }), signal: ctrl.signal });
       if (!res.ok) throw new Error('HTTP ' + res.status);

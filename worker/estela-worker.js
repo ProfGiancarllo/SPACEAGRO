@@ -44,7 +44,15 @@ const SYSTEM =
   'linha 1 = a resposta à pergunta, com sua opinião e o motivo em uma frase (cite o dado, ex.: "dados da NASA: 33 mm em 14 dias"); ' +
   'linha 2 (só se houver pendência ou problema no diário) = começa com "Atenção:" e traz SÓ o item mais importante, com o talhão; ' +
   'linha 3 = começa com "Próximo passo:" e diz UMA ação e onde clicar. Um assunto por linha; não junte vários talhões e temas na mesma frase. ' +
-  'Quando tiver "nasaPower14dias" no contexto, use esses números (chuva, dias secos, temperatura, sol) para justificar a opinião em uma frase e diga "dados da NASA". '+
+  'DADOS REAIS DE CADA TALHÃO (em "fields"); use sempre os do talhão perguntado e cite a fonte e a data: ' +
+  '"climaObservadoNasa" = chuva, dias secos, temperatura e sol medidos (NASA POWER) no "periodo" indicado; diga "dados da NASA". ' +
+  '"balancoHidrico30d" = chuva menos evapotranspiração em 30 dias e umidade do solo; "risco" low/medium/high = falta de água baixa/média/alta. ' +
+  '"previsaoTempo7d" = previsão do tempo (Open-Meteo) para os próximos dias; use para dizer se dá para plantar, pulverizar ou colher, citando a chuva prevista. ' +
+  '"saudeSatelite" = vigor da lavoura por satélite (Landsat, NASA/USGS): ndvi medido contra o esperado para a fase e "zonaFracaPct" (parte fraca do talhão). ' +
+  '"estresseHidricoSatelite" = estresse por falta de água visto pelo satélite ECOSTRESS (NASA): esi abaixo de 0,5 indica planta sofrendo; vale para o dia da imagem. ' +
+  'Satélite: sempre diga a data da imagem; se "diasAtras" passar de 15, avise que a leitura está desatualizada e não trate como situação de hoje. São alertas de triagem, não diagnóstico: mande conferir no campo. ' +
+  '"previsaoProdutividade" = previsão estatística do servidor (média de Goiás da CONAB corrigida pelas colheitas do talhão): dê o valor esperado e a faixa p10 a p90, diga que é estimativa e quantas colheitas da fazenda entraram ("farmData.used"); se houver colheita recusada ("flagged"), cobre a correção. ' +
+  'Se algo estiver em "dadosFaltando", diga o que falta em vez de inventar. Junte as fontes quando concordarem (ex.: pouca chuva da NASA + esi baixo = falta de água confirmada) e aponte quando discordarem. ' +
   'COMO VOCÊ AGE: (1) SEMPRE dê a sua opinião, clara e direta ("Eu faria assim", "Eu não faria isso agora"), com o motivo em uma frase, usando os dados da fazenda; ' +
   'não fique em cima do muro. (2) SEMPRE ajude o produtor a usar o aplicativo: diga onde clicar. Mapa do app: menu "Safra" > "Safra atual" (planejamento da lavoura em curso), "Trocar de safra" (comparar culturas e preços), ' +
   '"Diário de safra" (registrar plantio, adubação, aplicações, chuva, colheita), "Dados NASA" (mapas de satélite e risco hídrico); menu "Talhões" (criar/editar talhões); "Estruturas e água"; "Fazenda" (importar/exportar). ' +
@@ -249,7 +257,7 @@ async function ask(req, env, cors, key) {
   let body;
   try { body = await req.json(); } catch { return json({ answer: '' }, cors, 400); }
   const question = String(body.question || '').slice(0, 800);
-  const ctx = JSON.stringify(body.context || {}).slice(0, 9000);
+  const ctx = contextoComPrevisoes(body.context);
   if (!question) return json({ answer: '' }, cors, 400);
 
   const cfg = await readConfig(env);
@@ -257,6 +265,31 @@ async function ask(req, env, cors, key) {
   const out = await callClaude(cfg, `Dados da fazenda: ${ctx}\n\nPergunta: ${question}`, await precosMercado(env));
   if (!out.ok) return json({ answer: '' }, cors, 502);
   return json({ answer: out.text }, cors);
+}
+
+
+// ---------------- Contexto da pergunta: previsão estatística por talhão + limite de tamanho sem quebrar o JSON
+const MAX_CTX = 40000;
+function contextoComPrevisoes(raw) {
+  const c = raw && typeof raw === 'object' ? raw : {};
+  const hoje = typeof c.dataDeHojeReal === 'string' ? c.dataDeHojeReal : new Date().toISOString().slice(0, 10);
+  const cur = safraDe(hoje);
+  if (Array.isArray(c.fields)) {
+    for (const f of c.fields) {
+      if (!f || typeof f !== 'object' || !FC[f.cropKey]) continue;
+      const hist = Array.isArray(f.historicoProdutividade) ? f.historicoProdutividade.slice(0, 60) : [];
+      const out = forecastYield(f.cropKey, hist, cur);
+      if (out.ok) f.previsaoProdutividade = { safra: out.safra, unidade: out.unit + '/ha', esperado: out.forecast.expected, p10: out.forecast.p10, p90: out.forecast.p90, pontoDePartida: out.prior, farmData: out.farmData, metodo: out.method };
+    }
+  }
+  let s = JSON.stringify(c);
+  // o app já resume para caber; se ainda passar, tira talhões do fim em vez de cortar o texto no meio
+  while (s.length > MAX_CTX && Array.isArray(c.fields) && c.fields.length > 1) {
+    c.fields.pop();
+    c.avisoContexto = 'Nem todos os talhões couberam nesta pergunta; pergunte por um talhão pelo nome.';
+    s = JSON.stringify(c);
+  }
+  return s.length > MAX_CTX ? s.slice(0, MAX_CTX) : s;
 }
 
 
@@ -275,9 +308,9 @@ async function precosMercado(env) {
         const nome = { soja: 'soja', milho: 'milho', trigo: 'trigo', algodao: 'algodão', sorgo: 'sorgo' };
         const linhas = reais.map(([k, c]) => `- ${nome[k] || k}: R$ ${Number(c.price).toFixed(2)}/${c.unit}${typeof c.trend12m === 'number' ? ` (${c.trend12m > 0 ? '+' : ''}${c.trend12m.toFixed(1)}% em 12 meses)` : ''}${c.source ? `, fonte ${c.source}` : ''}${c.asOf ? `, em ${c.asOf}` : ''}`);
         const usd = m.fx?.usd || {};
-        const cambio = m.fx ? `; dólar R$ ${Number(m.fx.last).toFixed(4)} por US$${usd.EUR ? `; € ${usd.EUR} por US$` : ''}${usd.CNY ? `; ¥ ${usd.CNY} por US$` : ''}` : '';
+        const cambio = m.fx ? `; dólar R$ ${Number(m.fx.last).toFixed(4)} por US$${usd.EUR ? `; € ${usd.EUR} por US$` : ''}` : '';
         texto = 'Preços de referência (bolsa internacional convertida para R$, SEM prêmio nem base local de Rio Verde; diga isso e que o preço pago ao produtor pode diferir). Fonte: FRED/Yahoo Finance (CBOT/ICE)' + cambio + '.\n' + linhas.join('\n') +
-          '\nMoeda: o app mostra os preços na moeda do idioma da conversa (português: R$; inglês e espanhol: US$; alemão e francês: €; chinês: ¥). Converta pelo câmbio acima ao responder em outro idioma.' +
+          '\nMoeda: o app mostra os preços na moeda do idioma da conversa (português: R$; inglês e espanhol: US$; alemão e francês: €). Converta pelo câmbio acima ao responder em outro idioma.' +
           '\nNão faça previsão de preço nem recomende vender ou comprar; apresente só os números e a tendência.';
       }
     }
