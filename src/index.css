@@ -4431,3 +4431,11 @@ body.estela-docked.estela-min .estela-fab { display: flex !important; position: 
   .map-tool-acts { margin-left: 0; width: 100%; flex-wrap: nowrap; }
   .map-tool-act { flex: 1 1 auto; padding: 6px 8px; min-height: 36px; font-size: 12.5px; white-space: nowrap; }
 }
+
+.nx-card h3 { margin: 18px 0 4px; font-size: 15px; color: #182b25; }
+.nx-models td small { display: block; font-size: 11px; color: #65756e; font-weight: 400; }
+.nx-models td:first-child { white-space: normal; }
+.nx-bar { display: block; height: 6px; margin-top: 4px; border-radius: 3px; background: #e8eeea; overflow: hidden; }
+.nx-bar i { display: block; height: 100%; background: #9fb3a8; }
+.nx-bar.best i { background: #245b43; }
+.nx-gain { font-weight: 700; color: #245b43; }

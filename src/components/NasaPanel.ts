@@ -7,6 +7,7 @@ import { nn } from '../i18n/nasaText';
 import { NASA_LAYERS, NasaLayerId } from '../utils/nasaLayers';
 import { polygonCentroid } from '../utils/nasaPower';
 import { waterForPoint, WaterInfo } from '../utils/waterRisk';
+import { KNOWN_MUNICIPALITY, NEW_FARM, DIARY_SOY } from '../data/modelResults';
 
 export interface NasaPanelOptions {
   getFarm: () => FarmData;
@@ -14,7 +15,7 @@ export interface NasaPanelOptions {
   layerFailed: (id: NasaLayerId) => boolean;
   setLayer: (id: NasaLayerId, on: boolean) => void;
 }
-type Tab = 'map' | 'water' | 'src';
+type Tab = 'map' | 'water' | 'models' | 'src';
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 const fx = (v: number, d = 0) => v.toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d });
 
@@ -75,9 +76,9 @@ export class NasaPanel {
 
   private render(): void {
     if (!this.overlay) return;
-    const tabs: Array<[Tab, string]> = [['map', nn('tabMap')], ['water', nn('tabWater')], ['src', nn('tabSrc')]];
+    const tabs: Array<[Tab, string]> = [['map', nn('tabMap')], ['water', nn('tabWater')], ['models', nn('tabModels')], ['src', nn('tabSrc')]];
     const nav = `<div class="nx-tabs" role="tablist">${tabs.map(([k, l]) => `<button type="button" role="tab" aria-selected="${this.tab === k}" class="nx-tab ${this.tab === k ? 'on' : ''}" data-nxtab="${k}">${esc(l)}</button>`).join('')}</div>`;
-    const body = this.tab === 'map' ? this.mapTab() : this.tab === 'water' ? this.waterTab() : this.srcTab();
+    const body = this.tab === 'map' ? this.mapTab() : this.tab === 'water' ? this.waterTab() : this.tab === 'models' ? this.modelsTab() : this.srcTab();
     this.overlay.innerHTML = `<div class="mkp-card nx-card"><div class="mkp-head"><div><h2>${esc(nn('title'))}</h2><p>${esc(nn('sub'))}</p></div><button type="button" class="mkp-x" data-act="close" aria-label="${esc(nn('close'))}">×</button></div><div class="mkp-body">${nav}${body}</div></div>`;
   }
 
@@ -109,6 +110,29 @@ export class NasaPanel {
       return `<tr><td>${esc(t.name)}</td><td title="${esc(w.rainSrc)}">${fx(w.rain30)}</td><td>${fx(w.et0)}</td><td>${fx(w.balance)}</td><td>${w.soil === null ? '–' : fx(w.soil * 100) + '%'}</td><td>${fx(w.rainNext3)}</td><td class="nx-risk ${w.level}">${esc(nn(w.level))}</td></tr>`;
     }).join('');
     return `<p class="nx-intro">${esc(nn('waterIntro'))}</p><div class="nx-scroll"><table class="nx-table"><thead><tr><th>${esc(nn('field'))}</th><th>${esc(nn('rain30'))}</th><th>${esc(nn('et0'))}</th><th>${esc(nn('bal'))}</th><th>${esc(nn('soil'))}</th><th>${esc(nn('next3'))}</th><th>${esc(nn('risk'))}</th></tr></thead><tbody>${rows}</tbody></table></div><p class="nx-note">${esc(nn('waterNote'))}</p>`;
+  }
+
+
+  private modelsTab(): string {
+    const bar = (v: number, max: number, best = false) => `<span class="nx-bar${best ? ' best' : ''}"><i style="width:${Math.round((v / max) * 100)}%"></i></span>`;
+    const pct = (a: number, b: number) => `−${Math.round((1 - b / a) * 100)}%`;
+    const K = KNOWN_MUNICIPALITY;
+    const bestSoy = Math.min(...K.map((r) => r.soy)), bestMaize = Math.min(...K.map((r) => r.maize));
+    const maxSoy = Math.max(...K.map((r) => r.soy)), maxMaize = Math.max(...K.map((r) => r.maize));
+    const names = (id: string) => nn('mod' + id);
+    const nf = (['soy', 'maize'] as const).map((c) => `<tr><td>${esc(nn(c))}</td><td>${fx(NEW_FARM[c].mean, 2)}</td><td><b>${fx(NEW_FARM[c].nasa, 2)}</b></td><td class="nx-gain">${pct(NEW_FARM[c].mean, NEW_FARM[c].nasa)}</td></tr>`).join('');
+    const rows = K.map((r) => `<tr><td><b>${r.id}</b> ${esc(names(r.id))}<small>${esc(nn(r.family === 'ml' ? 'famML' : 'famStat'))}</small></td>
+      <td>${fx(r.soy, 2)}${bar(r.soy, maxSoy, r.soy === bestSoy)}</td><td>${fx(r.maize, 2)}${bar(r.maize, maxMaize, r.maize === bestMaize)}</td></tr>`).join('');
+    const dmax = Math.max(...DIARY_SOY);
+    const diary = DIARY_SOY.map((v, i) => `<tr><td>${i}</td><td>${fx(v, 2)}${bar(v, dmax, i === DIARY_SOY.length - 1)}</td></tr>`).join('');
+    return `<p class="nx-intro">${esc(nn('modIntro'))}</p>
+      <h3>${esc(nn('modH1'))}</h3><p class="nx-note">${esc(nn('modD1'))}</p>
+      <div class="nx-scroll"><table class="nx-table"><thead><tr><th>${esc(nn('crop'))}</th><th>${esc(nn('modAvg'))}</th><th>${esc(nn('modNasa'))}</th><th>${esc(nn('modChg'))}</th></tr></thead><tbody>${nf}</tbody></table></div>
+      <h3>${esc(nn('modH2'))}</h3><p class="nx-note">${esc(nn('modD2'))}</p>
+      <div class="nx-scroll"><table class="nx-table nx-models"><thead><tr><th>${esc(nn('modModel'))}</th><th>${esc(nn('soy'))}</th><th>${esc(nn('maize'))}</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <h3>${esc(nn('modH3'))}</h3><p class="nx-note">${esc(nn('modD3'))}</p>
+      <div class="nx-scroll"><table class="nx-table nx-models"><thead><tr><th>${esc(nn('modHarv'))}</th><th>${esc(nn('soy'))}</th></tr></thead><tbody>${diary}</tbody></table></div>
+      <p class="nx-note">${esc(nn('modNote'))}</p>`;
   }
 
   private srcTab(): string {

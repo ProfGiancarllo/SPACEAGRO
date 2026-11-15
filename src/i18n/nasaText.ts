@@ -17,6 +17,15 @@ const pt: D = {
   usedList: 'NASA POWER: chuva, temperatura e radiação diária por ponto (diário e planejador).|NASA GIBS (Worldview): NDVI MODIS, chuva GPM IMERG, umidade SMAP e temperatura MODIS no mapa.|ERA5-Land via Open-Meteo: umidade do solo e evapotranspiração por talhão.|Open-Meteo: previsão e clima recente, quando a NASA ainda não publicou o dia.|Preços: FRED, CBOT e ICE (soja, milho, trigo, algodão), convertidos pelo dólar/real.',
   usList: 'CDL e NASS (USDA): cultivos e estatísticas só dos EUA; no Brasil, MapBiomas e Conab.|NLCD, SSURGO e Web Soil Survey: solo e cobertura dos EUA; no Brasil, Embrapa e SoilGrids.|PRISM, CoCoRaHS e USGS NWIS: chuva e vazão dos EUA; no Brasil, INMET, CEMADEN e ANA.|OpenET, LANDFIRE e USDA AMS: evapotranspiração, combustível e preços dos EUA; aqui entram ERA5-Land e Cepea.',
   brList: 'MapBiomas: histórico de uso da terra por talhão.|INMET e CEMADEN: estações meteorológicas para o diário.|Embrapa e SoilGrids: classe e textura do solo.|Conab e Cepea: preços e custos regionais.|SRTM: declividade e risco de erosão.',
+  tabModels: 'Modelos de produtividade', crop: 'Cultura', soy: 'Soja', maize: 'Milho',
+  modIntro: 'Sete modelos estatísticos e de aprendizado de máquina foram treinados e validados com produtividade do IBGE (2016 a 2025, 28 municípios do Sudoeste de Goiás) e dados da NASA (POWER, MODIS, SRTM) e do solo (SoilGrids). Erro médio absoluto em sc/ha: quanto menor, melhor.',
+  modH1: 'Fazenda nova, sem histórico', modD1: 'Um município inteiro é escondido do treino e a produtividade dele é prevista. Compara a média sozinha com o modelo que usa dados da NASA e do solo.',
+  modAvg: 'Só a média', modNasa: 'Com dados NASA e solo', modChg: 'Variação',
+  modH2: 'Município já conhecido', modD2: 'Um ano inteiro é escondido e previsto. Nesse caso a tendência histórica (M0) teve o menor erro nas duas culturas.', modModel: 'Modelo',
+  modM0: 'Tendência histórica', modM1: 'Ridge com NASA POWER', modM2: 'Ridge com todos os dados', modM3: 'Ridge com as melhores variáveis', modM4: 'Elastic net', modM5: 'Floresta aleatória', modM6: 'Gradient boosting',
+  famStat: 'Estatístico', famML: 'Aprendizado de máquina',
+  modH3: 'Diário de safra no app', modD3: 'Simulação em Rio Verde: cada colheita registrada no diário ajusta a média da Conab para o talhão. Erro da soja por número de colheitas.', modHarv: 'Colheitas registradas',
+  modNote: 'No app: previsão de produtividade pela média da Conab ajustada pelo diário. Os modelos acima foram validados no notebook Colab MyRoca_passo4_COMPLETO; só soja e milho foram testados.',
   limits: 'SMAP e IMERG têm 9 a 10 km de resolução: descrevem a região da fazenda, não um talhão. O risco por talhão usa o ERA5-Land (cerca de 9 km) no ponto central. Dados de satélite chegam com atraso de horas a dias. Estimativa de apoio ao planejamento; não substitui a medição no campo.',
 };
 const en: D = {
@@ -35,6 +44,15 @@ const en: D = {
   usedList: 'NASA POWER: daily rain, temperature and radiation per point.|NASA GIBS (Worldview): MODIS NDVI, GPM IMERG rain, SMAP soil moisture and MODIS temperature on the map.|ERA5-Land via Open-Meteo: soil moisture and evapotranspiration per field.|Open-Meteo: forecast and recent weather when NASA has not published the day yet.|Prices: FRED, CBOT and ICE (soybean, corn, wheat, cotton), converted by the USD/BRL rate.',
   usList: 'CDL and NASS (USDA): US-only crops and statistics; in Brazil, MapBiomas and Conab.|NLCD, SSURGO and Web Soil Survey: US soil and cover; in Brazil, Embrapa and SoilGrids.|PRISM, CoCoRaHS and USGS NWIS: US rain and streamflow; in Brazil, INMET, CEMADEN and ANA.|OpenET, LANDFIRE and USDA AMS: US evapotranspiration, fuels and prices; here ERA5-Land and Cepea are used.',
   brList: 'MapBiomas: land-use history per field.|INMET and CEMADEN: weather stations for the diary.|Embrapa and SoilGrids: soil class and texture.|Conab and Cepea: regional prices and costs.|SRTM: slope and erosion risk.',
+  tabModels: 'Yield models', crop: 'Crop', soy: 'Soybean', maize: 'Maize',
+  modIntro: 'Seven statistical and machine-learning models were trained and validated with IBGE yields (2016 to 2025, 28 municipalities of southwest Goiás), NASA data (POWER, MODIS, SRTM) and soil data (SoilGrids). Mean absolute error in sc/ha: lower is better.',
+  modH1: 'New farm, no history', modD1: 'One whole municipality is hidden from training and its yield is predicted. Compares the average alone with the model that uses NASA and soil data.',
+  modAvg: 'Average only', modNasa: 'With NASA and soil data', modChg: 'Change',
+  modH2: 'Known municipality', modD2: 'One whole year is hidden and predicted. Here the historical trend (M0) had the lowest error in both crops.', modModel: 'Model',
+  modM0: 'Historical trend', modM1: 'Ridge with NASA POWER', modM2: 'Ridge with all data', modM3: 'Ridge with best variables', modM4: 'Elastic net', modM5: 'Random forest', modM6: 'Gradient boosting',
+  famStat: 'Statistical', famML: 'Machine learning',
+  modH3: 'Crop diary in the app', modD3: 'Rio Verde simulation: each harvest logged in the diary adjusts the CONAB mean for the field. Soybean error by number of harvests.', modHarv: 'Harvests recorded',
+  modNote: 'In the app: yield forecast from the CONAB mean adjusted by the diary. The models above were validated in the Colab notebook MyRoca_passo4_COMPLETO; only soybean and maize were tested.',
   limits: 'SMAP and IMERG are 9–10 km: they describe the farm region, not one field. Per-field risk uses ERA5-Land (about 9 km) at the field centre. Satellite data lag by hours to days. Planning aid; it does not replace field measurements.',
 };
 const es: D = {
@@ -53,6 +71,15 @@ const es: D = {
   usedList: 'NASA POWER: lluvia, temperatura y radiación diaria por punto.|NASA GIBS (Worldview): NDVI MODIS, lluvia GPM IMERG, humedad SMAP y temperatura MODIS.|ERA5-Land vía Open-Meteo: humedad del suelo y evapotranspiración por parcela.|Open-Meteo: pronóstico y clima reciente.|Precios: FRED, CBOT e ICE, convertidos por USD/BRL.',
   usList: 'CDL y NASS (USDA): solo EE. UU.; en Brasil, MapBiomas y Conab.|NLCD, SSURGO y Web Soil Survey: en Brasil, Embrapa y SoilGrids.|PRISM, CoCoRaHS y USGS NWIS: en Brasil, INMET, CEMADEN y ANA.|OpenET, LANDFIRE y USDA AMS: aquí se usan ERA5-Land y Cepea.',
   brList: 'MapBiomas: historial de uso de la tierra.|INMET y CEMADEN: estaciones meteorológicas.|Embrapa y SoilGrids: suelo.|Conab y Cepea: precios y costos.|SRTM: pendiente y erosión.',
+  tabModels: 'Modelos de rendimiento', crop: 'Cultivo', soy: 'Soja', maize: 'Maíz',
+  modIntro: 'Siete modelos estadísticos y de aprendizaje automático se entrenaron y validaron con rendimientos del IBGE (2016 a 2025, 28 municipios del suroeste de Goiás), datos de la NASA (POWER, MODIS, SRTM) y del suelo (SoilGrids). Error absoluto medio en sc/ha: menor es mejor.',
+  modH1: 'Finca nueva, sin historial', modD1: 'Se oculta un municipio entero del entrenamiento y se predice su rendimiento. Compara el promedio solo con el modelo que usa datos de la NASA y del suelo.',
+  modAvg: 'Solo el promedio', modNasa: 'Con datos NASA y suelo', modChg: 'Variación',
+  modH2: 'Municipio ya conocido', modD2: 'Se oculta y se predice un año entero. Aquí la tendencia histórica (M0) tuvo el menor error en ambos cultivos.', modModel: 'Modelo',
+  modM0: 'Tendencia histórica', modM1: 'Ridge con NASA POWER', modM2: 'Ridge con todos los datos', modM3: 'Ridge con las mejores variables', modM4: 'Elastic net', modM5: 'Bosque aleatorio', modM6: 'Gradient boosting',
+  famStat: 'Estadístico', famML: 'Aprendizaje automático',
+  modH3: 'Diario de cosecha en la app', modD3: 'Simulación en Rio Verde: cada cosecha registrada en el diario ajusta el promedio de Conab para la parcela. Error de la soja según el número de cosechas.', modHarv: 'Cosechas registradas',
+  modNote: 'En la app: previsión de rendimiento con el promedio de Conab ajustado por el diario. Los modelos anteriores se validaron en el cuaderno Colab MyRoca_passo4_COMPLETO; solo se probaron soja y maíz.',
   limits: 'SMAP e IMERG tienen 9–10 km: describen la región, no una parcela. El riesgo por parcela usa ERA5-Land (≈9 km). Apoyo a la planificación; no sustituye la medición en campo.',
 };
 const de: D = { btn: 'NASA-Daten', title: 'NASA-Daten', close: 'Schließen', tabMap: 'Kartenebenen', tabWater: 'Wasser je Schlag', tabSrc: 'Quellen und Methode', ndvi: 'Vegetationsvitalität (NDVI, MODIS)', rain: 'Niederschlag (GPM IMERG)', smap: 'Bodenfeuchte (SMAP)', lst: 'Oberflächentemperatur (MODIS)', lo: 'niedriger', hi: 'höher', unavail: 'Ebene derzeit nicht verfügbar', field: 'Schlag', low: 'Niedrig', medium: 'Mittel', high: 'Hoch', risk: 'Wasserrisiko' };
