@@ -188,13 +188,14 @@ async function forecast(req, env, cors, key) {
 // ---------------- Focos de calor (NASA FIRMS). Chave: segredo FIRMS_MAP_KEY na Cloudflare
 const FIRMS_SOURCES = ['VIIRS_NOAA20_NRT', 'VIIRS_NOAA21_NRT'];
 async function firmsCsv(key, src, box, days) {
+  key = String(key || '').replace(/[^A-Za-z0-9]/g, ''); // tira espaços, quebras de linha e aspas coladas junto com a chave
   const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${src}/${box.join(',')}/${days}`;
   const ck = typeof caches !== 'undefined' ? caches.default : null;
   const ckReq = new Request('https://fires.cache.invalid/' + src + '/' + box.map((v) => v.toFixed(1)).join('_') + '/' + days);
   if (ck) { const hit = await ck.match(ckReq); if (hit) return hit.text(); }
   const r = await fetch(url);
-  if (!r.ok) throw new Error('firms_' + r.status);
   const txt = await r.text();
+  if (!r.ok) throw new Error('firms_' + r.status + ':' + txt.trim().slice(0, 80) + ':chave_' + key.length + '_caracteres');
   if (/^(invalid|error|you)/i.test(txt.trim()) || !txt.includes('latitude')) throw new Error('firms_resp');
   if (ck) await ck.put(ckReq, new Response(txt, { headers: { 'Cache-Control': 'max-age=600' } }));
   return txt;
