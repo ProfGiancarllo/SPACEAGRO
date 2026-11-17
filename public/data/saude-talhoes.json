@@ -1,5 +1,5 @@
 {
- "gerado_em": "2026-11-15",
+ "gerado_em": "2026-11-17",
  "fonte": "Landsat 8/9 Collection 2 Nível-2 (NASA/USGS) via Microsoft Planetary Computer",
  "aviso": "Alerta de triagem; não é diagnóstico. Curva esperada aproximada.",
  "talhoes": [
@@ -9,23 +9,22 @@
    "cultura": "soja",
    "plantio_informado": "2026-10-10",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI bem acima do esperado para a fase (0.57 contra 0.25). Confira se a data de plantio informada está certa."
+    "NDVI bem acima do esperado para a fase (0.58 contra 0.43). Confira se a data de plantio informada está certa."
    ],
    "nivel": "ok",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.568,
-    "ndmi": -0.016,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.582,
+    "ndmi": 0.011,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 9,
-   "fase_informada": "emergência",
-   "ndvi_esperado": 0.248,
-   "desvio_vs_esperado": 0.32,
-   "ndvi_mediana_pares": 0.537,
-   "zona_fraca_pct": 8.1,
+   "dap_na_imagem": 25,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.427,
+   "desvio_vs_esperado": 0.155,
+   "ndvi_mediana_pares": 0.62,
+   "zona_fraca_pct": 2.9,
    "serie": [
     {
      "data": "2026-08-08",
@@ -56,6 +55,11 @@
      "data": "2026-10-19",
      "ndvi": 0.568,
      "ndmi": -0.016
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.582,
+     "ndmi": 0.011
     }
    ]
   },
@@ -65,23 +69,22 @@
    "cultura": "soja",
    "plantio_informado": "2026-09-20",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI bem acima do esperado para a fase (0.70 contra 0.49). Confira se a data de plantio informada está certa."
+    "Sem sinal de problema nesta imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.7,
-    "ndmi": 0.118,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.623,
+    "ndmi": 0.054,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 29,
-   "fase_informada": "vegetativo",
-   "ndvi_esperado": 0.485,
-   "desvio_vs_esperado": 0.215,
-   "ndvi_mediana_pares": 0.439,
-   "zona_fraca_pct": 6.5,
+   "dap_na_imagem": 45,
+   "fase_informada": "floração (R1-R2)",
+   "ndvi_esperado": 0.72,
+   "desvio_vs_esperado": -0.097,
+   "ndvi_mediana_pares": 0.489,
+   "zona_fraca_pct": 2.0,
    "serie": [
     {
      "data": "2026-08-08",
@@ -117,6 +120,11 @@
      "data": "2026-10-19",
      "ndvi": 0.7,
      "ndmi": 0.118
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.623,
+     "ndmi": 0.054
     }
    ]
   },
@@ -126,23 +134,22 @@
    "cultura": "soja",
    "plantio_informado": "2026-10-12",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI bem acima do esperado para a fase (0.66 contra 0.24). Confira se a data de plantio informada está certa."
+    "NDVI bem acima do esperado para a fase (0.67 contra 0.40). Confira se a data de plantio informada está certa."
    ],
    "nivel": "ok",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.665,
-    "ndmi": 0.095,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.67,
+    "ndmi": 0.108,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 7,
-   "fase_informada": "emergência",
-   "ndvi_esperado": 0.237,
-   "desvio_vs_esperado": 0.427,
-   "ndvi_mediana_pares": 0.511,
-   "zona_fraca_pct": 3.4,
+   "dap_na_imagem": 23,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.397,
+   "desvio_vs_esperado": 0.273,
+   "ndvi_mediana_pares": 0.582,
+   "zona_fraca_pct": 2.0,
    "serie": [
     {
      "data": "2026-08-08",
@@ -173,6 +180,11 @@
      "data": "2026-10-19",
      "ndvi": 0.665,
      "ndmi": 0.095
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.67,
+     "ndmi": 0.108
     }
    ]
   },
@@ -182,23 +194,22 @@
    "cultura": "milho",
    "plantio_informado": "2026-07-12",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "Vigor abaixo do esperado para enchimento de grãos nas duas últimas imagens (NDVI 0.56 contra 0.80 esperado)."
+    "Sem sinal de problema nesta imagem."
    ],
-   "nivel": "atencao",
+   "nivel": "ok",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.555,
-    "ndmi": -0.035,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.606,
+    "ndmi": 0.023,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 99,
+   "dap_na_imagem": 115,
    "fase_informada": "enchimento de grãos",
-   "ndvi_esperado": 0.804,
-   "desvio_vs_esperado": -0.249,
-   "ndvi_mediana_pares": 0.254,
-   "zona_fraca_pct": 14.8,
+   "ndvi_esperado": 0.613,
+   "desvio_vs_esperado": -0.006,
+   "ndvi_mediana_pares": 0.466,
+   "zona_fraca_pct": 14.9,
    "serie": [
     {
      "data": "2026-06-29",
@@ -254,6 +265,11 @@
      "data": "2026-10-19",
      "ndvi": 0.555,
      "ndmi": -0.035
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.606,
+     "ndmi": 0.023
     }
    ]
   },
@@ -263,23 +279,22 @@
    "cultura": "soja",
    "plantio_informado": "2026-10-05",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI bem acima do esperado para a fase (0.63 contra 0.27). Confira se a data de plantio informada está certa."
+    "NDVI bem acima do esperado para a fase (0.65 contra 0.50). Confira se a data de plantio informada está certa."
    ],
    "nivel": "ok",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.628,
-    "ndmi": 0.033,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.65,
+    "ndmi": 0.075,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 14,
-   "fase_informada": "emergência",
-   "ndvi_esperado": 0.275,
-   "desvio_vs_esperado": 0.353,
-   "ndvi_mediana_pares": 0.537,
-   "zona_fraca_pct": 2.8,
+   "dap_na_imagem": 30,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.5,
+   "desvio_vs_esperado": 0.15,
+   "ndvi_mediana_pares": 0.6,
+   "zona_fraca_pct": 1.9,
    "serie": [
     {
      "data": "2026-08-08",
@@ -310,6 +325,11 @@
      "data": "2026-10-19",
      "ndvi": 0.628,
      "ndmi": 0.033
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.65,
+     "ndmi": 0.075
     }
    ]
   },
@@ -319,23 +339,22 @@
    "cultura": "milho",
    "plantio_informado": "2026-10-02",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI bem acima do esperado para a fase (0.61 contra 0.33). Confira se a data de plantio informada está certa."
+    "Sem sinal de problema nesta imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.61,
-    "ndmi": 0.033,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.676,
+    "ndmi": 0.112,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 17,
-   "fase_informada": "emergência",
-   "ndvi_esperado": 0.328,
-   "desvio_vs_esperado": 0.283,
-   "ndvi_mediana_pares": 0.645,
-   "zona_fraca_pct": 2.6,
+   "dap_na_imagem": 33,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.545,
+   "desvio_vs_esperado": 0.131,
+   "ndvi_mediana_pares": 0.699,
+   "zona_fraca_pct": 5.8,
    "serie": [
     {
      "data": "2026-08-08",
@@ -366,6 +385,11 @@
      "data": "2026-10-19",
      "ndvi": 0.61,
      "ndmi": 0.033
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.676,
+     "ndmi": 0.112
     }
    ]
   },
@@ -375,24 +399,23 @@
    "cultura": "soja",
    "plantio_informado": "2026-10-18",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI bem acima do esperado para a fase (0.60 contra 0.21). Confira se a data de plantio informada está certa.",
-    "Zona fraca em 26% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
+    "NDVI bem acima do esperado para a fase (0.62 contra 0.31). Confira se a data de plantio informada está certa.",
+    "Zona fraca em 27% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.598,
-    "ndmi": 0.013,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.625,
+    "ndmi": 0.058,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 1,
-   "fase_informada": "emergência",
-   "ndvi_esperado": 0.205,
-   "desvio_vs_esperado": 0.393,
-   "ndvi_mediana_pares": 0.511,
-   "zona_fraca_pct": 25.9,
+   "dap_na_imagem": 17,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.309,
+   "desvio_vs_esperado": 0.315,
+   "ndvi_mediana_pares": 0.582,
+   "zona_fraca_pct": 26.8,
    "serie": [
     {
      "data": "2026-08-08",
@@ -423,6 +446,11 @@
      "data": "2026-10-19",
      "ndvi": 0.598,
      "ndmi": 0.013
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.625,
+     "ndmi": 0.058
     }
    ]
   },
@@ -432,24 +460,22 @@
    "cultura": "soja",
    "plantio_informado": "2026-09-28",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI 0.44 abaixo da mediana dos talhões parecidos (0.57).",
-    "Zona fraca em 44% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
+    "NDVI 0.49 abaixo da mediana dos talhões parecidos (0.62)."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.439,
-    "ndmi": -0.119,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.489,
+    "ndmi": -0.049,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 21,
+   "dap_na_imagem": 37,
    "fase_informada": "vegetativo",
-   "ndvi_esperado": 0.368,
-   "desvio_vs_esperado": 0.071,
-   "ndvi_mediana_pares": 0.565,
-   "zona_fraca_pct": 44.0,
+   "ndvi_esperado": 0.603,
+   "desvio_vs_esperado": -0.114,
+   "ndvi_mediana_pares": 0.62,
+   "zona_fraca_pct": 6.6,
    "serie": [
     {
      "data": "2026-08-08",
@@ -480,6 +506,11 @@
      "data": "2026-10-19",
      "ndvi": 0.439,
      "ndmi": -0.119
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.489,
+     "ndmi": -0.049
     }
    ]
   },
@@ -489,23 +520,22 @@
    "cultura": "milho",
    "plantio_informado": "2026-07-20",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "Vigor abaixo do esperado para enchimento de grãos nas duas últimas imagens (NDVI 0.63 contra 0.84 esperado)."
+    "Sem sinal de problema nesta imagem."
    ],
-   "nivel": "atencao",
+   "nivel": "ok",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.629,
-    "ndmi": 0.052,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.721,
+    "ndmi": 0.152,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 91,
+   "dap_na_imagem": 107,
    "fase_informada": "enchimento de grãos",
-   "ndvi_esperado": 0.836,
-   "desvio_vs_esperado": -0.207,
-   "ndvi_mediana_pares": 0.254,
-   "zona_fraca_pct": 0.1,
+   "ndvi_esperado": 0.713,
+   "desvio_vs_esperado": 0.008,
+   "ndvi_mediana_pares": 0.466,
+   "zona_fraca_pct": 3.7,
    "serie": [
     {
      "data": "2026-07-07",
@@ -556,6 +586,11 @@
      "data": "2026-10-19",
      "ndvi": 0.629,
      "ndmi": 0.052
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.721,
+     "ndmi": 0.152
     }
    ]
   },
@@ -565,24 +600,23 @@
    "cultura": "soja",
    "plantio_informado": "2026-10-12",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI bem acima do esperado para a fase (0.51 contra 0.24). Confira se a data de plantio informada está certa.",
-    "Zona fraca em 32% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
+    "NDVI bem acima do esperado para a fase (0.63 contra 0.40). Confira se a data de plantio informada está certa.",
+    "Zona fraca em 34% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.511,
-    "ndmi": -0.045,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.625,
+    "ndmi": 0.067,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 7,
-   "fase_informada": "emergência",
-   "ndvi_esperado": 0.237,
-   "desvio_vs_esperado": 0.273,
-   "ndvi_mediana_pares": 0.563,
-   "zona_fraca_pct": 31.7,
+   "dap_na_imagem": 23,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.397,
+   "desvio_vs_esperado": 0.228,
+   "ndvi_mediana_pares": 0.582,
+   "zona_fraca_pct": 34.1,
    "serie": [
     {
      "data": "2026-08-08",
@@ -613,6 +647,11 @@
      "data": "2026-10-19",
      "ndvi": 0.511,
      "ndmi": -0.045
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.625,
+     "ndmi": 0.067
     }
    ]
   },
@@ -622,24 +661,23 @@
    "cultura": "milho",
    "plantio_informado": "2026-07-12",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "Vigor abaixo do esperado para enchimento de grãos nas duas últimas imagens (NDVI 0.25 contra 0.80 esperado).",
-    "NDVI 0.25 abaixo da mediana dos talhões parecidos (0.56)."
+    "Vigor abaixo do esperado para enchimento de grãos nas duas últimas imagens (NDVI 0.47 contra 0.61 esperado).",
+    "NDVI 0.47 abaixo da mediana dos talhões parecidos (0.61)."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.254,
-    "ndmi": -0.198,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.466,
+    "ndmi": -0.072,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 99,
+   "dap_na_imagem": 115,
    "fase_informada": "enchimento de grãos",
-   "ndvi_esperado": 0.804,
-   "desvio_vs_esperado": -0.55,
-   "ndvi_mediana_pares": 0.555,
-   "zona_fraca_pct": 0.0,
+   "ndvi_esperado": 0.613,
+   "desvio_vs_esperado": -0.146,
+   "ndvi_mediana_pares": 0.606,
+   "zona_fraca_pct": 5.0,
    "serie": [
     {
      "data": "2026-06-29",
@@ -695,6 +733,11 @@
      "data": "2026-10-19",
      "ndvi": 0.254,
      "ndmi": -0.198
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.466,
+     "ndmi": -0.072
     }
    ]
   },
@@ -704,24 +747,22 @@
    "cultura": "soja",
    "plantio_informado": "2026-10-05",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI 0.24 abaixo da mediana dos talhões parecidos (0.57).",
-    "Teor de água na folha em queda (NDMI -0.22 contra -0.10 nas imagens anteriores). Pode indicar estresse hídrico: confira chuva e umidade."
+    "NDVI 0.38 abaixo da mediana dos talhões parecidos (0.62)."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.241,
-    "ndmi": -0.22,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.383,
+    "ndmi": -0.143,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 14,
-   "fase_informada": "emergência",
-   "ndvi_esperado": 0.275,
-   "desvio_vs_esperado": -0.033,
-   "ndvi_mediana_pares": 0.565,
-   "zona_fraca_pct": 0.0,
+   "dap_na_imagem": 30,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.5,
+   "desvio_vs_esperado": -0.117,
+   "ndvi_mediana_pares": 0.62,
+   "zona_fraca_pct": 1.0,
    "serie": [
     {
      "data": "2026-08-08",
@@ -752,6 +793,11 @@
      "data": "2026-10-19",
      "ndvi": 0.241,
      "ndmi": -0.22
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.383,
+     "ndmi": -0.143
     }
    ]
   },
@@ -761,23 +807,22 @@
    "cultura": "milho",
    "plantio_informado": "2026-10-02",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI bem acima do esperado para a fase (0.64 contra 0.33). Confira se a data de plantio informada está certa."
+    "NDVI bem acima do esperado para a fase (0.70 contra 0.55). Confira se a data de plantio informada está certa."
    ],
    "nivel": "ok",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.645,
-    "ndmi": 0.101,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.699,
+    "ndmi": 0.176,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 17,
-   "fase_informada": "emergência",
-   "ndvi_esperado": 0.328,
-   "desvio_vs_esperado": 0.317,
-   "ndvi_mediana_pares": 0.61,
-   "zona_fraca_pct": 9.2,
+   "dap_na_imagem": 33,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.545,
+   "desvio_vs_esperado": 0.154,
+   "ndvi_mediana_pares": 0.676,
+   "zona_fraca_pct": 6.2,
    "serie": [
     {
      "data": "2026-08-08",
@@ -808,6 +853,11 @@
      "data": "2026-10-19",
      "ndvi": 0.645,
      "ndmi": 0.101
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.699,
+     "ndmi": 0.176
     }
    ]
   },
@@ -817,24 +867,23 @@
    "cultura": "soja",
    "plantio_informado": "2026-10-18",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI bem acima do esperado para a fase (0.56 contra 0.21). Confira se a data de plantio informada está certa.",
-    "Zona fraca em 15% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
+    "NDVI bem acima do esperado para a fase (0.62 contra 0.31). Confira se a data de plantio informada está certa.",
+    "Zona fraca em 16% do talhão (pixels bem abaixo da mediana do próprio talhão). Veja o mapa."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.563,
-    "ndmi": -0.03,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.617,
+    "ndmi": 0.04,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 1,
-   "fase_informada": "emergência",
-   "ndvi_esperado": 0.205,
-   "desvio_vs_esperado": 0.357,
-   "ndvi_mediana_pares": 0.511,
-   "zona_fraca_pct": 15.1,
+   "dap_na_imagem": 17,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.309,
+   "desvio_vs_esperado": 0.308,
+   "ndvi_mediana_pares": 0.582,
+   "zona_fraca_pct": 15.7,
    "serie": [
     {
      "data": "2026-08-08",
@@ -865,6 +914,11 @@
      "data": "2026-10-19",
      "ndvi": 0.563,
      "ndmi": -0.03
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.617,
+     "ndmi": 0.04
     }
    ]
   },
@@ -874,23 +928,23 @@
    "cultura": "soja",
    "plantio_informado": "2026-09-28",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI 0.27 abaixo da mediana dos talhões parecidos (0.57)."
+    "Vigor abaixo do esperado para vegetativo nas duas últimas imagens (NDVI 0.28 contra 0.60 esperado).",
+    "NDVI 0.28 abaixo da mediana dos talhões parecidos (0.62)."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.272,
-    "ndmi": -0.223,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.281,
+    "ndmi": -0.23,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 21,
+   "dap_na_imagem": 37,
    "fase_informada": "vegetativo",
-   "ndvi_esperado": 0.368,
-   "desvio_vs_esperado": -0.096,
-   "ndvi_mediana_pares": 0.565,
-   "zona_fraca_pct": 0.2,
+   "ndvi_esperado": 0.603,
+   "desvio_vs_esperado": -0.322,
+   "ndvi_mediana_pares": 0.62,
+   "zona_fraca_pct": 0.1,
    "serie": [
     {
      "data": "2026-08-08",
@@ -926,6 +980,11 @@
      "data": "2026-10-19",
      "ndvi": 0.272,
      "ndmi": -0.223
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.281,
+     "ndmi": -0.23
     }
    ]
   },
@@ -935,23 +994,22 @@
    "cultura": "milho",
    "plantio_informado": "2026-07-20",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "Vigor abaixo do esperado para enchimento de grãos nas duas últimas imagens (NDVI 0.25 contra 0.84 esperado).",
-    "NDVI 0.25 abaixo da mediana dos talhões parecidos (0.56)."
+    "Vigor abaixo do esperado para enchimento de grãos nas duas últimas imagens (NDVI 0.28 contra 0.71 esperado).",
+    "NDVI 0.28 abaixo da mediana dos talhões parecidos (0.61)."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.249,
-    "ndmi": -0.191,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.284,
+    "ndmi": -0.178,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 91,
+   "dap_na_imagem": 107,
    "fase_informada": "enchimento de grãos",
-   "ndvi_esperado": 0.836,
-   "desvio_vs_esperado": -0.587,
-   "ndvi_mediana_pares": 0.555,
+   "ndvi_esperado": 0.713,
+   "desvio_vs_esperado": -0.428,
+   "ndvi_mediana_pares": 0.606,
    "zona_fraca_pct": 0.0,
    "serie": [
     {
@@ -1008,6 +1066,11 @@
      "data": "2026-10-19",
      "ndvi": 0.249,
      "ndmi": -0.191
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.284,
+     "ndmi": -0.178
     }
    ]
   },
@@ -1017,23 +1080,22 @@
    "cultura": "soja",
    "plantio_informado": "2026-10-12",
    "alertas": [
-    "Última imagem útil há 27 dias (nuvens). Leitura desatualizada.",
-    "NDVI 0.28 abaixo da mediana dos talhões parecidos (0.56)."
+    "NDVI 0.28 abaixo da mediana dos talhões parecidos (0.62)."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
-    "data": "2026-10-19",
-    "dias_atras": 27,
-    "ndvi": 0.282,
-    "ndmi": -0.159,
+    "data": "2026-11-04",
+    "dias_atras": 13,
+    "ndvi": 0.278,
+    "ndmi": -0.173,
     "pct_valido": 1.0
    },
-   "dap_na_imagem": 7,
-   "fase_informada": "emergência",
-   "ndvi_esperado": 0.237,
-   "desvio_vs_esperado": 0.045,
-   "ndvi_mediana_pares": 0.563,
-   "zona_fraca_pct": 1.1,
+   "dap_na_imagem": 23,
+   "fase_informada": "vegetativo",
+   "ndvi_esperado": 0.397,
+   "desvio_vs_esperado": -0.12,
+   "ndvi_mediana_pares": 0.617,
+   "zona_fraca_pct": 0.7,
    "serie": [
     {
      "data": "2026-08-08",
@@ -1069,6 +1131,11 @@
      "data": "2026-10-19",
      "ndvi": 0.282,
      "ndmi": -0.159
+    },
+    {
+     "data": "2026-11-04",
+     "ndvi": 0.278,
+     "ndmi": -0.173
     }
    ]
   }
