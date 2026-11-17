@@ -1,5 +1,5 @@
 {
- "gerado_em": "2026-11-16",
+ "gerado_em": "2026-11-17",
  "fonte": "ECOSTRESS L4T ESI v002 (NASA/LP DAAC), 70 m",
  "limite_esi": 0.5,
  "talhoes": [
@@ -8,14 +8,14 @@
    "nome": "Talhão 01 [Exemplo]",
    "cultura": "Soja",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Sem sinal de estresse hídrico nessa imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.721,
     "pct_valido": 1.0
    },
@@ -25,10 +25,6 @@
     "esi": 0.82
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.808
-    },
     {
      "data": "2026-09-18",
      "esi": 0.82
@@ -44,14 +40,14 @@
    "nome": "Talhão 02 [Exemplo]",
    "cultura": "Soja precoce",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "38% do talhão abaixo de 0.50: veja a zona mais seca."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.695,
     "pct_valido": 1.0
    },
@@ -61,10 +57,6 @@
     "esi": 0.824
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.756
-    },
     {
      "data": "2026-09-18",
      "esi": 0.824
@@ -80,14 +72,14 @@
    "nome": "Talhão 03 [Exemplo]",
    "cultura": "Pastagem de braquiária",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Sem sinal de estresse hídrico nessa imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.783,
     "pct_valido": 1.0
    },
@@ -97,10 +89,6 @@
     "esi": 0.832
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.827
-    },
     {
      "data": "2026-09-18",
      "esi": 0.832
@@ -116,14 +104,14 @@
    "nome": "Talhão 4",
    "cultura": "Soja",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Sem sinal de estresse hídrico nessa imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.701,
     "pct_valido": 1.0
    },
@@ -133,10 +121,6 @@
     "esi": 0.835
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.819
-    },
     {
      "data": "2026-09-18",
      "esi": 0.835
@@ -152,7 +136,7 @@
    "nome": "Talhão 5",
    "cultura": "Milho",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Queda do ESI em relação à imagem de 18/09/2026 (0.82 para 0.63).",
     "42% do talhão abaixo de 0.50: veja a zona mais seca."
    ],
@@ -160,7 +144,7 @@
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.631,
     "pct_valido": 1.0
    },
@@ -170,10 +154,6 @@
     "esi": 0.822
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.79
-    },
     {
      "data": "2026-09-18",
      "esi": 0.822
@@ -189,14 +169,14 @@
    "nome": "Talhão 6",
    "cultura": "Soja",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Sem sinal de estresse hídrico nessa imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.759,
     "pct_valido": 1.0
    },
@@ -206,10 +186,6 @@
     "esi": 0.815
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.781
-    },
     {
      "data": "2026-09-18",
      "esi": 0.815
@@ -225,14 +201,14 @@
    "nome": "Talhão 7",
    "cultura": "Milho",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Índice ESI 0.41, abaixo de 0.50: nesse dia a planta transpirava bem menos do que o ar pedia, sinal de falta de água."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.413,
     "pct_valido": 1.0
    },
@@ -242,10 +218,6 @@
     "esi": 0.536
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.325
-    },
     {
      "data": "2026-09-18",
      "esi": 0.536
@@ -261,14 +233,14 @@
    "nome": "Talhão 8",
    "cultura": "Soja",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Sem sinal de estresse hídrico nessa imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.748,
     "pct_valido": 1.0
    },
@@ -278,10 +250,6 @@
     "esi": 0.781
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.799
-    },
     {
      "data": "2026-09-18",
      "esi": 0.781
@@ -297,14 +265,14 @@
    "nome": "Talhão 9",
    "cultura": "Pastagem de braquiária",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Sem sinal de estresse hídrico nessa imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.748,
     "pct_valido": 1.0
    },
@@ -314,10 +282,6 @@
     "esi": 0.827
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.803
-    },
     {
      "data": "2026-09-18",
      "esi": 0.827
@@ -333,7 +297,7 @@
    "nome": "Talhão 10",
    "cultura": "Soja",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Queda do ESI em relação à imagem de 18/09/2026 (0.82 para 0.61).",
     "37% do talhão abaixo de 0.50: veja a zona mais seca."
    ],
@@ -341,7 +305,7 @@
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.609,
     "pct_valido": 1.0
    },
@@ -351,10 +315,6 @@
     "esi": 0.818
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.827
-    },
     {
      "data": "2026-09-18",
      "esi": 0.818
@@ -370,14 +330,14 @@
    "nome": "Talhão 11",
    "cultura": "Milho",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Sem sinal de estresse hídrico nessa imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.786,
     "pct_valido": 1.0
    },
@@ -387,10 +347,6 @@
     "esi": 0.816
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.801
-    },
     {
      "data": "2026-09-18",
      "esi": 0.816
@@ -406,14 +362,14 @@
    "nome": "Talhão 12",
    "cultura": "Soja",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "42% do talhão abaixo de 0.50: veja a zona mais seca."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.689,
     "pct_valido": 1.0
    },
@@ -423,10 +379,6 @@
     "esi": 0.806
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.823
-    },
     {
      "data": "2026-09-18",
      "esi": 0.806
@@ -442,14 +394,14 @@
    "nome": "Talhão 13",
    "cultura": "Milho",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Sem sinal de estresse hídrico nessa imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.681,
     "pct_valido": 1.0
    },
@@ -459,10 +411,6 @@
     "esi": 0.66
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.804
-    },
     {
      "data": "2026-09-18",
      "esi": 0.66
@@ -478,14 +426,14 @@
    "nome": "Talhão 14",
    "cultura": "Soja",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "48% do talhão abaixo de 0.50: veja a zona mais seca."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.52,
     "pct_valido": 1.0
    },
@@ -495,10 +443,6 @@
     "esi": 0.523
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.744
-    },
     {
      "data": "2026-09-18",
      "esi": 0.523
@@ -514,14 +458,14 @@
    "nome": "Talhão 15",
    "cultura": "Milho",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Índice ESI 0.32, abaixo de 0.50: nesse dia a planta transpirava bem menos do que o ar pedia, sinal de falta de água."
    ],
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.319,
     "pct_valido": 1.0
    },
@@ -531,10 +475,6 @@
     "esi": 0.449
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.376
-    },
     {
      "data": "2026-09-18",
      "esi": 0.449
@@ -550,7 +490,7 @@
    "nome": "Talhão 16",
    "cultura": "Soja",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Índice ESI 0.48, abaixo de 0.50: nesse dia a planta transpirava bem menos do que o ar pedia, sinal de falta de água.",
     "Queda do ESI em relação à imagem de 18/09/2026 (0.81 para 0.48)."
    ],
@@ -558,7 +498,7 @@
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.478,
     "pct_valido": 1.0
    },
@@ -568,10 +508,6 @@
     "esi": 0.814
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.8
-    },
     {
      "data": "2026-09-18",
      "esi": 0.814
@@ -587,7 +523,7 @@
    "nome": "Talhão 17",
    "cultura": "Pastagem de braquiária",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Índice ESI 0.45, abaixo de 0.50: nesse dia a planta transpirava bem menos do que o ar pedia, sinal de falta de água.",
     "Queda do ESI em relação à imagem de 18/09/2026 (0.81 para 0.45)."
    ],
@@ -595,7 +531,7 @@
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.448,
     "pct_valido": 1.0
    },
@@ -605,10 +541,6 @@
     "esi": 0.809
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.78
-    },
     {
      "data": "2026-09-18",
      "esi": 0.809
@@ -624,7 +556,7 @@
    "nome": "Talhão 18",
    "cultura": "Soja",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Queda do ESI em relação à imagem de 18/09/2026 (0.77 para 0.61).",
     "44% do talhão abaixo de 0.50: veja a zona mais seca."
    ],
@@ -632,7 +564,7 @@
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.612,
     "pct_valido": 1.0
    },
@@ -642,10 +574,6 @@
     "esi": 0.772
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.768
-    },
     {
      "data": "2026-09-18",
      "esi": 0.772
@@ -661,7 +589,7 @@
    "nome": "Talhão 19",
    "cultura": "Milho",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Índice ESI 0.26, abaixo de 0.50: nesse dia a planta transpirava bem menos do que o ar pedia, sinal de falta de água.",
     "Queda do ESI em relação à imagem de 18/09/2026 (0.83 para 0.26)."
    ],
@@ -669,7 +597,7 @@
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.262,
     "pct_valido": 1.0
    },
@@ -679,10 +607,6 @@
     "esi": 0.834
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.839
-    },
     {
      "data": "2026-09-18",
      "esi": 0.834
@@ -698,14 +622,14 @@
    "nome": "Talhão 20",
    "cultura": "Soja",
    "alertas": [
-    "Imagem de 30/09/2026, às 08:03, há 47 dia(s). O que vale é o dia da imagem, não o de hoje.",
+    "Imagem de 30/09/2026, às 08:03, há 48 dia(s). O que vale é o dia da imagem, não o de hoje.",
     "Sem sinal de estresse hídrico nessa imagem."
    ],
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-09-30",
     "hora_local": "08:03",
-    "dias_atras": 47,
+    "dias_atras": 48,
     "esi": 0.808,
     "pct_valido": 1.0
    },
@@ -715,10 +639,6 @@
     "esi": 0.735
    },
    "serie": [
-    {
-     "data": "2026-09-02",
-     "esi": 0.838
-    },
     {
      "data": "2026-09-18",
      "esi": 0.735
