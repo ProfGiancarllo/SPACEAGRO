@@ -1,5 +1,5 @@
 {
- "gerado_em": "2026-11-21",
+ "gerado_em": "2026-11-23",
  "fonte": "Landsat 8/9 Collection 2 Nível-2 (NASA/USGS) via Microsoft Planetary Computer",
  "aviso": "Alerta de triagem; não é diagnóstico. Curva esperada aproximada.",
  "talhoes": [
@@ -14,7 +14,7 @@
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.582,
     "ndmi": 0.011,
     "pct_valido": 1.0
@@ -26,11 +26,6 @@
    "ndvi_mediana_pares": 0.62,
    "zona_fraca_pct": 2.9,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.321,
-     "ndmi": -0.215
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.306,
@@ -74,7 +69,7 @@
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.623,
     "ndmi": 0.054,
     "pct_valido": 1.0
@@ -86,11 +81,6 @@
    "ndvi_mediana_pares": 0.489,
    "zona_fraca_pct": 2.0,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.348,
-     "ndmi": -0.219
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.331,
@@ -139,7 +129,7 @@
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.67,
     "ndmi": 0.108,
     "pct_valido": 1.0
@@ -151,11 +141,6 @@
    "ndvi_mediana_pares": 0.582,
    "zona_fraca_pct": 2.0,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.35,
-     "ndmi": -0.128
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.329,
@@ -199,7 +184,7 @@
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.606,
     "ndmi": 0.023,
     "pct_valido": 1.0
@@ -284,7 +269,7 @@
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.65,
     "ndmi": 0.075,
     "pct_valido": 1.0
@@ -296,11 +281,6 @@
    "ndvi_mediana_pares": 0.6,
    "zona_fraca_pct": 1.9,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.33,
-     "ndmi": -0.216
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.317,
@@ -344,7 +324,7 @@
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.676,
     "ndmi": 0.112,
     "pct_valido": 1.0
@@ -356,11 +336,6 @@
    "ndvi_mediana_pares": 0.699,
    "zona_fraca_pct": 5.8,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.358,
-     "ndmi": -0.129
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.343,
@@ -405,7 +380,7 @@
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.625,
     "ndmi": 0.058,
     "pct_valido": 1.0
@@ -417,11 +392,6 @@
    "ndvi_mediana_pares": 0.582,
    "zona_fraca_pct": 26.8,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.34,
-     "ndmi": -0.168
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.322,
@@ -465,7 +435,7 @@
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.489,
     "ndmi": -0.049,
     "pct_valido": 1.0
@@ -477,11 +447,6 @@
    "ndvi_mediana_pares": 0.62,
    "zona_fraca_pct": 6.6,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.34,
-     "ndmi": -0.144
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.317,
@@ -525,7 +490,7 @@
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.721,
     "ndmi": 0.152,
     "pct_valido": 1.0
@@ -606,7 +571,7 @@
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.625,
     "ndmi": 0.067,
     "pct_valido": 1.0
@@ -618,11 +583,6 @@
    "ndvi_mediana_pares": 0.582,
    "zona_fraca_pct": 34.1,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.297,
-     "ndmi": -0.209
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.284,
@@ -667,7 +627,7 @@
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.466,
     "ndmi": -0.072,
     "pct_valido": 1.0
@@ -752,7 +712,7 @@
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.383,
     "ndmi": -0.143,
     "pct_valido": 1.0
@@ -764,11 +724,6 @@
    "ndvi_mediana_pares": 0.62,
    "zona_fraca_pct": 1.0,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.334,
-     "ndmi": -0.134
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.315,
@@ -812,7 +767,7 @@
    "nivel": "ok",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.699,
     "ndmi": 0.176,
     "pct_valido": 1.0
@@ -824,11 +779,6 @@
    "ndvi_mediana_pares": 0.676,
    "zona_fraca_pct": 6.2,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.352,
-     "ndmi": -0.16
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.33,
@@ -873,7 +823,7 @@
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.617,
     "ndmi": 0.04,
     "pct_valido": 1.0
@@ -885,11 +835,6 @@
    "ndvi_mediana_pares": 0.582,
    "zona_fraca_pct": 15.7,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.36,
-     "ndmi": -0.191
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.339,
@@ -934,7 +879,7 @@
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.281,
     "ndmi": -0.23,
     "pct_valido": 1.0
@@ -946,11 +891,6 @@
    "ndvi_mediana_pares": 0.62,
    "zona_fraca_pct": 0.1,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.436,
-     "ndmi": -0.101
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.366,
@@ -1000,7 +940,7 @@
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.284,
     "ndmi": -0.178,
     "pct_valido": 1.0
@@ -1085,7 +1025,7 @@
    "nivel": "atencao",
    "ultima_imagem": {
     "data": "2026-11-04",
-    "dias_atras": 17,
+    "dias_atras": 19,
     "ndvi": 0.278,
     "ndmi": -0.173,
     "pct_valido": 1.0
@@ -1097,11 +1037,6 @@
    "ndvi_mediana_pares": 0.617,
    "zona_fraca_pct": 0.7,
    "serie": [
-    {
-     "data": "2026-08-08",
-     "ndvi": 0.304,
-     "ndmi": -0.114
-    },
     {
      "data": "2026-08-16",
      "ndvi": 0.265,
